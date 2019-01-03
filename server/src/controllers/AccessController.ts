@@ -55,7 +55,3 @@ router.post('/token', (req: Request, res: Response) => {
 });
 
 export const AccessController: Router = router;
-
-    
-
-
