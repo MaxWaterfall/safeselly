@@ -1,1 +1,2 @@
-export * from './testController';
+export * from './TestController';
+export * from './AccessController';
