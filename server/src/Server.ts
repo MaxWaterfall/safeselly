@@ -1,12 +1,12 @@
-import express from 'express';
-import { AccessController, TestController } from './controllers';
-import { Database } from './helper/Database';
+import express from "express";
+import { AccessController, TestController } from "./controllers";
+import { Database } from "./helper/Database";
 
 export let db = new Database({
     host: "localhost",
     user: "max",
     password: "password",
-    database: "SafeSelly"
+    database: "SafeSelly",
 });
 
 // Create new express application instance.
@@ -16,11 +16,12 @@ app.use(express.json());
 app.use("/access", AccessController);
 
 db.connect().then(() => {
-    console.log("Connected to DB.");
+    //TODO: Log.
     app.listen(port, () => {
         // Success.
-        console.log(`Server listening on port ${port}.`);
+        //TODO: Log.
     });
-}).catch(err => {
+}).catch((err) => {
+    //TODO: Log.
     console.log("Connection to DB failed.");
 });

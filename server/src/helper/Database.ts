@@ -22,7 +22,7 @@ export class Database {
 
     public end() {
         return new Promise((resolve, reject) => {
-            this.db.end((err => {
+            this.db.end(((err) => {
                 if (err) {
                     return reject(err);
                 }

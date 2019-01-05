@@ -1,6 +1,6 @@
 import {Request, Response, Router} from "express";
 import {HttpRequestError} from "./../helper/HttpRequestError";
-import {AccessService} from "./../services/accessService";
+import * as AccessService from "./../services/AccessService";
 
 // Assign our router to the express router instance.
 const router: Router = Router();
@@ -75,7 +75,7 @@ router.post("/token", (req: Request, res: Response) => {
         });
 });
 
-// Checks if the body is undefined then sends the correct respone if so.
+// Checks if the body is undefined then sends the correct response if so.
 function isBodyValid(req: Request, res: Response): boolean {
     if (req.body === undefined) {
         res.status(400);
