@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "tslint -c tslint.json 'src/**/*.ts'",
     "build": "tsc",
     "start": "node build/Server.js",
     "build-start": "npm run build && npm run start"
@@ -19,6 +20,7 @@
     "typescript": "^3.2.2"
   },
   "devDependencies": {
-    "@types/mysql": "^2.15.5"
+    "@types/mysql": "^2.15.5",
+    "tslint": "^5.12.0"
   }
 }
