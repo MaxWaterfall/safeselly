@@ -13,7 +13,7 @@ export class Database {
         return new Promise((resolve, reject) => {
             this.db.connect((err) => {
                 if (err) {
-                    reject(err);
+                    return reject(err);
                 }
                 resolve();
             });
@@ -24,18 +24,18 @@ export class Database {
         return new Promise((resolve, reject) => {
             this.db.end((err => {
                 if (err) {
-                    reject(err);
+                    return reject(err);
                 }
                 resolve();
             }));
         });
     }
 
-    public query(sql: string, options: string | mysql.QueryOptions) {
+    public query(sql: string, options: any) {
         return new Promise((resolve, reject) => {
             this.db.query(sql, options, (err, result) => {
                 if (err) {
-                    reject(err);
+                    return reject(err);
                 }
                 resolve(result);
             });

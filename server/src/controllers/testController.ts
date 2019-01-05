@@ -3,7 +3,7 @@ import {Router, Request, Response} from 'express';
 // Assign our router to the express router instance.
 const router: Router = Router();
 
-router.get('/', (req: Request, res: Response) => {
+router.get('/', (res: Response) => {
     res.send('Hello World!');
 });
 

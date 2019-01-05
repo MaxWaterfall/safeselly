@@ -1,88 +1,114 @@
-import { ReturnValue } from "../helper/ReturnValue";
+import {AccessRepository} from "../repositories/AccessRepository";
+import {HttpRequestError} from "../helper/HttpRequestError";
 
 export module AccessService {
 
     const expiryTime = 60000; // 1 minute.
-    const deviceIdLength = 32;
+    const deviceTokenLength = 32;
     const accessTokenLength = 32;
+    const verificationTokenLength = 32;
     const chars = "123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     // A list of devices which have not yet been added to the database as they are waiting for email verification.
     let tempDeviceList: Map<string, string> = new Map();
 
     // Generate a 32 character long device id and add it to the list, requires valid username.
-    export function getDeviceId(username: string) : ReturnValue<string> {
-        //TODO: Check username is valid.
-        if (username == undefined) {
-            return {
-                error: true,
-                errorMessage: "Username is not valid."
-            }
-        }
-        //TODO: Check username doesn't already have valid id.
-
-        // Generate id.
-        let generatedId = "";
-        for (let i = 0; i < deviceIdLength; i++) {
-            generatedId += chars.charAt(Math.floor(Math.random() * chars.length));
+    export async function getDeviceToken(username: string) : Promise<string> {
+        if (username == undefined) 
+            throw new HttpRequestError(400, "Username is not valid.");
+        
+        // Generate token.
+        let deviceToken = "";
+        for (let i = 0; i < deviceTokenLength; i++) {
+            deviceToken += chars.charAt(Math.floor(Math.random() * chars.length));
         }
 
-        // Add id to map.
-        tempDeviceList.set(username, generatedId);
+        // Add token to map.
+        if (tempDeviceList.has(username)) {
+            tempDeviceList.delete(username);
+        }
+        tempDeviceList.set(username, deviceToken);
         
         // Remove this id from the map after the timeout.
         setTimeout(() => {
             tempDeviceList.delete(username);
         }, expiryTime);
      
-        return {
-            error: false,
-            value: generatedId
-        };
+        return deviceToken;
     }
 
     // Sends an email to the provided username.
-    export function sendVerificationEmail(username: string, deviceId: string): ReturnValue<string> {
+    export async function sendVerificationEmail(username: string, deviceToken: string): Promise<string> {
+
         // Check the username is valid.
-        if (!tempDeviceList.has(username)) {
-            return {
-                error: true,
-                errorMessage: `Username ${username} does not have a valid deviceId.`
-            };
-        }
-
+        if (!tempDeviceList.has(username)) 
+            throw new HttpRequestError(400, `Username ${username} does not have a valid device token.`);
+        
         // Check device id is valid.
-        if (tempDeviceList.get(username) !== deviceId) {
-            return {
-                error: true,
-                errorMessage: `Device id ${deviceId} is not valid for username ${username}.`
-            };
-        }
+        if (tempDeviceList.get(username) !== deviceToken) 
+            throw new HttpRequestError(400, `Device token ${deviceToken} is not valid for username ${username}.`);
 
+        // Generate verification token (token that will be in the link sent to the user).
+        let verificationToken = "";
+        for (let i = 0; i < verificationTokenLength; i++) {
+            verificationToken += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        
         //TODO: Check last email has not been sent within x mintues.
+        // Add user to DB (if they don't already exist).
+        try {
+            let userExists = await AccessRepository.doesUserExist(username);
+            if (userExists) {
+                // Add device only.
+                await AccessRepository.addDevice(username, deviceToken, verificationToken);
+            } else {
+                // Add device and user.
+                await AccessRepository.addUser(username);
+                await AccessRepository.addDevice(username, deviceToken, verificationToken);
+            }
+        } catch (err) {
+            throw err;
+        }
+       
         //TODO: Send the email.
     
-        return {
-            error: false,
-            value: `Sent verification email to ${username}@bham.ac.uk.`
-        };
+        return `Sent verification email to ${username}@bham.ac.uk.`;
     }
 
-    // Returns an access token if the user has validated their email for this device id.
-    export function getAccessToken(username: string, deviceId: string): ReturnValue<string> {
-        //TODO: Check the username has been validated (via email) for this device id.
+    // Validates a user by checking the token in the link they were emailed.
+    export async function verifyDevice(verificationToken: string) {
+        try {
+            await AccessRepository.verifyDevice(verificationToken);
+        } catch (err) {
+            throw err;
+        }
+     }
 
-        // Generate the access token.
-        let generatedToken = "";
-        for (let i = 0; i < accessTokenLength; i++) {
-            generatedToken += chars.charAt(Math.floor(Math.random() * chars.length));
+    // Returns an access token if the user has validated their email for this device id.
+    export async function getAccessToken(username: string, deviceToken: string): Promise<string> {
+        // Check user has been validated.
+        try {
+            let deviceVerified = await AccessRepository.isDeviceVerified(username, deviceToken);
+            if (!deviceVerified) {
+                throw new HttpRequestError(400, "Device has not been verified.");
+            }
+        } catch (err) {
+            throw (err);
         }
 
-        //TODO: Add access token to database.
-        
-        return {
-            error: false,
-            value: generatedToken
-        };
+        // Generate the access token.
+        let accessToken = "";
+        for (let i = 0; i < accessTokenLength; i++) {
+            accessToken += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+
+        // Add token to database.
+        try {
+            await AccessRepository.addAccessToken(username, deviceToken, accessToken);
+        } catch (err) {
+            throw err;
+        }
+    
+        return accessToken;
     }
 }

@@ -1,34 +1,26 @@
 import express from 'express';
-import { AccessController } from './controllers';
-import mysql, { MysqlError } from 'mysql';
+import { AccessController, TestController } from './controllers';
+import { Database } from './helper/Database';
 
-// Set up DB connection.
-let con = mysql.createConnection({
+export let db = new Database({
     host: "localhost",
     user: "max",
-    password: "password"
-});
-
-con.connect((err: MysqlError) => {
-    if (err) {
-        throw err;
-    }
-    console.log("Connected to DB.");
-});
-
-con.end(() => {
-    console.log("Connection to DB closed.");
+    password: "password",
+    database: "SafeSelly"
 });
 
 // Create new express application instance.
 const app: express.Application = express();
 const port: number = 3000;
-
 app.use(express.json());
-app.use('/access', AccessController);
+app.use("/access", AccessController);
 
-app.listen(port, () => {
-    // Success.
+db.connect().then(() => {
+    console.log("Connected to DB.");
+    app.listen(port, () => {
+        // Success.
+        console.log(`Server listening on port ${port}.`);
+    });
+}).catch(err => {
+    console.log("Connection to DB failed.");
 });
-
-
