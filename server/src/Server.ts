@@ -1,6 +1,7 @@
 import express from "express";
 import { AccessController } from "./controllers";
 import { Database } from "./helper/Database";
+import * as log from "./helper/Logger";
 
 export let db = new Database({
     database: "SafeSelly",
@@ -16,12 +17,11 @@ app.use(express.json());
 app.use("/access", AccessController);
 
 db.connect().then(() => {
-    // TODO: Log.
+    log.info("Connected to database.");
+
     app.listen(port, () => {
-        // Success.
-        // TODO: Log.
+        log.info(`Server started listening on port ${port}.`);
     });
 }).catch((err) => {
-    // TODO: Log.
-
+    log.error(`Failed to connect to the database. ${err}`);
 });

@@ -72,7 +72,6 @@ export async function sendVerificationEmail(username: string, deviceToken: strin
     }
 
     // TODO: Send the email.
-
     return `Sent verification email to ${username}@bham.ac.uk.`;
 }
 

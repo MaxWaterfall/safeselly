@@ -1,5 +1,6 @@
 import {HttpRequestError} from "./../helper/HttpRequestError";
 import {db} from "./../Server";
+import * as log from "../helper/Logger";
 
 const doesUserExistSql = "SELECT COUNT(UserId) FROM User WHERE Username = ?";
 const addUserSql = "INSERT INTO User (Username) VALUES (?)";
@@ -26,6 +27,10 @@ const addAccessTokenSql = `
 `;
 const verifyDeviceSql = "UPDATE Device SET Verified = true WHERE VerificationToken = ?";
 
+function logError(err: any) {
+    log.error(`Database error: ${err}`)
+}
+
 export async function doesUserExist(username: string): Promise<boolean> {
     try {
         const result = await db.query(doesUserExistSql, [username]) as any[];
@@ -34,7 +39,7 @@ export async function doesUserExist(username: string): Promise<boolean> {
         }
         return false;
     } catch (err) {
-        // TODO: log error.
+        logError(err);
         throw new HttpRequestError(500, err);
     }
 }
@@ -43,7 +48,7 @@ export async function addUser(username: string) {
     try {
         await db.query(addUserSql, [username]);
     } catch (err) {
-        // TODO: log error.
+        logError(err);
         throw new HttpRequestError(500, err);
     }
 }
@@ -52,7 +57,7 @@ export async function addDevice(username: string, deviceToken: string, verificat
     try {
         await db.query(addDeviceSql, [username, deviceToken, verificationToken]);
     } catch (err) {
-        // TODO: log error.
+        logError(err);
         throw new HttpRequestError(500, err);
     }
 }
@@ -61,7 +66,7 @@ export async function addAccessToken(username: string, deviceToken: string, acce
     try {
         await db.query(addAccessTokenSql, [accessToken, deviceToken, username]);
     } catch (err) {
-        // TODO: log error.
+        logError(err);
         throw new HttpRequestError(500, err);
     }
 }
@@ -70,7 +75,7 @@ export async function verifyDevice(verificationToken: string) {
     try {
         await db.query(verifyDeviceSql, [verificationToken]);
     } catch (err) {
-        // TODO: log err.
+        logError(err);
         throw new HttpRequestError(500, err);
     }
 }
@@ -83,7 +88,7 @@ export async function isDeviceVerified(username: string, deviceToken: string) {
         }
         return false;
     } catch (err) {
-        // TODO: log err.
+        logError(err);
         throw new HttpRequestError(500, err);
     }
 }
