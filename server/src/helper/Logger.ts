@@ -105,3 +105,7 @@ export function silly(logMessage: string) {
         message: logMessage,
     });
 }
+
+export function databaseError(err: string) {
+    error("Database error: " + err);
+}
