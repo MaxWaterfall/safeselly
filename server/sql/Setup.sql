@@ -19,3 +19,18 @@ CREATE TABLE Device (
 	PRIMARY KEY (DeviceId),
     FOREIGN KEY (UserId) REFERENCES User(UserId)
 );
+
+CREATE TABLE Warning (
+	WarningId int AUTO_INCREMENT,
+	UserId int NOT NULL,
+	WarningDateTime DATETIME NOT NULL,
+	PeopleDescription TEXT,
+	WarningDescription TEXT NOT NULL,
+	Latitude DOUBLE NOT NULL,
+	Longitude DOUBLE NOT NULL,
+	Upvotes int,
+	Downvotes int,
+	
+	PRIMARY KEY(WarningId),
+	FOREIGN KEY(UserId) REFERENCES User(UserId)
+)
