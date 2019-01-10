@@ -1,4 +1,5 @@
 import {Alert} from "react-native";
+import {UserCredentials, getUserCredentials} from "./UserCredentials";
 
 const requestURL = "http://10.0.2.2:3000";
 
@@ -6,16 +7,23 @@ const requestURL = "http://10.0.2.2:3000";
  * This function is a wrapper around fetch that handles errors and differently formatted responses.
  * @param method Http method. Eg. GET, POST.
  * @param path The path in the url. Eg. "/users".
+ * @param authentication Whether this requires authentication.
  * @param body The body of the request that will be sent, as a JSON object.
  */
-export async function makeRequest(method: string, path: string, body: {}) {
+export async function makeRequest(method: string, path: string, authentication: boolean, body: {}) {
     try {
+        let reqBody = body;
+        if (authentication) {
+            let credentials: UserCredentials = await getUserCredentials();
+            // Combine the body provided with the user credentials.
+            reqBody = {...reqBody, ...credentials};
+        }
         let response = await fetch(requestURL + path, {
             method: method,
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(body),
+            body: JSON.stringify(reqBody),
         });
 
         let responseBody;

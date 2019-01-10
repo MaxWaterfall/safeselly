@@ -1,8 +1,9 @@
 import { Component } from "react";
 import React from "react";
-import {makeRequest, handleNetworkError} from "./../../helper/Network";
+import {makeRequest, handleNetworkError} from "../../helper/Network";
 import { EnterUsername, WaitForConfirmation } from "./StatelessComponents";
-import { ActivityIndicator, View, StyleSheet, BackHandler } from "react-native";
+import { ActivityIndicator, View, BackHandler } from "react-native";
+import {UserCredentials} from "./../../helper/UserCredentials";
 
 export enum State {
     ENTER_USERNAME,
@@ -11,7 +12,8 @@ export enum State {
 }
 
 interface IProps {
-    registrationComplete(username: string, deviceToken: string, accessToken: string): void,
+    registrationComplete(credentials: UserCredentials): void,
+    styles: any,
 }
 interface IState {
     myState: State;
@@ -79,7 +81,7 @@ class Register extends Component<IProps, IState> {
 
     private async getDeviceToken() {
         try {
-            let response = await makeRequest("POST", "/access/device", {
+            let response = await makeRequest("POST", "/access/device", false, {
                 username: this.state.username,
             });
             this.deviceToken = response.device_token;
@@ -90,7 +92,7 @@ class Register extends Component<IProps, IState> {
 
     private async sendConfirmationEmail() {
         try {
-            await makeRequest("POST", "/access/email", {
+            await makeRequest("POST", "/access/email", false, {
                 username: this.state.username,
                 device_token: this.deviceToken,
             });
@@ -102,14 +104,19 @@ class Register extends Component<IProps, IState> {
     private async getAccessToken() {
         this.changeState(State.LOADING);
         try {
-            let response = await makeRequest("POST", "/access/token", {
+            let response = await makeRequest("POST", "/access/token", false, {
                 username: this.state.username,
                 device_token: this.deviceToken,
             });
             console.log("TOKEN: " + response.access_token);
             console.log("RESPONSE: " + JSON.stringify(response));
             this.accessToken = response.access_token;
-            this.props.registrationComplete(this.state.username, this.deviceToken, this.accessToken);
+            this.changeState(State.ENTER_USERNAME); // Reset state incase we need to register again.
+            this.props.registrationComplete({
+                username: this.state.username,
+                deviceToken: this.deviceToken,
+                accessToken: this.accessToken,
+            });
         } catch (err) {
             handleNetworkError(err);
             this.changeState(State.WAIT_FOR_CONFIRMATION);
@@ -139,7 +146,7 @@ class Register extends Component<IProps, IState> {
                 updateUsername={(username) => this.updateUsername(username)}
                 startRegistration={() => this.startRegistration()}
                 shouldDisable={() => this.shouldDisable()}
-                styles={styles}
+                styles={this.props.styles}
             />
         } else if (this.state.myState === State.WAIT_FOR_CONFIRMATION) {
             return <WaitForConfirmation
@@ -147,45 +154,17 @@ class Register extends Component<IProps, IState> {
                 confirmRegistration={() => this.getAccessToken()}
                 goBack={() => this.changeState(State.ENTER_USERNAME)}
                 shouldDisable={() => this.shouldDisable()}
-                styles={styles}
+                styles={this.props.styles}
             />
         }
+
+        // myState === State.LOADING
         return (
-            <View style={styles.container}>
+            <View style={this.props.styles.container}>
                 <ActivityIndicator size="large" color="#0000ff" />
             </View>
         );
     }
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "white",
-    },
-    title: {
-        fontSize: 20,
-        textAlign: "center",
-        margin: 10,
-        color: "black",
-        marginBottom: 10,
-    },
-    instructions: {
-        textAlign: "center",
-        color: "#333333",
-        marginBottom: 10,
-    },
-    textInput: {
-        borderColor: "black",
-        borderWidth: 1,
-        minWidth: 200,
-        maxWidth: 200,
-        marginBottom: 10,
-        height: 40,
-        textAlign: "center",
-    }
-});
 
 export default Register;
