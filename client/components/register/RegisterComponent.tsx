@@ -33,15 +33,15 @@ class Register extends Component<IProps, IState> {
         BackHandler.addEventListener("hardwareBackPress", () => this.handleBackPress());
     }
 
-    // This function handles when the user clicks the back button.
+    /**
+     * Handles when the user clicks the back button.
+     */
     private handleBackPress() {
         if (this.state.myState === State.ENTER_USERNAME) {
             //TODO: Ask user if they wish to quit application.
             return false;
         } else if (this.state.myState === State.WAIT_FOR_CONFIRMATION) {
-            this.setState({
-                myState: State.ENTER_USERNAME,
-            });
+            this.changeState(State.ENTER_USERNAME);
             return true;
         }
 
@@ -60,24 +60,20 @@ class Register extends Component<IProps, IState> {
         });
     }
 
-    // Starts the registration process, requesting a device token and confirmation email.
+    /**
+     * Starts the registration process, requesting a device token and confirmation email.
+     */
     private async startRegistration() {
-        this.setState({
-            myState: State.LOADING,
-        });
+        this.changeState(State.LOADING);
         try {
             await this.getDeviceToken();
             await this.sendConfirmationEmail();
 
             // Confirmation email has been sent.
-            this.setState({
-                myState: State.WAIT_FOR_CONFIRMATION,
-            });
+            this.changeState(State.WAIT_FOR_CONFIRMATION);
         } catch (err) {
             handleNetworkError(err);
-            this.setState({
-                myState: State.ENTER_USERNAME,
-            });
+            this.changeState(State.ENTER_USERNAME);
         }
     }
 
@@ -104,9 +100,7 @@ class Register extends Component<IProps, IState> {
     }
 
     private async getAccessToken() {
-        this.setState({
-            myState: State.LOADING,
-        })
+        this.changeState(State.LOADING);
         try {
             let response = await makeRequest("POST", "/access/token", {
                 username: this.state.username,
@@ -118,19 +112,23 @@ class Register extends Component<IProps, IState> {
             this.props.registrationComplete(this.state.username, this.deviceToken, this.accessToken);
         } catch (err) {
             handleNetworkError(err);
-            this.setState({
-                myState: State.WAIT_FOR_CONFIRMATION,
-            });
+            this.changeState(State.WAIT_FOR_CONFIRMATION);
         }
     }
-
+    /**
+     * Whether a component should be disabled or not.
+     */
     private shouldDisable(): boolean {
         return this.state.myState === State.LOADING;        
     }
 
-    private enterUsername() {
+    /**
+     * Changes this components current state.
+     * @param newState 
+     */
+    private changeState(newState: State) {
         this.setState({
-            myState: State.ENTER_USERNAME,
+            myState: newState,
         })
     }
 
@@ -147,7 +145,7 @@ class Register extends Component<IProps, IState> {
             return <WaitForConfirmation
                 username={this.state.username}
                 confirmRegistration={() => this.getAccessToken()}
-                goBack={() => this.enterUsername()}
+                goBack={() => this.changeState(State.ENTER_USERNAME)}
                 shouldDisable={() => this.shouldDisable()}
                 styles={styles}
             />
