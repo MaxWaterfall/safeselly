@@ -1,9 +1,14 @@
 import { Component } from "react";
 import React from "react";
-import {makeRequest, handleNetworkError} from "../../helper/Network";
+import { makeRequest, handleNetworkError } from "../../helper/Network";
 import { EnterUsername, WaitForConfirmation } from "./StatelessComponents";
 import { ActivityIndicator, View, BackHandler } from "react-native";
-import {UserCredentials} from "./../../helper/UserCredentials";
+import { UserCredentials } from "./../../helper/UserCredentials";
+import { SaveableComponent}  from "./../../helper/SavableComponent";
+import { saveComponentState, loadComponentState } from "./../../helper/Storage";
+import { setUserCredentials, getUserCredentials } from "./../../helper/UserCredentials";
+//@ts-ignore - library does not have any type definitions.
+import * as jc from "json-cycle";
 
 export enum State {
     ENTER_USERNAME,
@@ -13,26 +18,78 @@ export enum State {
 
 interface IProps {
     registrationComplete(credentials: UserCredentials): void,
+    initialState?: any,
     styles: any,
 }
 interface IState {
     myState: State;
+    // Username needs to be in state as UI components use it.
     username: string;
 }
 /**
  * Component is used to register a user. 
 */
-class Register extends Component<IProps, IState> {
-    private deviceToken = "";
-    private accessToken = "";
+class Register extends Component<IProps, IState> implements SaveableComponent { 
+    private deviceToken = "not set";
+    private accessToken = "not set";
 
     constructor(props: IProps) {
         super(props);
+
         this.state = {
             myState: State.ENTER_USERNAME,
-            username: "", // Username needs to be in state because a UI component uses it.
+            username: "",
         }
+
+        // Load a previous state if one exists.
+        this.loadState();
+
+        // Set up listener to detect when the back button has been pressed.
         BackHandler.addEventListener("hardwareBackPress", () => this.handleBackPress());
+    }
+
+    public saveState() {
+        setUserCredentials({
+            username: this.state.username,
+            deviceToken: this.deviceToken,
+            accessToken: this.accessToken
+        })
+            .catch((err) =>{
+                console.error(err);
+            });
+            
+        // Clone this.state.
+        let saveableState = JSON.parse(jc.stringify(this.state));
+        // Do not save username, this is stored in secure storage instead.
+        // username is a read only property (out of my control), below code is an unfortunate 'hack' that can be used to delete it.
+        delete (saveableState as any).username;
+        saveComponentState("register", saveableState)
+            .catch((err) => {
+                console.error(err);
+            });
+    }
+
+    public initialLoadState() {
+        getUserCredentials()
+            .then((credentials) => {
+                this.setState({username: credentials.username})
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+        loadComponentState("register")
+            .then((state) => {
+                this.setState({
+                    myState: state.myState,
+                });
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    }
+
+    public loadState() {
+        this.initialLoadState();
     }
 
     /**
@@ -43,7 +100,7 @@ class Register extends Component<IProps, IState> {
             //TODO: Ask user if they wish to quit application.
             return false;
         } else if (this.state.myState === State.WAIT_FOR_CONFIRMATION) {
-            this.changeState(State.ENTER_USERNAME);
+            //this.changeState(State.ENTER_USERNAME);
             return true;
         }
 
@@ -108,8 +165,6 @@ class Register extends Component<IProps, IState> {
                 username: this.state.username,
                 device_token: this.deviceToken,
             });
-            console.log("TOKEN: " + response.access_token);
-            console.log("RESPONSE: " + JSON.stringify(response));
             this.accessToken = response.access_token;
             this.changeState(State.ENTER_USERNAME); // Reset state incase we need to register again.
             this.props.registrationComplete({
@@ -130,7 +185,7 @@ class Register extends Component<IProps, IState> {
     }
 
     /**
-     * Changes this components current state.
+     * Changes this components current state (myState).
      * @param newState 
      */
     private changeState(newState: State) {
