@@ -13,7 +13,7 @@ export default class Main extends Component {
     }
 
     public render() {
-        return <ViewWarning/>
+        return <AppContainer/>
     }
 }
 

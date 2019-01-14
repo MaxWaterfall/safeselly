@@ -26,24 +26,23 @@ export default class ViewWarning extends Component<{}, IState> {
             }
         }
 
-        this.onRegionChange.bind(this);
+        this.onRegionChangeComplete.bind(this);
     }
 
     public render() {
         return (
             <View style={styles.container}>
-            <MapView
-                provider={PROVIDER_GOOGLE}
-                style={styles.map}
-                region={this.state.region}
-                onRegionChange={this.onRegionChange}
-            >
-            </MapView>
+                <MapView
+                    provider={PROVIDER_GOOGLE}
+                    style={styles.map}
+                    region={this.state.region}
+                    onRegionChangeComplete={this.onRegionChangeComplete}
+                />
           </View>
         );
     }
 
-    private onRegionChange = (region: Region) => {
+    private onRegionChangeComplete = (region: Region) => {
         console.log("called");
         console.log(region);
         this.setState({region: region});
