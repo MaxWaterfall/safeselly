@@ -137,6 +137,13 @@ android {
 }
 
 dependencies {
+    implementation(project(':react-native-maps')){
+        exclude group: 'com.google.android.gms', module: 'play-services-base'
+        exclude group: 'com.google.android.gms', module: 'play-services-maps'
+    }
+    implementation 'com.google.android.gms:play-services-base:12.0.0'
+    implementation 'com.google.android.gms:play-services-maps:12.0.0'
+    compile project(':react-native-gesture-handler')
     compile project(':react-native-keychain')
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"

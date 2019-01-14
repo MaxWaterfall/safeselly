@@ -1,9 +1,10 @@
 import React, {Component} from "react";
-import {AppState, Text, View, ActivityIndicator, StyleSheet, AppStateStatus, AsyncStorage} from "react-native";
-import Register  from "./components/register/Register";
-import {UserCredentials, setUserCredentials} from "./helper/UserCredentials";
-import { saveComponentState, loadComponentState } from "./helper/Storage";
-import { SaveableComponent } from "./helper/SavableComponent";
+import {AppState, StyleSheet, AppStateStatus, View, ActivityIndicator} from "react-native";
+import Register  from "./cross_platform/components/register/Register";
+import { setUserCredentials, UserCredentials } from "./cross_platform/helper/UserCredentials";
+import { saveComponentState, loadComponentState } from "./cross_platform/helper/Storage";
+import { SaveableComponent } from "./cross_platform/helper/SavableComponent";
+import Main from "./cross_platform/components/main/Main";
 
 enum State {
     REGISTERING,
@@ -14,29 +15,33 @@ interface IState {
     myState: State;
     appState: AppStateStatus;
 }
+
+/**
+ * This component is the root component of the entire app.
+ */
 export default class App extends Component<{}, IState> implements SaveableComponent {
     // Set up reference to components so we can call methods on them.
     private register = React.createRef<Register>();
-    private registerComponent: JSX.Element; 
+    private registerComponent = (<Register 
+        registrationComplete={(credentials) => {
+            this.registrationComplete(credentials);
+        }}
+        styles={styles}
+        ref={this.register}/>
+    );
+
+    private main = React.createRef<Main>();
+    private mainComponent = <Main/>;
 
     constructor(props: {}) {
         super(props);
         this.state = {
-            myState: State.REGISTERING,
+            myState: State.REGISTERED,
             appState: "active"
         };
 
         // Load the state that is saved in local storage (if it exists).
-        this.initialLoadState();
-
-        this.registerComponent = (<Register 
-                registrationComplete={(credentials) => {
-                    this.registrationComplete(credentials);
-                }}
-                styles={styles}
-                ref={this.register}
-            />
-        );
+        //this.initialLoadState();
 
         // Set up listener so we know when the apps' state has changed.
         AppState.addEventListener("change", (nextState) => this.handleAppStateChange(nextState));
@@ -70,7 +75,9 @@ export default class App extends Component<{}, IState> implements SaveableCompon
             });
 
         // Tell all saveable components to save their state.
-        this.register.current!.saveState();
+        if (this.state.myState === State.REGISTERING) {
+            this.register.current!.saveState();
+        }
     }
 
     public loadState() {
@@ -78,7 +85,9 @@ export default class App extends Component<{}, IState> implements SaveableCompon
         this.initialLoadState();
 
         // Tell saveable components to load their state.
-        this.register.current!.loadState();
+        if (this.state.myState === State.REGISTERING) {
+            this.register.current!.loadState();
+        }   
     }
 
     /**
@@ -101,11 +110,7 @@ export default class App extends Component<{}, IState> implements SaveableCompon
         if (this.state.myState === State.REGISTERING) {
             return this.registerComponent;
         } else if (this.state.myState === State.REGISTERED) {
-            return (
-                <View>
-                    <Text>Registered!</Text>
-                </View>
-            );
+            return this.mainComponent;
         }
         
         // myState === State.Loading
