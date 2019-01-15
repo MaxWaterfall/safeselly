@@ -27,4 +27,17 @@ router.post("/", (req: Request, res: Response) => {
         });
 });
 
+// Returns all warnings.
+router.post("/all", (req: Request, res: Response) => {
+    WarningService.getAllWarnings()
+        .then((value) => {
+            res.status(200);
+            res.send(value);
+        })
+        .catch ((err: HttpRequestError) => {
+            res.status(err.status);
+            res.send(err.message);
+        });
+});
+
 export const WarningController: Router = router;
