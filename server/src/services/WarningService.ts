@@ -17,6 +17,14 @@ export interface IWarning {
     };
 }
 
+export async function getAllWarnings() {
+    try {
+        return await WarningRepository.getAllWarnings();
+    } catch (err) {
+        throw err;
+    }
+}
+
 // Validates then submits a warning.
 export async function submitWarning(username: string, warning: IWarning) {
     // Validate the warning.

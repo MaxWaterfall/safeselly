@@ -12,6 +12,10 @@ const submitWarningSql = `
         ?, ?, ?, ?, ?
     )
 `;
+const getAllWarningsSql = `
+    SELECT WarningId, WarningDateTime, PeopleDescription, WarningDescription, Latitude, Longitude, Upvotes, Downvotes
+    FROM Warning
+`;
 
 export async function submitWarning(username: string, warning: IWarning, dateTime: string) {
     try {
@@ -29,6 +33,15 @@ export async function submitWarning(username: string, warning: IWarning, dateTim
                 warning.location.long,
             ],
         );
+    } catch (err) {
+        log.databaseError(err);
+        throw new HttpRequestError(500, "Internal Server Error.");
+    }
+}
+
+export async function getAllWarnings() {
+    try {
+        return await db.query(getAllWarningsSql, []);
     } catch (err) {
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error.");
