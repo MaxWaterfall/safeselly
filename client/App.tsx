@@ -36,12 +36,12 @@ export default class App extends Component<{}, IState> implements SaveableCompon
     constructor(props: {}) {
         super(props);
         this.state = {
-            myState: State.REGISTERED,
+            myState: State.LOADING,
             appState: "active"
         };
 
         // Load the state that is saved in local storage (if it exists).
-        //this.initialLoadState();
+        this.initialLoadState();
 
         // Set up listener so we know when the apps' state has changed.
         AppState.addEventListener("change", (nextState) => this.handleAppStateChange(nextState));
@@ -58,12 +58,11 @@ export default class App extends Component<{}, IState> implements SaveableCompon
     public initialLoadState() {
         loadComponentState("app")
         .then((state) => {
-            this.setState({
-                myState: state.myState
-            })
+            this.setState({myState: state.myState})
         })
         .catch((err) => {
-            console.error(err);
+            this.setState({myState: State.REGISTERING});
+            console.log(err);
         });
     }
 
@@ -71,7 +70,7 @@ export default class App extends Component<{}, IState> implements SaveableCompon
         // Save our state.
         saveComponentState("app", this.state)
             .catch((err) => {
-                console.error(err);
+                console.log(err);
             });
 
         // Tell all saveable components to save their state.

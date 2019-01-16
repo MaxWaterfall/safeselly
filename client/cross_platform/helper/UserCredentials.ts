@@ -26,7 +26,7 @@ export async function getUserCredentials(): Promise<UserCredentials> {
         let credentials = await Keychain.getGenericPassword();
         // Convert Keychain credentials into UserCredentials.
         if (!credentials) {
-            //TODO: Throw error.
+            throw new Error("Error: no credentials saved.");
         }
         // Credentials can be a boolean or this object, so we need to tell the compiler it's this object.
         credentials = credentials as {
@@ -37,8 +37,11 @@ export async function getUserCredentials(): Promise<UserCredentials> {
         // Username and deviceToken are separated by a colon.
         const colonIndex = credentials.username.indexOf(":");
         const username = credentials.username.substring(0, colonIndex);
-        const deviceToken = credentials.username.substring(colonIndex);
+        const deviceToken = credentials.username.substring(colonIndex + 1);
         const accessToken = credentials.password;
+
+        console.log(username);
+        console.log(deviceToken);
         
         return {
             username: username,

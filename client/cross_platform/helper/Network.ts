@@ -16,7 +16,11 @@ export async function makeRequest(method: string, path: string, authentication: 
         if (authentication) {
             let credentials: UserCredentials = await getUserCredentials();
             // Combine the body provided with the user credentials.
-            reqBody = {...reqBody, ...credentials};
+            reqBody = {...reqBody, ...{
+                username: credentials.username,
+                device_token: credentials.deviceToken,
+                access_token: credentials.accessToken,
+            }};
         }
         let response = await fetch(requestURL + path, {
             method: method,

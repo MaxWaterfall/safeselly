@@ -18,7 +18,6 @@ export enum State {
 
 interface IProps {
     registrationComplete(credentials: UserCredentials): void,
-    initialState?: any,
     styles: any,
 }
 interface IState {
@@ -75,7 +74,7 @@ class Register extends Component<IProps, IState> implements SaveableComponent {
                 this.setState({username: credentials.username})
             })
             .catch((err) => {
-                console.error(err);
+                console.log(err);
             });
         loadComponentState("register")
             .then((state) => {
@@ -84,7 +83,7 @@ class Register extends Component<IProps, IState> implements SaveableComponent {
                 });
             })
             .catch((err) => {
-                console.error(err);
+                console.log(err);
             });
     }
 
@@ -166,7 +165,7 @@ class Register extends Component<IProps, IState> implements SaveableComponent {
                 device_token: this.deviceToken,
             });
             this.accessToken = response.access_token;
-            this.changeState(State.ENTER_USERNAME); // Reset state incase we need to register again.
+            this.changeState(State.ENTER_USERNAME); // Reset state incase we need to register again later.
             this.props.registrationComplete({
                 username: this.state.username,
                 deviceToken: this.deviceToken,

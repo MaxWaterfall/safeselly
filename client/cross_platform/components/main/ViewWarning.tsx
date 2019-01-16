@@ -1,59 +1,158 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet } from "react-native"; 
-import MapView, {PROVIDER_GOOGLE, Region} from "react-native-maps";
+import { View, Dimensions, StyleSheet, ActivityIndicator, Button, Text, ScrollView} from "react-native"; 
+import { Warning } from "../../helper/Warning";
+import { makeRequest, handleNetworkError } from "../../helper/Network";
+import Map from "./Map";
 
-const SELLY_OAK_LAT = 52.436720;
-const SELLY_OAK_LONG = -1.939000;
-
+enum State {
+    VIEWING_MAP,
+    VIEWING_WARNING,
+    LOADING,
+}
 interface IState {
-    region: {
-        latitude: number,
-        longitude: number,
-        latitudeDelta: number,
-        longitudeDelta: number,
-    }
+    myState: State,
+    // Array of all warnings we want to display to the user.
+    warnings: Warning[];
+    // The index of the warning which is being viewed right now.
+    currentWarning: number;
 }
 export default class ViewWarning extends Component<{}, IState> {
     public constructor(props: {}) {
         super(props);
 
         this.state = {
-            region: {
-                latitude: SELLY_OAK_LAT,
-                longitude: SELLY_OAK_LONG,
-                latitudeDelta: 0.015,
-                longitudeDelta: 0.0121,
-            }
+            myState: State.LOADING,
+            warnings: [],
+            currentWarning: -1,
         }
 
-        this.onRegionChangeComplete.bind(this);
+        // Get warnings from the server to populate the map.
+        this.getWarnings();
+    }
+
+    /**
+     * Retrieves warnings from the server which are used to populate the map.
+     */
+    private getWarnings() {
+        makeRequest("POST", "/warning/all", true, {})
+            .then((value) => {
+                this.setState({
+                    warnings: value,
+                    myState: State.VIEWING_MAP,
+                })
+            })
+            .catch((err) => {
+                this.setState({myState: State.VIEWING_MAP});
+                handleNetworkError(err);
+            });
+    }
+
+    private onMarkerPress = (id: number) => {
+        this.setState({
+            currentWarning: id,
+            myState: State.VIEWING_WARNING
+        });
+    }
+
+    private extractDate(dateTime: string): string {
+        const year = dateTime.substring(0, 4);
+        const month = dateTime.substring(5, 7);
+        const day = dateTime.substring(8, 10);
+
+        return `${day}/${month}/${year}`
     }
 
     public render() {
+        if (this.state.myState === State.VIEWING_MAP) {
+            return (
+                <View style={styles.container}>
+                    <Map style={styles} warnings={this.state.warnings} onMarkerPress={this.onMarkerPress}/>
+                </View>
+            );
+        } else if (this.state.myState === State.VIEWING_WARNING) {
+            const currentWarning = this.state.warnings[this.state.currentWarning];
+            return (
+                <View style={styles.viewWarningContainer}>
+                    <View style={styles.titleBarContainer}>
+                        
+                        <Text style={styles.titleText}>{"Warning: #" + currentWarning.WarningId}</Text>
+                    </View>
+                    <View style={styles.viewWarningMapContainer}>
+                        <Map style={styles} warnings={[currentWarning]} onMarkerPress={() => {}}/>
+                    </View>
+                    <ScrollView style={styles.warningInformationContainer}>
+                        <Text style={styles.heading}>Date:</Text>
+                        <Text style={styles.text}>{this.extractDate(currentWarning.WarningDateTime)}</Text>
+                        <Text style={styles.heading}>Time:</Text>
+                        <Text style={styles.text}>{currentWarning.WarningDateTime.substring(11, 16)}</Text>
+                        <Text style={styles.heading}>Person(s) Description:</Text>
+                        <Text style={styles.text}>{currentWarning.WarningDescription}</Text>
+                        <Text style={styles.heading}>Warning Description:</Text>
+                        <Text style={styles.text}>{currentWarning.WarningDescription}</Text>
+                    </ScrollView>
+                    <View style={styles.voteButtonContainer}>
+                        <View style={styles.voteButton}>
+                            <Button title="I saw this happen" color="green" onPress={() => {}}/>
+                        </View>
+                        <View style={styles.voteButton}>
+                            <Button title="This is spam" color="red" onPress={() => {}}/>
+                        </View>
+                    </View>
+                    <Button title="back to map" color="blue" onPress={() => this.setState({myState: State.VIEWING_MAP})}/>
+                </View>
+            );
+        }
+
+        // myState === State.LOADING
         return (
             <View style={styles.container}>
-                <MapView
-                    provider={PROVIDER_GOOGLE}
-                    style={styles.map}
-                    region={this.state.region}
-                    onRegionChangeComplete={this.onRegionChangeComplete}
-                />
-          </View>
-        );
-    }
-
-    private onRegionChangeComplete = (region: Region) => {
-        console.log("called");
-        console.log(region);
-        this.setState({region: region});
+                <ActivityIndicator size="large" color="#0000ff" />
+            </View>
+        )
     }
 }
 
+let width = Dimensions.get("window").width;
+let height = Dimensions.get("window").height;
 const styles = StyleSheet.create({
     container: {
-        flex: 1
+        flex: 1,
     },
     map: {
         ...StyleSheet.absoluteFillObject,
     },
+    viewWarningContainer: {
+        flex: 1,
+    },
+    viewWarningMapContainer: {
+        height: height / 3,
+    },
+    titleBarContainer: {
+        flexDirection: "row",
+        alignContent: "center",
+        justifyContent: "center",
+        padding: 5,
+    },
+    titleText: {
+        fontWeight: "bold",
+        fontSize: 20,
+    },
+    warningInformationContainer: {
+        margin: 10,
+    },
+    heading: {
+        fontWeight: "bold",
+    },
+    text: {
+        fontSize: 15,
+        marginBottom: 5,
+    },
+    voteButtonContainer: {
+        flexDirection: "row",
+        justifyContent: "space-around",
+    },
+    voteButton: {
+        flexGrow: 1,
+    }
+
 });

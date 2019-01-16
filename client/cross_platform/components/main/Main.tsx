@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { createStackNavigator, createAppContainer, createTabNavigator, createBottomTabNavigator } from "react-navigation";
+import { createStackNavigator, createAppContainer, createBottomTabNavigator } from "react-navigation";
 import ViewWarning from "./ViewWarning";
 import SubmitWarning from "./SubmitWarning";
 
