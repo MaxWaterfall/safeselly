@@ -1,20 +1,18 @@
-import { Warning } from "../../helper/Warning";
 import React, { Component } from "react";
-import MapView, { Marker, Region, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
+import { IWarning } from "../../helper/Warning";
+import { SELLY_OAK_LAT, SELLY_OAK_LONG } from "./../../helper/GlobalConstants";
 
 interface IProps {
-    warnings: Warning[];
+    warnings: IWarning[];
     style: any;
     onMarkerPress(index: number): void;
 }
 interface IState {
-    region: Region,
+    region: Region;
 }
 
-const SELLY_OAK_LAT = 52.436720;
-const SELLY_OAK_LONG = -1.939000;
-
-export default class Map extends Component<IProps, IState> {
+export default class ViewWarningMap extends Component<IProps, IState> {
     constructor(props: IProps) {
         super(props);
 
@@ -25,14 +23,7 @@ export default class Map extends Component<IProps, IState> {
                 latitudeDelta: 0.015,
                 longitudeDelta: 0.0121,
             },
-        }
-    }
-
-    /**
-     * Changes the region displayed on the map when the user pans/zooms.
-     */
-    private onRegionChangeComplete = (newRegion: Region) => {
-        this.setState({region: newRegion});
+        };
     }
 
     public render() {
@@ -44,13 +35,26 @@ export default class Map extends Component<IProps, IState> {
                 onRegionChangeComplete={this.onRegionChangeComplete}
             >
                 {/** Render all the markers. */}
-                {   
+                {
                     this.props.warnings.map((warning: Warning, index: number) => {
-                        return <Marker onPress={() => this.props.onMarkerPress(index)} key={index} coordinate={{latitude: warning.Latitude, longitude: warning.Longitude}}/>
+                        return (
+                            <Marker
+                                onPress={() => this.props.onMarkerPress(index)}
+                                key={index}
+                                coordinate={{latitude: warning.Latitude, longitude: warning.Longitude}}
+                            />
+                        );
                     })
                 }
 
             </MapView>
         );
+    }
+
+    /**
+     * Changes the region displayed on the map when the user pans/zooms.
+     */
+    private onRegionChangeComplete = (newRegion: Region) => {
+        this.setState({region: newRegion});
     }
 }

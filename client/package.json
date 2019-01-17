@@ -20,11 +20,12 @@
   "devDependencies": {
     "@types/react": "^16.7.18",
     "@types/react-native": "^0.57.26",
-    "@types/react-test-renderer": "^16.0.3",
     "@types/react-navigation": "^3.0.1",
+    "@types/react-test-renderer": "^16.0.3",
     "babel-jest": "23.6.0",
     "metro-react-native-babel-preset": "0.51.1",
     "react-test-renderer": "16.6.3",
+    "tslint": "^5.12.1",
     "typescript": "^3.2.2"
   }
 }

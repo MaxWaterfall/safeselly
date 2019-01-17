@@ -1,11 +1,11 @@
-import { AsyncStorage } from "react-native";
-//@ts-ignore - library does not have any type definitions.
+// @ts-ignore - library does not have any type definitions.
 import * as jc from "json-cycle";
+import { AsyncStorage } from "react-native";
 
 /**
  * Adds an item into persistent local storage.
- * @param key 
- * @param value 
+ * @param key
+ * @param value
  */
 export async function setItem(key: string, value: string) {
     try {
@@ -17,11 +17,11 @@ export async function setItem(key: string, value: string) {
 
 /**
  * Gets an item from persistent local storage.
- * @param key 
+ * @param key
  */
 export async function getItem(key: string) {
     try {
-        let ret = await AsyncStorage.getItem(key);
+        const ret = await AsyncStorage.getItem(key);
         if (ret === null) {
             throw new Error(`No value exists for key: ${key}.`);
         }
@@ -32,7 +32,7 @@ export async function getItem(key: string) {
 }
 
 /**
- * Saves the state of a component into local storage.
+ * Saves a component state into local storage.
  */
 export async function saveComponentState(key: string, state: {}) {
     try {
@@ -43,11 +43,11 @@ export async function saveComponentState(key: string, state: {}) {
 }
 
 /**
- * Loads the component state and returns it.
+ * Loads a component state and returns it.
  */
 export async function loadComponentState(key: string) {
     try {
-        let ret = await (getItem(key));
+        const ret = await (getItem(key));
         return JSON.parse(ret);
      } catch (err) {
          throw err;

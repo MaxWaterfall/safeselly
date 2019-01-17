@@ -1,24 +1,24 @@
+// @ts-ignore - library does not have any type definitions.
+import * as jc from "json-cycle";
 import { Component } from "react";
 import React from "react";
-import { makeRequest, handleNetworkError } from "../../helper/Network";
-import { EnterUsername, WaitForConfirmation } from "./StatelessComponents";
-import { ActivityIndicator, View, BackHandler } from "react-native";
+import { ActivityIndicator, BackHandler, View } from "react-native";
+import { handleNetworkError, makeRequest } from "../../helper/Network";
+import { SaveableComponent} from "./../../helper/SavableComponent";
+import { loadComponentState, saveComponentState } from "./../../helper/Storage";
 import { UserCredentials } from "./../../helper/UserCredentials";
-import { SaveableComponent}  from "./../../helper/SavableComponent";
-import { saveComponentState, loadComponentState } from "./../../helper/Storage";
-import { setUserCredentials, getUserCredentials } from "./../../helper/UserCredentials";
-//@ts-ignore - library does not have any type definitions.
-import * as jc from "json-cycle";
+import { getUserCredentials, setUserCredentials } from "./../../helper/UserCredentials";
+import { EnterUsername, WaitForConfirmation } from "./StatelessComponents";
 
 export enum State {
     ENTER_USERNAME,
     LOADING,
-    WAIT_FOR_CONFIRMATION
+    WAIT_FOR_CONFIRMATION,
 }
 
 interface IProps {
-    registrationComplete(credentials: UserCredentials): void,
-    styles: any,
+    styles: any;
+    registrationComplete(credentials: UserCredentials): void;
 }
 interface IState {
     myState: State;
@@ -26,9 +26,9 @@ interface IState {
     username: string;
 }
 /**
- * Component is used to register a user. 
-*/
-class Register extends Component<IProps, IState> implements SaveableComponent { 
+ * Component is used to register a user.
+ */
+class Register extends Component<IProps, IState> implements SaveableComponent {
     private deviceToken = "not set";
     private accessToken = "not set";
 
@@ -38,7 +38,7 @@ class Register extends Component<IProps, IState> implements SaveableComponent {
         this.state = {
             myState: State.ENTER_USERNAME,
             username: "",
-        }
+        };
 
         // Load a previous state if one exists.
         this.loadState();
@@ -51,14 +51,14 @@ class Register extends Component<IProps, IState> implements SaveableComponent {
         setUserCredentials({
             username: this.state.username,
             deviceToken: this.deviceToken,
-            accessToken: this.accessToken
+            accessToken: this.accessToken,
         })
-            .catch((err) =>{
+            .catch((err) => {
                 console.error(err);
             });
-            
+
         // Clone this.state.
-        let saveableState = JSON.parse(jc.stringify(this.state));
+        const saveableState = JSON.parse(jc.stringify(this.state));
         // Do not save username, this is stored in secure storage instead.
         // username is a read only property (out of my control), below code is an unfortunate 'hack' that can be used to delete it.
         delete (saveableState as any).username;
@@ -71,7 +71,7 @@ class Register extends Component<IProps, IState> implements SaveableComponent {
     public initialLoadState() {
         getUserCredentials()
             .then((credentials) => {
-                this.setState({username: credentials.username})
+                this.setState({username: credentials.username});
             })
             .catch((err) => {
                 console.log(err);
@@ -91,15 +91,47 @@ class Register extends Component<IProps, IState> implements SaveableComponent {
         this.initialLoadState();
     }
 
+    // Called when this component will be removed from the DOM.
+    public componentWillUnmount() {
+        BackHandler.removeEventListener("hardwareBackPress", () => this.handleBackPress());
+    }
+
+    public render() {
+        if (this.state.myState === State.ENTER_USERNAME) {
+            return <EnterUsername
+                username={this.state.username}
+                updateUsername={(username) => this.updateUsername(username)}
+                startRegistration={() => this.startRegistration()}
+                shouldDisable={() => this.shouldDisable()}
+                styles={this.props.styles}
+            />;
+        } else if (this.state.myState === State.WAIT_FOR_CONFIRMATION) {
+            return <WaitForConfirmation
+                username={this.state.username}
+                confirmRegistration={() => this.getAccessToken()}
+                goBack={() => this.changeState(State.ENTER_USERNAME)}
+                shouldDisable={() => this.shouldDisable()}
+                styles={this.props.styles}
+            />;
+        }
+
+        // myState === State.LOADING
+        return (
+            <View style={this.props.styles.container}>
+                <ActivityIndicator size="large" color="#0000ff" />
+            </View>
+        );
+    }
+
     /**
      * Handles when the user clicks the back button.
      */
     private handleBackPress() {
         if (this.state.myState === State.ENTER_USERNAME) {
-            //TODO: Ask user if they wish to quit application.
+            // TODO: Ask user if they wish to quit application.
             return false;
         } else if (this.state.myState === State.WAIT_FOR_CONFIRMATION) {
-            //this.changeState(State.ENTER_USERNAME);
+            // this.changeState(State.ENTER_USERNAME);
             return true;
         }
 
@@ -107,14 +139,9 @@ class Register extends Component<IProps, IState> implements SaveableComponent {
         return true;
     }
 
-    // Called when this component will be removed from the DOM.
-    public componentWillUnmount() {
-        BackHandler.removeEventListener("hardwareBackPress", () => this.handleBackPress());
-    }
-
     private updateUsername(username: string): void {
         this.setState({
-            username: username
+            username,
         });
     }
 
@@ -137,7 +164,7 @@ class Register extends Component<IProps, IState> implements SaveableComponent {
 
     private async getDeviceToken() {
         try {
-            let response = await makeRequest("POST", "/access/device", false, {
+            const response = await makeRequest("POST", "/access/device", false, {
                 username: this.state.username,
             });
             this.deviceToken = response.device_token;
@@ -160,7 +187,7 @@ class Register extends Component<IProps, IState> implements SaveableComponent {
     private async getAccessToken() {
         this.changeState(State.LOADING);
         try {
-            let response = await makeRequest("POST", "/access/token", false, {
+            const response = await makeRequest("POST", "/access/token", false, {
                 username: this.state.username,
                 device_token: this.deviceToken,
             });
@@ -180,44 +207,17 @@ class Register extends Component<IProps, IState> implements SaveableComponent {
      * Whether a component should be disabled or not.
      */
     private shouldDisable(): boolean {
-        return this.state.myState === State.LOADING;        
+        return this.state.myState === State.LOADING;
     }
 
     /**
      * Changes this components current state (myState).
-     * @param newState 
+     * @param newState
      */
     private changeState(newState: State) {
         this.setState({
             myState: newState,
-        })
-    }
-
-    public render() {
-        if (this.state.myState === State.ENTER_USERNAME) {
-            return <EnterUsername 
-                username={this.state.username}
-                updateUsername={(username) => this.updateUsername(username)}
-                startRegistration={() => this.startRegistration()}
-                shouldDisable={() => this.shouldDisable()}
-                styles={this.props.styles}
-            />
-        } else if (this.state.myState === State.WAIT_FOR_CONFIRMATION) {
-            return <WaitForConfirmation
-                username={this.state.username}
-                confirmRegistration={() => this.getAccessToken()}
-                goBack={() => this.changeState(State.ENTER_USERNAME)}
-                shouldDisable={() => this.shouldDisable()}
-                styles={this.props.styles}
-            />
-        }
-
-        // myState === State.LOADING
-        return (
-            <View style={this.props.styles.container}>
-                <ActivityIndicator size="large" color="#0000ff" />
-            </View>
-        );
+        });
     }
 }
 

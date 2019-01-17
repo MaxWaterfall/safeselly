@@ -1,4 +1,4 @@
-export interface Warning {
+export interface IWarning {
     WarningId: number;
     WarningDateTime: string;
     WarningDescription: string;

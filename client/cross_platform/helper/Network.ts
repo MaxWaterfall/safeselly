@@ -1,5 +1,5 @@
 import {Alert} from "react-native";
-import {UserCredentials, getUserCredentials} from "./UserCredentials";
+import {getUserCredentials, UserCredentials} from "./UserCredentials";
 
 const requestURL = "http://10.0.2.2:3000";
 
@@ -14,7 +14,7 @@ export async function makeRequest(method: string, path: string, authentication: 
     try {
         let reqBody = body;
         if (authentication) {
-            let credentials: UserCredentials = await getUserCredentials();
+            const credentials: UserCredentials = await getUserCredentials();
             // Combine the body provided with the user credentials.
             reqBody = {...reqBody, ...{
                 username: credentials.username,
@@ -22,10 +22,10 @@ export async function makeRequest(method: string, path: string, authentication: 
                 access_token: credentials.accessToken,
             }};
         }
-        let response = await fetch(requestURL + path, {
-            method: method,
+        const response = await fetch(requestURL + path, {
+            method,
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             },
             body: JSON.stringify(reqBody),
         });
@@ -35,11 +35,11 @@ export async function makeRequest(method: string, path: string, authentication: 
             // Parse the body into JSON so we can read it.
             responseBody = await response.json();
             if (!response.ok) {
-                throw new HttpRequestError(response.status, responseBody.error)
-            } 
+                throw new HttpRequestError(response.status, responseBody.error);
+            }
 
             // Return the body as a JSON object.
-            return responseBody;       
+            return responseBody;
         }
 
         responseBody = await response.text();
@@ -62,7 +62,7 @@ export function handleNetworkError(error: any) {
     if (error instanceof HttpRequestError) {
         Alert.alert("Error", error.message);
     } else {
-        console.log(error);
+        // console.log(error);
         Alert.alert("Error", "Please try again.");
     }
 }
