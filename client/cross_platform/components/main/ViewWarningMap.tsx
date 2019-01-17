@@ -5,6 +5,7 @@ import { SELLY_OAK_LAT, SELLY_OAK_LONG } from "./../../helper/GlobalConstants";
 
 interface IProps {
     warnings: IWarning[];
+    oneWarning: boolean;
     style: any;
     onMarkerPress(index: number): void;
 }
@@ -16,14 +17,19 @@ export default class ViewWarningMap extends Component<IProps, IState> {
     constructor(props: IProps) {
         super(props);
 
-        this.state = {
-            region: {
-                latitude: SELLY_OAK_LAT,
-                longitude: SELLY_OAK_LONG,
-                latitudeDelta: 0.015,
-                longitudeDelta: 0.0121,
-            },
+        const region: Region = {
+            latitude: SELLY_OAK_LAT,
+            longitude: SELLY_OAK_LONG,
+            latitudeDelta: 0.015,
+            longitudeDelta: 0.0121,
         };
+
+        if (this.props.oneWarning) {
+            region.latitude = this.props.warnings[0].Latitude;
+            region.longitude = this.props.warnings[0].Longitude;
+        }
+
+        this.state = {region};
     }
 
     public render() {
@@ -49,6 +55,13 @@ export default class ViewWarningMap extends Component<IProps, IState> {
 
             </MapView>
         );
+    }
+
+    private renderMarkers = () => {
+        // Centre this warning.
+        if (this.props.warnings.length === 1) {
+
+        }
     }
 
     /**

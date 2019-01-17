@@ -35,7 +35,8 @@ export default class ViewWarning extends Component<{}, IState> {
         if (this.state.myState === State.VIEWING_MAP) {
             return (
                 <View style={styles.container}>
-                    <ViewWarningMap style={styles} warnings={this.state.warnings} onMarkerPress={this.onMarkerPress}/>
+                    <ViewWarningMap oneWarning={false}
+                        style={styles} warnings={this.state.warnings} onMarkerPress={this.onMarkerPress}/>
                 </View>
             );
         } else if (this.state.myState === State.VIEWING_WARNING) {
@@ -47,7 +48,8 @@ export default class ViewWarning extends Component<{}, IState> {
                         <Text style={styles.titleText}>{"Warning: #" + currentWarning.WarningId}</Text>
                     </View>
                     <View style={styles.viewWarningMapContainer}>
-                        <ViewWarningMap style={styles} warnings={[currentWarning]} onMarkerPress={() => {}}/>
+                        <ViewWarningMap oneWarning={true}
+                            style={styles} warnings={[currentWarning]} onMarkerPress={() => {}}/>
                     </View>
                     <ScrollView style={styles.warningInformationContainer}>
                         <Text style={styles.heading}>Date:</Text>
