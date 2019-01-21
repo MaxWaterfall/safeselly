@@ -25,7 +25,29 @@ export async function getAllWarnings() {
     }
 }
 
-// Validates then submits a warning.
+/**
+ * Returns all warnings submitted after {id}.
+ */
+export async function getWarningAfterId(warningId: string) {
+    if (warningId === undefined) {
+        throw new HttpRequestError(400, "No warning_id given.");
+    }
+
+    // Check if the id given is actually a number.
+    if (isNaN(Number(warningId))) {
+        throw new HttpRequestError(400, "warning_id is not a number.");
+    }
+
+    try {
+        return await WarningRepository.getWarningsAfterId(warningId);
+    } catch (err) {
+        throw err;
+    }
+}
+
+/**
+ * Validates then submits a warning.
+ */
 export async function submitWarning(username: string, warning: IWarning) {
     // Validate the warning.
     try {

@@ -1,6 +1,8 @@
 import mysql from "mysql";
 
-// This class is a wrapper around the mysql API, it allows me to use promises instead of callbacks.
+/**
+ * A wrapper around the mysql API, it allows me to use promises instead of callbacks.
+ */
 export class Database {
     private db: mysql.Connection;
 

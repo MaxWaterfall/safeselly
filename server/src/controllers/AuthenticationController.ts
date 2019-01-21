@@ -11,18 +11,18 @@ const router: Router = Router();
 // Checks the request is authorized and valid.
 router.use((req: Request, res: Response, next) => {
     // Check route exists.
-    let doesRouteExist = false;
-    for (const route of allAuthenticatedRoutes) {
-        if (route === req.originalUrl) {
-            doesRouteExist = true;
-            break;
-        }
-    }
+    // let doesRouteExist = false;
+    // for (const route of allAuthenticatedRoutes) {
+    //     if (route === req.originalUrl) {
+    //         doesRouteExist = true;
+    //         break;
+    //     }
+    // }
 
-    if (!doesRouteExist) {
-        res.sendStatus(404);
-        return;
-    }
+    // if (!doesRouteExist) {
+    //     res.sendStatus(404);
+    //     return;
+    // }
 
     if (!isBodyValid(req, res)) {
         return;

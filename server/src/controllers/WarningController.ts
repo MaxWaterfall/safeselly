@@ -27,7 +27,9 @@ router.post("/", (req: Request, res: Response) => {
         });
 });
 
-// Returns all warnings.
+/**
+ * Returns all warnings.
+ */
 router.post("/all", (req: Request, res: Response) => {
     WarningService.getAllWarnings()
         .then((value) => {
@@ -35,6 +37,21 @@ router.post("/all", (req: Request, res: Response) => {
             res.send(value);
         })
         .catch ((err: HttpRequestError) => {
+            res.status(err.status);
+            res.send(err.message);
+        });
+});
+
+/**
+ * Returns all warnings submitted after {id}.
+ */
+router.post("/:id/after", (req: Request, res: Response) => {
+    WarningService.getWarningAfterId(req.params.id)
+        .then((value) => {
+            res.status(200);
+            res.send(value);
+        })
+        .catch((err: HttpRequestError) => {
             res.status(err.status);
             res.send(err.message);
         });
