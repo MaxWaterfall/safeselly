@@ -109,3 +109,11 @@ export function silly(logMessage: string) {
 export function databaseError(err: string) {
     error("Database error: " + err);
 }
+
+export function encryptionError(err: string) {
+    error("Encryption error: " + err);
+}
+
+export function tokenGenerationError(err: string) {
+    error("Token generation error: " + err);
+}

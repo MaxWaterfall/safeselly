@@ -11,9 +11,9 @@ CREATE TABLE User (
 CREATE TABLE Device (
 	DeviceId int AUTO_INCREMENT,
     UserId int NOT NULL,
-	DeviceToken VARCHAR(32) NOT NULL UNIQUE,
-    AccessToken VARCHAR(32),
-    VerificationToken VARCHAR(32) UNIQUE,
+	DeviceToken VARCHAR(64) NOT NULL UNIQUE,
+    AccessToken VARCHAR(64),
+    VerificationToken VARCHAR(64) UNIQUE,
 	Verified boolean,
 
 	PRIMARY KEY (DeviceId),

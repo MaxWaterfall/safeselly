@@ -1,3 +1,4 @@
+import * as bcrypt from "bcrypt";
 import * as AuthenticationRepository from "../repositories/AuthenticationRepository";
 import {HttpRequestError} from "./../helper/HttpRequestError";
 import * as log from "./../helper/Logger";
@@ -15,15 +16,27 @@ export async function isRequestAuthorised(username: string, deviceToken: string,
         throw new HttpRequestError(400, "Access token is not valid.");
     }
 
-    // Make database call to check if all 3 are valid.
+    // Get encrypted access token from database.
     // TODO: implement caching to save on database calls.
+    let hashedAccessToken = "";
     try {
-        const result = await AuthenticationRepository.isRequestAuthorised(username, deviceToken, accessToken);
-        if (!result) {
-            // Forbidden.
-            throw new HttpRequestError(403, "Credentials given do not have access to this route.");
-        }
+        hashedAccessToken = await AuthenticationRepository.getAccessToken(username, deviceToken);
     } catch (err) {
         throw err;
+    }
+
+    // Verify access tokens match.
+    let validCredentials = false;
+    try {
+        validCredentials = await bcrypt.compare(accessToken, hashedAccessToken);
+    } catch (err) {
+        log.encryptionError(err);
+        throw new HttpRequestError(500, "Internal Server Error");
+    }
+
+    if (!validCredentials) {
+        // Check username and device token are valid.
+        // TODO: See above, add logging to track unauthorised access attempts.
+        throw new HttpRequestError(400, "Credentials are not valid.");
     }
 }

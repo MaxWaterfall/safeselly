@@ -6,18 +6,14 @@ import { isBodyValid } from "./Validator";
 // Assign our router to the express router instance.
 const router: Router = Router();
 
-// 1. Client requests a device id.
+// 1. Client requests a device token.
 // 2. Client requests verification email.
 // 3. Client clicks link in email.
 // 4. Client requests access token.
 
 // Returns a device token.
-router.post("/device", (req: Request, res: Response) => {
-    if (!isBodyValid(req, res)) {
-        return;
-    }
-
-    AccessService.getDeviceToken(req.body.username)
+router.get("/device-token", (req: Request, res: Response) => {
+    AccessService.getDeviceToken(req.get("username") as string)
         .then((value) => {
             res.status(200); // OK.
             res.send({device_token: value});
@@ -29,12 +25,8 @@ router.post("/device", (req: Request, res: Response) => {
 });
 
 // Sends a verification email to the user.
-router.post("/email", (req: Request, res: Response) => {
-    if (!isBodyValid(req, res)) {
-        return;
-    }
-
-    AccessService.sendVerificationEmail(req.body.username, req.body.device_token)
+router.get("/send-email", (req: Request, res: Response) => {
+    AccessService.sendVerificationEmail(req.get("username") as string, req.get("device_token") as string)
         .then((value) => {
             res.status(200); // OK.
             res.send(value);
@@ -60,12 +52,8 @@ router.get("/verify/:token", (req: Request, res: Response) => {
 });
 
 // Returns an access token.
-router.post("/token", (req: Request, res: Response) => {
-    if (!isBodyValid(req, res)) {
-        return;
-    }
-
-    AccessService.getAccessToken(req.body.username, req.body.device_token)
+router.get("/access-token", (req: Request, res: Response) => {
+    AccessService.getAccessToken(req.get("username") as string, req.get("device_token") as string)
         .then((value) => {
             res.status(200); // OK.
             res.send({access_token: value});

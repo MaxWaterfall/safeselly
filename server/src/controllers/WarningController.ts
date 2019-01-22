@@ -30,7 +30,7 @@ router.post("/", (req: Request, res: Response) => {
 /**
  * Returns all warnings.
  */
-router.post("/all", (req: Request, res: Response) => {
+router.get("/all", (req: Request, res: Response) => {
     WarningService.getAllWarnings()
         .then((value) => {
             res.status(200);
@@ -45,7 +45,7 @@ router.post("/all", (req: Request, res: Response) => {
 /**
  * Returns all warnings submitted after {id}.
  */
-router.post("/:id/after", (req: Request, res: Response) => {
+router.get("/:id/after", (req: Request, res: Response) => {
     WarningService.getWarningAfterId(req.params.id)
         .then((value) => {
             res.status(200);

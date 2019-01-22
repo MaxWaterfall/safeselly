@@ -10,28 +10,14 @@ const router: Router = Router();
 
 // Checks the request is authorized and valid.
 router.use((req: Request, res: Response, next) => {
-    // Check route exists.
-    // let doesRouteExist = false;
-    // for (const route of allAuthenticatedRoutes) {
-    //     if (route === req.originalUrl) {
-    //         doesRouteExist = true;
-    //         break;
-    //     }
-    // }
-
-    // if (!doesRouteExist) {
-    //     res.sendStatus(404);
-    //     return;
-    // }
-
     if (!isBodyValid(req, res)) {
         return;
     }
 
-    // Extract access_token, username, and device_token from the body.
-    const accessToken = req.body.access_token;
-    const username = req.body.username;
-    const deviceToken = req.body.device_token;
+    // Extract access_token, username, and device_token from the header.
+    const accessToken = req.get("access_token") as string;
+    const username = req.get("username") as string;
+    const deviceToken = req.get("device_token") as string;
 
     // Check access token is valid for this username and device token.
     AuthenticationService.isRequestAuthorised(username, deviceToken, accessToken)
