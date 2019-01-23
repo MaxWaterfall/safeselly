@@ -3,13 +3,9 @@ import * as AuthenticationRepository from "../repositories/AuthenticationReposit
 import {HttpRequestError} from "./../helper/HttpRequestError";
 import * as log from "./../helper/Logger";
 
-export async function isRequestAuthorised(username: string, deviceToken: string, accessToken: string) {
+export async function isRequestAuthorised(username: string, accessToken: string) {
     if (username === undefined) {
         throw new HttpRequestError(400, "Username is not valid.");
-    }
-
-    if (deviceToken === undefined) {
-        throw new HttpRequestError(400, "Device id is not valid.");
     }
 
     if (accessToken === undefined) {
@@ -20,7 +16,7 @@ export async function isRequestAuthorised(username: string, deviceToken: string,
     // TODO: implement caching to save on database calls.
     let hashedAccessToken = "";
     try {
-        hashedAccessToken = await AuthenticationRepository.getAccessToken(username, deviceToken);
+        hashedAccessToken = await AuthenticationRepository.getAccessToken(username);
     } catch (err) {
         throw err;
     }
@@ -35,7 +31,7 @@ export async function isRequestAuthorised(username: string, deviceToken: string,
     }
 
     if (!validCredentials) {
-        // Check username and device token are valid.
+        // Check username is valid.
         // TODO: See above, add logging to track unauthorised access attempts.
         throw new HttpRequestError(400, "Credentials are not valid.");
     }

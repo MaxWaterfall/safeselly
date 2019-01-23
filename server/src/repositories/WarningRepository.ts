@@ -21,6 +21,24 @@ const getAllWarningsAfterIdSql = `
     FROM Warning
     WHERE WarningId > ?
 `;
+const upvoteWarningSql = `
+    INSERT INTO Vote
+    VALUES (?, (
+        SELECT User.UserId FROM User WHERE User.Username = ?
+    ), true, false)
+    ON DUPLICATE KEY UPDATE
+        Upvote = true,
+        Downvote = false
+`;
+const downvoteWarningSql = `
+    INSERT INTO Vote
+    VALUES (?, (
+        SELECT User.UserId FROM User WHERE User.Username = ?
+    ), false, true)
+    ON DUPLICATE KEY UPDATE
+        Upvote = false,
+        Downvote = true
+`;
 
 export async function submitWarning(username: string, warning: IWarning, dateTime: string) {
     try {
@@ -44,6 +62,9 @@ export async function submitWarning(username: string, warning: IWarning, dateTim
     }
 }
 
+/**
+ * Returns all warnings.
+ */
 export async function getAllWarnings() {
     try {
         return await db.query(getAllWarningsSql, []);
@@ -53,9 +74,41 @@ export async function getAllWarnings() {
     }
 }
 
+/**
+ * Returns all warnings submitted after the given warningId.
+ * @param warningId
+ */
 export async function getWarningsAfterId(warningId: string) {
     try {
         return await db.query(getAllWarningsAfterIdSql, [warningId]);
+    } catch (err) {
+        log.databaseError(err);
+        throw new HttpRequestError(500, "Internal Server Error");
+    }
+}
+
+/**
+ * Adds a new upvote to the database.
+ * @param warningId
+ * @param username
+ */
+export async function upvoteWarning(warningId: string, username: string) {
+    try {
+        return await db.query(upvoteWarningSql, [warningId, username]);
+    } catch (err) {
+        log.databaseError(err);
+        throw new HttpRequestError(500, "Internal Server Error");
+    }
+}
+
+/**
+ * Adds a new downvote to the database.
+ * @param warningId
+ * @param username
+ */
+export async function downvoteWarning(warningId: string, username: string) {
+    try {
+        return await db.query(downvoteWarningSql, [warningId, username]);
     } catch (err) {
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error");

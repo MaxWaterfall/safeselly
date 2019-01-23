@@ -13,7 +13,7 @@ const accessTokenSaltRounds = 8;
 // A list of devices which have not yet been added to the database as they are waiting for email verification.
 const tempDeviceList: Map<string, string> = new Map();
 
-// Generate a 32 character long device id and add it to the list, requires valid username.
+// Generate a 32 character long device id and add it to the list, requires a username.
 export async function getDeviceToken(username: string): Promise<string> {
     if (username === undefined) {
         throw new HttpRequestError(400, "Username is not valid.");
@@ -95,7 +95,7 @@ export async function verifyDevice(verificationToken: string) {
 
 // Returns an access token if the user has validated their email for this device id.
 export async function getAccessToken(username: string, deviceToken: string): Promise<string> {
-    // Check user has been validated.
+    // Check user has been verified.
     try {
         const deviceVerified = await AccessRepository.isDeviceVerified(username, deviceToken);
         if (!deviceVerified) {
@@ -125,7 +125,7 @@ export async function getAccessToken(username: string, deviceToken: string): Pro
 
     // Add token to database.
     try {
-        await AccessRepository.addAccessToken(username, deviceToken, hashedAccessToken);
+        await AccessRepository.addAccessToken(username, hashedAccessToken);
     } catch (err) {
         throw err;
     }

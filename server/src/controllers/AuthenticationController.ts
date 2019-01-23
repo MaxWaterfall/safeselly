@@ -17,10 +17,9 @@ router.use((req: Request, res: Response, next) => {
     // Extract access_token, username, and device_token from the header.
     const accessToken = req.get("access_token") as string;
     const username = req.get("username") as string;
-    const deviceToken = req.get("device_token") as string;
 
     // Check access token is valid for this username and device token.
-    AuthenticationService.isRequestAuthorised(username, deviceToken, accessToken)
+    AuthenticationService.isRequestAuthorised(username, accessToken)
         .then(() => {
             next();
         })

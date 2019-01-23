@@ -3,19 +3,16 @@ import {HttpRequestError} from "./../helper/HttpRequestError";
 import {db} from "./../Server";
 
 const getAccessTokenSql = `
-    SELECT AccessToken FROM Device, User
-    WHERE (
-        User.Username = ? AND User.UserId = Device.UserId AND
-        DeviceToken = ?
-    )
+    SELECT AccessToken FROM User
+    WHERE User.Username = ?
 `;
 
 /**
  * Returns the access token for a given username and deviceToken.
  */
-export async function getAccessToken(username: string, deviceToken: string) {
+export async function getAccessToken(username: string) {
     try {
-        const result = await db.query(getAccessTokenSql, [username, deviceToken]) as any[];
+        const result = await db.query(getAccessTokenSql, [username]) as any[];
         if (result.length > 0) {
             return result[0].AccessToken;
         }

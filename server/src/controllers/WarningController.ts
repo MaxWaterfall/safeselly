@@ -30,7 +30,7 @@ router.post("/", (req: Request, res: Response) => {
 /**
  * Returns all warnings.
  */
-router.get("/all", (req: Request, res: Response) => {
+router.get("/", (req: Request, res: Response) => {
     WarningService.getAllWarnings()
         .then((value) => {
             res.status(200);
