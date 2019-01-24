@@ -1,62 +1,69 @@
 import * as log from "../helper/Logger";
-import {HttpRequestError} from "./../helper/HttpRequestError";
-import {db} from "./../Server";
-import {IWarning} from "./../services/WarningService";
+import { HttpRequestError } from "./../helper/HttpRequestError";
+import { IWarning } from "./../helper/WarningTypes";
+import { db } from "./../Server";
 
 const submitWarningSql = `
-    INSERT INTO Warning (UserId, WarningDateTime, PeopleDescription, WarningDescription, Latitude, Longitude)
-    VALUES (
-        (
-            SELECT User.UserId FROM User WHERE Username = ?
-        ),
-        ?, ?, ?, ?, ?
-    )
+    INSERT INTO Warning
+    VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)
+`;
+const submitGeneralWarningSql = `
+    INSERT INTO GeneralWarning
+    VALUES (?, ?, ?)
 `;
 const getAllWarningsSql = `
-    SELECT WarningId, WarningDateTime, PeopleDescription, WarningDescription, Latitude, Longitude, Upvotes, Downvotes
+    SELECT WarningId, WarningType, WarningDateTime, Latitude, Longitude
     FROM Warning
 `;
 const getAllWarningsAfterIdSql = `
-    SELECT WarningId, WarningDateTime, PeopleDescription, WarningDescription, Latitude, Longitude, Upvotes, Downvotes
+    SELECT WarningId, WarningType, WarningDateTime, Latitude, Longitude
     FROM Warning
-    WHERE WarningId > ?
+    WHERE RowNumber >
+        (SELECT RowNumber FROM Warning WHERE WarningId = ?)
 `;
 const upvoteWarningSql = `
     INSERT INTO Vote
-    VALUES (?, (
-        SELECT User.UserId FROM User WHERE User.Username = ?
-    ), true, false)
+    VALUES (?, ?, true, false)
     ON DUPLICATE KEY UPDATE
         Upvote = true,
         Downvote = false
 `;
 const downvoteWarningSql = `
     INSERT INTO Vote
-    VALUES (?, (
-        SELECT User.UserId FROM User WHERE User.Username = ?
-    ), false, true)
+    VALUES (?, ?, false, true)
     ON DUPLICATE KEY UPDATE
         Upvote = false,
         Downvote = true
 `;
 
-export async function submitWarning(username: string, warning: IWarning, dateTime: string) {
+export async function submitWarning(username: string, warning: IWarning, dateTime: string, warningId: string) {
+    // First add to the Warning table.
     try {
-        // People description is not mandatory.
-        if (warning.peopleDescription === undefined) {
-            warning.peopleDescription = "";
-        }
-        await db.query(submitWarningSql,
-            [
-                username,
-                dateTime,
-                warning.peopleDescription,
-                warning.warningDescription,
-                warning.location.lat,
-                warning.location.long,
-            ],
-        );
+        db.query(submitWarningSql, [
+            warningId,
+            username,
+            warning.type,
+            warning.dateTime,
+            warning.location.lat,
+            warning.location.long,
+            dateTime,
+        ]);
     } catch (err) {
+        log.databaseError(err);
+        throw new HttpRequestError(500, "Internal Server Error.");
+    }
+
+    // Now add to a specific warning table, depending on the warning type.
+    try {
+        if (warning.type === "general") {
+            db.query(submitGeneralWarningSql, [
+                warningId,
+                warning.information.peopleDescription,
+                warning.information.warningDescription,
+            ]);
+        }
+    } catch (err) {
+        // TODO: Revert previous query.
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error.");
     }

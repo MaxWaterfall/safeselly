@@ -10,10 +10,6 @@ const router: Router = Router();
 
 // Checks the request is authorized and valid.
 router.use((req: Request, res: Response, next) => {
-    if (!isBodyValid(req, res)) {
-        return;
-    }
-
     // Extract access_token, username, and device_token from the header.
     const accessToken = req.get("access_token") as string;
     const username = req.get("username") as string;

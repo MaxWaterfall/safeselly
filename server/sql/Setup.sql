@@ -19,23 +19,30 @@ CREATE TABLE Device (
 );
 
 CREATE TABLE Warning (
-	WarningId int AUTO_INCREMENT,
+	RowNumber int NOT NULL AUTO_INCREMENT,
+	WarningId VARCHAR(16) NOT NULL UNIQUE,
 	Username VARCHAR(32) NOT NULL,
+	WarningType VARCHAR(32) NOT NULL,
 	WarningDateTime DATETIME NOT NULL,
-	PeopleDescription TEXT,
-	WarningDescription TEXT NOT NULL,
 	Latitude DOUBLE NOT NULL,
 	Longitude DOUBLE NOT NULL,
-	Upvotes int,
-	Downvotes int,
-	DateAdded DATETIME NOT NULL,
+	AddedDateTime DATETIME NOT NULL,
 	
-	PRIMARY KEY(WarningId),
+	PRIMARY KEY(RowNumber, WarningId),
 	FOREIGN KEY(Username) REFERENCES User(Username)
 );
 
+CREATE Table GeneralWarning (
+	WarningId VARCHAR(16) NOT NULL UNIQUE,
+	PeopleDescription TEXT,
+	WarningDescription TEXT NOT NULL,
+
+	PRIMARY KEY(WarningId),
+	FOREIGN KEY(WarningId) REFERENCES Warning(WarningId)
+);
+
 CREATE Table Vote (
-	WarningId int,
+	WarningId VARCHAR(16),
 	Username VARCHAR(32) NOT NULL,
 	Upvote boolean,
 	Downvote boolean,

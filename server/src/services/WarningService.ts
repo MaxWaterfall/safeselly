@@ -1,22 +1,13 @@
-import { isPointInCircle } from "geolib";
 import { HttpRequestError } from "../helper/HttpRequestError";
+import * as log from "./../helper/Logger";
+import { IWarning, validateWarning } from "./../helper/WarningTypes";
 import * as WarningRepository from "./../repositories/WarningRepository";
 
-const MAX_PEOPLE_DESCRIPTION_LENGTH = 300;
-const MAX_WARNING_DESCRIPTION_LENGTH = 500;
-const SELLY_OAK_LAT = 52.436720;
-const SELLY_OAK_LONG = -1.939000;
-const DISTANCE_FROM_SELLY_OAK = 5000; // 5km.
+const NUMBER_OF_IDS = 1000000000000; // 100 billion.
 
-export interface IWarning {
-    peopleDescription: string;
-    warningDescription: string;
-    location: {
-        lat: number;
-        long: number;
-    };
-}
-
+/**
+ * Returns all warnings in the database.
+ */
 export async function getAllWarnings() {
     try {
         return await WarningRepository.getAllWarnings();
@@ -33,11 +24,6 @@ export async function getWarningAfterId(warningId: string) {
         throw new HttpRequestError(400, "No warning_id given.");
     }
 
-    // Check if the id given is actually a number.
-    if (isNaN(Number(warningId))) {
-        throw new HttpRequestError(400, "warning_id is not a number.");
-    }
-
     try {
         return await WarningRepository.getWarningsAfterId(warningId);
     } catch (err) {
@@ -47,6 +33,8 @@ export async function getWarningAfterId(warningId: string) {
 
 /**
  * Validates then submits a warning.
+ * @param username
+ * @param warning
  */
 export async function submitWarning(username: string, warning: IWarning) {
     // Validate the warning.
@@ -56,9 +44,38 @@ export async function submitWarning(username: string, warning: IWarning) {
         throw err;
     }
 
+    // Generate warning id. Gets the hex value.
+    const warningId = (Math.ceil(Math.random()) * NUMBER_OF_IDS).toString(16);
+
     // Add warning to database.
     try {
-        await WarningRepository.submitWarning(username, warning, getDate());
+        await WarningRepository.submitWarning(username, warning, getDate(), warningId);
+    } catch (err) {
+        throw (err);
+    }
+}
+
+/**
+ * Adds a upvote to a warning.
+ * @param warningId the id of the warning to upvote.
+ * @param username the user who is upvoting the warning.
+ */
+export async function upvoteWarning(warningId: string, username: string) {
+    try {
+        await WarningRepository.upvoteWarning(warningId, username);
+    } catch (err) {
+        throw (err);
+    }
+}
+
+/**
+ * Adds a downvote to a warning.
+ * @param warningId the id of the warning to downvote.
+ * @param username the user who is downvoting the warning.
+ */
+export async function downvoteWarning(warningId: string, username: string) {
+    try {
+        await WarningRepository.downvoteWarning(warningId, username);
     } catch (err) {
         throw (err);
     }
@@ -91,42 +108,13 @@ function getDate(): string {
     return `${date.getFullYear()}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
-// Takes a string an appends a 0 if needed. Eg. format("5") will retun "05".
+ /**
+  * Takes a string an appends a 0 if needed. Eg. format("5") will return "05".
+  * @param value the string to format.
+  */
 function format(value: string): string {
     if (value.length === 1) {
         value = "0" + value;
     }
     return value;
-}
-
-function validateWarning(warning: IWarning) {
-    if (warning.peopleDescription !== undefined) {
-        // People descriptions are allowed to be undefined.
-        if (warning.peopleDescription.length > MAX_PEOPLE_DESCRIPTION_LENGTH) {
-            throw new HttpRequestError(400,
-                `People description length is more than ${MAX_PEOPLE_DESCRIPTION_LENGTH} characters.`);
-        }
-    }
-
-    if (warning.warningDescription === undefined) {
-        // Warning descriptions cannot be undefined.
-        throw new HttpRequestError(400, "No warning description provided.");
-    }
-
-    if (warning.warningDescription.length > MAX_WARNING_DESCRIPTION_LENGTH) {
-        throw new HttpRequestError(400,
-            `Warning description length is more than ${MAX_WARNING_DESCRIPTION_LENGTH} characters.`);
-    }
-
-    // Location must be within 5km of Selly Oak.
-    if (!isPointInCircle(
-        {latitude: warning.location.lat, longitude: warning.location.long},
-        {latitude: SELLY_OAK_LAT, longitude: SELLY_OAK_LONG},
-        DISTANCE_FROM_SELLY_OAK,
-    )) {
-        throw new HttpRequestError(400, `
-            Location [lat:${warning.location.lat}, long:${warning.location.long}]
-            is not within ${DISTANCE_FROM_SELLY_OAK}km of Selly Oak`,
-        );
-    }
 }
