@@ -73,7 +73,7 @@ export default class VerifyEmail extends Component<any, IState> {
                 this.setState({loading: false});
 
                 // Navigate to main screen.
-                this.props.screenProps.navigation.navigate("ViewMap");
+                this.props.screenProps.rootNavigation.navigate("Main");
             })
             .catch((err) => {
                 this.setState({loading: false});

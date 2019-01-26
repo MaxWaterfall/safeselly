@@ -56,7 +56,7 @@ export async function finishRegistration() {
     try {
         const response = await makeRequest("GET", "/access/access-token", getHeader(), {});
         // Save user credentials
-        await setUserCredentials({username: usernameGlobal, accessToken: response.accessToken});
+        await setUserCredentials({username: usernameGlobal, accessToken: response.access_token});
     } catch (err) {
         throw err;
     }
