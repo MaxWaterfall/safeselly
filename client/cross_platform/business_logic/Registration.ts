@@ -1,4 +1,5 @@
-import { makeRequest } from "../helper/Network";
+import { makeRequest } from "./Network";
+import { setUserCredentials } from "./UserCredentials";
 
 const MAX_USERNAME_LENGTH = 10;
 const MIN_USERNAME_LENGTH = 4;
@@ -49,11 +50,13 @@ export async function startRegistration(username: string): Promise<void> {
 
 /**
  * Finishes the registration process.
- * Calls endpoint /access/access-token
+ * Calls endpoint /access/access-token.
  */
 export async function finishRegistration() {
     try {
         const response = await makeRequest("GET", "/access/access-token", getHeader(), {});
+        // Save user credentials
+        await setUserCredentials({username: usernameGlobal, accessToken: response.accessToken});
     } catch (err) {
         throw err;
     }
