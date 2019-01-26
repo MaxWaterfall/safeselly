@@ -10,7 +10,7 @@ import {
 import React, { Component } from "react";
 import { HeaderBar } from "../general/HeaderBar";
 import { LoadingScreen } from "../general/LoadingScreen";
-import { startRegistration } from "./../../business_logic/Registration";
+import { startRegistration } from "./../../services/RegistrationService";
 import Styles from "./../general/Styles";
 
 interface IState {

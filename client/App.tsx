@@ -4,6 +4,7 @@ import {
     createAppContainer,
     createStackNavigator,
 } from "react-navigation";
+import Main from "./cross_platform/ui/main/Main";
 import Register from "./cross_platform/ui/registration/Register";
 
 /**
@@ -22,10 +23,11 @@ export default class App extends Component {
 const AppNavigator = createStackNavigator(
     {
         Register: {screen: Register},
+        Main: {screen: Main},
     },
     {
         headerMode: "none",
-        initialRouteName: "Register",
+        initialRouteName: "Main",
     },
 );
 const AppContainer = createAppContainer(AppNavigator);

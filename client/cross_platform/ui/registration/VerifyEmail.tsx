@@ -3,14 +3,13 @@ import {
     Container,
     Content,
     Text,
-    Footer,
-    Toast
+    Toast,
 } from "native-base";
 import React, { Component } from "react";
 import { LoadingScreen } from "../general/LoadingScreen";
+import { finishRegistration, getUsername } from "./../../services/RegistrationService";
 import { HeaderBar } from "./../general/HeaderBar";
 import Styles from "./../general/Styles";
-import { getUsername, finishRegistration } from "./../../business_logic/Registration";
 
 interface IState {
     loading: boolean;
@@ -74,6 +73,7 @@ export default class VerifyEmail extends Component<any, IState> {
                 this.setState({loading: false});
 
                 // Navigate to main screen.
+                this.props.screenProps.navigation.navigate("ViewMap");
             })
             .catch((err) => {
                 this.setState({loading: false});

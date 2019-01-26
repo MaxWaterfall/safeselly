@@ -15,4 +15,7 @@ export default {
         justifyContent: "center",
         alignItems: "center",
     },
+    fillObject: {
+        ...StyleSheet.absoluteFillObject,
+    },
 };

@@ -1,5 +1,5 @@
-import { makeRequest } from "./Network";
-import { setUserCredentials } from "./UserCredentials";
+import { setUserCredentials } from "../data/CredentialStorage";
+import { makeRequest } from "./NetworkService";
 
 const MAX_USERNAME_LENGTH = 10;
 const MIN_USERNAME_LENGTH = 4;

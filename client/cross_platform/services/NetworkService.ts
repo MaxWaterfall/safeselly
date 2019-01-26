@@ -1,5 +1,5 @@
 import {Alert} from "react-native";
-import {getUserCredentials, IUserCredentials} from "./UserCredentials";
+import {getUserCredentials, IUserCredentials} from "../data/CredentialStorage";
 
 const requestURL = "http://10.0.2.2:3000";
 

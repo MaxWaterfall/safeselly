@@ -6,7 +6,7 @@ import VerifyEmail from "./VerifyEmail";
 /**
  * Parent component for all registration screens.
  */
-export default class Register extends Component {
+export default class Register extends Component<any> {
     private RegisterNavigator: NavigationContainer;
     private RegisterNavigatorContainer: NavigationContainer;
 
@@ -28,6 +28,6 @@ export default class Register extends Component {
     }
 
     public render() {
-        return <this.RegisterNavigatorContainer/>;
+        return <this.RegisterNavigatorContainer screenProps={{rootNavigation: this.props.navigation }}/>;
     }
 }
