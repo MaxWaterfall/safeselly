@@ -1,6 +1,6 @@
 import {Request, Response, Router} from "express";
 import {HttpRequestError} from "./../helper/HttpRequestError";
-import { IWarning, warningType } from "./../helper/WarningTypes";
+import { IWarning } from "./../helper/WarningTypes";
 import * as WarningService from "./../services/WarningService";
 
 // Assign our router to the express router instance.
@@ -52,17 +52,47 @@ router.get("/:id/after", (req: Request, res: Response) => {
 });
 
 /**
+ * Returns all information for warning with {id}.
+ * This includes specific warning information based on it's type.
+ */
+router.get("/:id", (req: Request, res: Response) => {
+    WarningService.getWarning(req.params.id)
+        .then((value) => {
+            res.status(200);
+            res.send(value);
+        })
+        .catch((err: HttpRequestError) => {
+            res.status(err.status);
+            res.send(err.message);
+        });
+});
+
+/**
  * Updates warning with {id}, adds an upvote.
  */
 router.post("/:id/upvote", (req: Request, res: Response) => {
-
+    WarningService.upvoteWarning(req.params.id, req.get("username") as string)
+        .then(() => {
+            res.sendStatus(200);
+        })
+        .catch((err: HttpRequestError) => {
+            res.status(err.status);
+            res.send(err.message);
+        });
 });
 
 /**
  * Updates warning with {id}, adds a downvote.
  */
 router.post("/:id/downvote", (req: Request, res: Response) => {
-
+    WarningService.downvoteWarning(req.params.id, req.get("username") as string)
+        .then(() => {
+            res.sendStatus(200);
+        })
+        .catch((err: HttpRequestError) => {
+            res.status(err.status);
+            res.send(err.message);
+        });
 });
 
 export const WarningController: Router = router;

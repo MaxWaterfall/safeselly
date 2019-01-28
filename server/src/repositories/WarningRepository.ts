@@ -1,6 +1,6 @@
 import * as log from "../helper/Logger";
 import { HttpRequestError } from "./../helper/HttpRequestError";
-import { IWarning } from "./../helper/WarningTypes";
+import { IWarning, WarningType } from "./../helper/WarningTypes";
 import { db } from "./../Server";
 
 const submitWarningSql = `
@@ -35,6 +35,15 @@ const downvoteWarningSql = `
         Upvote = false,
         Downvote = true
 `;
+const getWarningTypeSql = `
+    SELECT WarningType FROM Warning
+    WHERE WarningId = ?
+`;
+const getGeneralWarningSql = `
+    SELECT PeopleDescription, WarningDescription
+    FROM GeneralWarning
+    WHERE WarningId = ?
+`;
 
 export async function submitWarning(username: string, warning: IWarning, dateTime: string, warningId: string) {
     // First add to the Warning table.
@@ -64,6 +73,41 @@ export async function submitWarning(username: string, warning: IWarning, dateTim
         }
     } catch (err) {
         // TODO: Revert previous query.
+        log.databaseError(err);
+        throw new HttpRequestError(500, "Internal Server Error.");
+    }
+}
+
+/**
+ * Returns a warnings type.
+ * @param warningId
+ */
+export async function getWarningType(warningId: string) {
+    try {
+        const result = await db.query(getWarningTypeSql, [warningId]) as any[];
+        if (result.length > 0) {
+            return result;
+        }
+        return "";
+    } catch (err) {
+        log.databaseError(err);
+        throw new HttpRequestError(500, "Internal Server Error.");
+    }
+}
+
+/**
+ * Returns specific information about a warning based on it's type.
+ * @param warningId
+ * @param warningType
+ */
+export async function getWarningInformation(warningId: string, warningType: WarningType) {
+    try {
+        if (warningType === "general") {
+            return await db.query(getGeneralWarningSql, warningId) as any[];
+        }
+
+        // Other warning types here.
+    } catch (err) {
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error.");
     }
@@ -101,7 +145,7 @@ export async function getWarningsAfterId(warningId: string) {
  */
 export async function upvoteWarning(warningId: string, username: string) {
     try {
-        return await db.query(upvoteWarningSql, [warningId, username]);
+        await db.query(upvoteWarningSql, [warningId, username]);
     } catch (err) {
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error");
@@ -115,7 +159,7 @@ export async function upvoteWarning(warningId: string, username: string) {
  */
 export async function downvoteWarning(warningId: string, username: string) {
     try {
-        return await db.query(downvoteWarningSql, [warningId, username]);
+        await db.query(downvoteWarningSql, [warningId, username]);
     } catch (err) {
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error");
