@@ -17,6 +17,42 @@ export async function getAllWarnings() {
 }
 
 /**
+ * Returns all information for warning with {id}.
+ * This includes specific warning information based on it's type.
+ */
+export async function getWarning(warningId: string) {
+    if (warningId === undefined) {
+        throw new HttpRequestError(400, "No warning_id given.");
+    }
+
+    // First get the type of the warning.
+    let warningType;
+    try {
+        const result = await WarningRepository.getWarningType(warningId);
+        if (result === "") {
+            throw new HttpRequestError(400, "warning_id does not exist.");
+        }
+
+        warningType = result[0].WarningType;
+    } catch (err) {
+        throw err;
+    }
+
+    // Now retrieve the information.
+    try {
+        const result = await WarningRepository.getWarningInformation(warningId, warningType) as any[];
+        if (result.length > 0) {
+            return result[0];
+        }
+
+        log.error("The result returned from getWarningInformation had a length that was less than 0.");
+        throw new HttpRequestError(500, "Internal Server Error.");
+    } catch (err) {
+        throw err;
+    }
+}
+
+/**
  * Returns all warnings submitted after {id}.
  */
 export async function getWarningAfterId(warningId: string) {

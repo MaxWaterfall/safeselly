@@ -8,13 +8,13 @@ const SELLY_OAK_LAT = 52.436720;
 const SELLY_OAK_LONG = -1.939000;
 const DISTANCE_FROM_SELLY_OAK = 5000; // 5km.
 
-export type warningType = "general";
+export type WarningType = "general";
 
 /**
  * The base interface, used for all warnings.
  */
 export interface IWarning {
-    type: warningType;
+    type: WarningType;
     location: {
         lat: number;
         long: number;
