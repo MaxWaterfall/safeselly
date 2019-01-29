@@ -48,7 +48,7 @@ const getGeneralWarningSql = `
 export async function submitWarning(username: string, warning: IWarning, dateTime: string, warningId: string) {
     // First add to the Warning table.
     try {
-        db.query(submitWarningSql, [
+        await db.query(submitWarningSql, [
             warningId,
             username,
             warning.type,
@@ -65,7 +65,7 @@ export async function submitWarning(username: string, warning: IWarning, dateTim
     // Now add to a specific warning table, depending on the warning type.
     try {
         if (warning.type === "general") {
-            db.query(submitGeneralWarningSql, [
+            await db.query(submitGeneralWarningSql, [
                 warningId,
                 warning.information.peopleDescription,
                 warning.information.warningDescription,
