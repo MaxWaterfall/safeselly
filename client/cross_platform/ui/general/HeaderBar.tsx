@@ -21,7 +21,7 @@ export const HeaderBar = (props: IProps) => {
                 <Left>
                     <Button onPress={props.onPress}>
                         <Text>
-                            Back
+                            {"<-"}
                         </Text>
                     </Button>
                 </Left>

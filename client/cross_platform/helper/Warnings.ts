@@ -1,6 +1,8 @@
+type WarningType = "general";
+
 export interface IWarning {
-    WarningId: number;
-    WarningType: "general";
+    WarningId: string;
+    WarningType: WarningType;
     WarningDateTime: string;
     Latitude: number;
     Longitude: number;

@@ -1,15 +1,13 @@
-import { Button, Container, Content, Text } from "native-base";
+import { Button, Col, Content, Grid, Row, Text, Toast } from "native-base";
 import React, { Component } from "react";
-import { View } from "react-native";
 import MapView, {Marker, PROVIDER_GOOGLE, Region} from "react-native-maps";
-import { initialRegion } from "../../../services/ViewWarningsService";
+import { initialRegion, getWarnings } from "../../../services/ViewWarningsService";
+import { FailedToConnectScreen } from "../../general/FailedToConnectScreen";
 import { LoadingScreen } from "../../general/LoadingScreen";
 import { IWarning } from "./../../../helper/Warnings";
 import { getInitialWarnings } from "./../../../services/ViewWarningsService";
 import { HeaderBar } from "./../../general/HeaderBar";
-import { Centre } from "./../../general/StyleComponents";
 import Styles from "./../../general/Styles";
-import { FailedToConnectScreen } from "../../general/FailedToConnectScreen";
 
 interface IState {
     region?: Region;
@@ -46,17 +44,51 @@ export default class ViewAllWarnings extends Component<any, IState> {
         }
 
         return (
-            <Container style={{flex: 1}}>
-                <MapView
-                    style={Styles.fillObject}
-                    provider={PROVIDER_GOOGLE}
-                    region={this.state.region}
-                    onRegionChangeComplete={this.onRegionChangeComplete}
-                >
-                    {this.state.warnings!.map((warning: IWarning) => {
-                    })}
-                </MapView>
-            </Container>
+            <Grid>
+                <Row size={4}>
+                    <MapView
+                        style={Styles.fillObject}
+                        provider={PROVIDER_GOOGLE}
+                        region={this.state.region}
+                        onRegionChangeComplete={this.onRegionChangeComplete}
+                    >
+                        {this.state.warnings!.map((warning: IWarning) => {
+                            return (
+                                <Marker
+                                    key={warning.WarningId}
+                                    coordinate={{latitude: warning.Latitude, longitude: warning.Longitude}}
+                                    onPress={() => this.props.navigation.push("ViewSingleWarning", {
+                                        warning,
+                                    })}
+                                />
+                            );
+                        })}
+                    </MapView>
+                </Row>
+                <Row size={1}>
+                    <Col>
+                        <Content padder>
+                            <Button
+                                full
+                                style={Styles.mb15}
+                                onPress={this.refreshWarnings}
+                            >
+                                <Text>
+                                    Refresh
+                                </Text>
+                            </Button>
+                            <Button
+                                full
+                                info
+                            >
+                                <Text>
+                                    Filter
+                                </Text>
+                            </Button>
+                        </Content>
+                    </Col>
+                </Row>
+            </Grid>
         );
     }
 
@@ -76,6 +108,33 @@ export default class ViewAllWarnings extends Component<any, IState> {
                 this.setState({
                     loading: false,
                     failed: true,
+                });
+            });
+    }
+
+    /**
+     * Gets more warnings from the warning service.
+     */
+    private refreshWarnings = () => {
+        getWarnings(this.state.warnings![this.state.warnings!.length - 1].WarningId)
+            .then((warnings) => {
+                console.log(warnings);
+                if (warnings.length === 0) {
+                    Toast.show({
+                        text: "Up to date.",
+                        type: "success",
+                    });
+                    return;
+                }
+
+                this.setState({
+                    warnings: this.state.warnings!.concat(warnings),
+                });
+            })
+            .catch((err) => {
+                Toast.show({
+                    text: err.message,
+                    type: "danger",
                 });
             });
     }

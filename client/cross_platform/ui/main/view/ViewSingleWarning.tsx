@@ -1,14 +1,168 @@
-import { Container, Text } from "native-base";
+import { Button, Container, Content, H1, Text } from "native-base";
 import React, { Component } from "react";
+import MapView, { LatLng, Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
+import { getInitialWarnings, getWarningInformation, initialRegion } from "../../../services/ViewWarningsService";
+import { CardItemWithHeader } from "../../general/CardItemWithHeader";
+import { FailedToConnectScreen } from "../../general/FailedToConnectScreen";
+import { LoadingScreen } from "../../general/LoadingScreen";
+import { IGeneralWarning, IWarning } from "./../../../helper/Warnings";
+import { HeaderBar } from "./../../general/HeaderBar";
+import Styles from "./../../general/Styles";
 
-export default class Submit extends Component {
+interface IState {
+    loading: boolean;
+    failed: boolean;
+    region: Region;
+    markerLatLng: LatLng;
+    warning: IWarning;
+    information?: any;
+}
+
+export default class ViewSingleWarning extends Component<any, IState> {
+
+     // @ts-ignore navigation has implicit any type and I cannot change it.
+     public static navigationOptions = ({navigation}) => {
+        return {
+            header: <HeaderBar backButton onPress={() => navigation.pop()}/>,
+        };
+    }
+
+    public constructor(props: any) {
+        super(props);
+
+        const warning: IWarning = this.props.navigation.getParam("warning");
+
+        this.state = {
+            loading: true,
+            failed: false,
+            region: {
+                latitude: warning.Latitude,
+                longitude: warning.Longitude,
+                latitudeDelta: initialRegion.latitudeDelta,
+                longitudeDelta: initialRegion.longitudeDelta,
+            },
+            warning,
+            markerLatLng: {
+                latitude: warning.Latitude,
+                longitude: warning.Longitude,
+            },
+        };
+
+        this.getWarningInformationInitial();
+    }
+
     public render() {
+        if (this.state.loading) {
+            return <LoadingScreen/>;
+        }
+
+        if (this.state.failed) {
+            return <FailedToConnectScreen onPress={this.getWarningInformation}/>;
+        }
+
         return (
             <Container>
-                <Text>
-                    View Single Warning
-                </Text>
+                <Container style={{...{flex: 1}}}>
+                    <MapView
+                        style={Styles.fillObject}
+                        provider={PROVIDER_GOOGLE}
+                        region={this.state.region}
+                        onRegionChangeComplete={this.onRegionChangeComplete}
+                    >
+                        <Marker coordinate={this.state.markerLatLng as LatLng}/>
+                    </MapView>
+                </Container>
+                <Container>
+                    <Content padder>
+                        <CardItemWithHeader header="Date/Time" body={this.state.warning.WarningDateTime}/>
+                        {this.renderWarningInformation()}
+                        <Button
+                            style={{...Styles.mb15, ...Styles.mt15}}
+                            full
+                            success
+                        >
+                            <Text>
+                                I saw this happen
+                            </Text>
+                        </Button>
+                        <Button
+                            full
+                            danger
+                        >
+                            <Text>
+                                This warning is spam
+                            </Text>
+                        </Button>
+                    </Content>
+                </Container>
             </Container>
         );
+    }
+
+    private onRegionChangeComplete = (region: Region) => {
+        this.setState({ region });
+    }
+
+    /**
+     * Gets the information for this specific warning from the server.
+     */
+    private getWarningInformationInitial = () => {
+        getWarningInformation(this.state.warning.WarningId, this.state.warning.WarningType)
+        .then((value: any) => {
+            this.setState({
+                loading: false,
+                information: value,
+            });
+        })
+        .catch((err) => {
+            // Request failed.
+            this.setState({failed: true});
+        });
+    }
+
+    /**
+     * Same as getWarningInformationInitial but also sets the state so that loading = true.
+     */
+    private getWarningInformation = () => {
+        this.setState({loading: true});
+        this.getWarningInformationInitial();
+    }
+
+    /**
+     * Renders the specific information of the warning.
+     */
+    private renderWarningInformation = () => {
+        const render: JSX.Element[] = [];
+        let index = 0;
+        for (const property in this.state!.information) {
+            if (this.state.information!.hasOwnProperty(property)) {
+                // Find index of second capital letter. We can start at 1 as we know 0
+                // will be the first capital letter.
+                index = -1;
+                for (let i = 1; i < property.length; i++) {
+                    if (property.charAt(i) === property.charAt(i).toUpperCase()) {
+                        index = i;
+                        break;
+                    }
+                }
+
+                let formattedProperty = property;
+                if (index !== -1) {
+                    // Format property by inserting a space.
+                    formattedProperty = property.substring(0, index) + " " + property.substring(index, property.length);
+                }
+
+                // Add this item to the array.
+                render.push((
+                    <CardItemWithHeader
+                        key={index++}
+                        header={formattedProperty}
+                        body={this.state.information[property]}
+                    />
+                ));
+            }
+        }
+
+        return render;
     }
 }

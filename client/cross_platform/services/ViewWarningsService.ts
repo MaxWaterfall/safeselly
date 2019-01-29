@@ -1,4 +1,4 @@
-import { IWarning } from "../helper/Warnings";
+import { IGeneralWarning, IWarning, WarningType } from "../helper/Warnings";
 import { makeAuthenticatedRequest } from "./NetworkService";
 
 const SELLY_OAK_LAT = 52.436720;
@@ -19,10 +19,35 @@ export const initialRegion = {
 export async function getInitialWarnings(): Promise<IWarning[]> {
     let warnings;
     try {
-        warnings = await makeAuthenticatedRequest("GET", "/warnings/", {});
+        warnings = await makeAuthenticatedRequest("GET", "/warning/", {});
     } catch (err) {
-        throw (err);
+        throw err;
     }
 
     return warnings;
+}
+
+/**
+ * Retrieves all warnings from the server after a given warning id.
+ */
+export async function getWarnings(warningId: string): Promise<IWarning[]> {
+    try {
+        return await makeAuthenticatedRequest("GET", `/warning/${warningId}/after`, {});
+    } catch (err) {
+        throw err;
+    }
+}
+
+/**
+ * Retrieves specific warning information from the server.
+ * @param warningId
+ */
+export async function getWarningInformation(warningId: string, warningType: WarningType) {
+    try {
+        if (warningType === "general") {
+            return await makeAuthenticatedRequest("GET", `/warning/${warningId}`, {}) as IGeneralWarning;
+        }
+    } catch (err) {
+        throw err;
+    }
 }

@@ -24,7 +24,7 @@ export async function makeAuthenticatedRequest(method: string, path: string, bod
         headers: {
             "Content-Type": "application/json",
             "username": credentials.username,
-            "access-token": credentials.accessToken,
+            "access_token": credentials.accessToken,
         },
     };
 

@@ -27,7 +27,7 @@ const AppNavigator = createStackNavigator(
     },
     {
         headerMode: "none",
-        initialRouteName: "Register",
+        initialRouteName: "Main",
     },
 );
 const AppContainer = createAppContainer(AppNavigator);
