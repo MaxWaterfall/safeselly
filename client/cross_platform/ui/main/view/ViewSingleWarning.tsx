@@ -1,4 +1,6 @@
-import { Button, Container, Content, H1, Text } from "native-base";
+// @ts-ignore No type definitions exist for this library.
+import datetimeDifference from "datetime-difference";
+import { Button, Container, Content, H1, H2, H3, Text } from "native-base";
 import React, { Component } from "react";
 import MapView, { LatLng, Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
 import { getInitialWarnings, getWarningInformation, initialRegion } from "../../../services/ViewWarningsService";
@@ -38,8 +40,8 @@ export default class ViewSingleWarning extends Component<any, IState> {
             region: {
                 latitude: warning.Latitude,
                 longitude: warning.Longitude,
-                latitudeDelta: initialRegion.latitudeDelta,
-                longitudeDelta: initialRegion.longitudeDelta,
+                latitudeDelta: 0.007,
+                longitudeDelta: 0.003,
             },
             warning,
             markerLatLng: {
@@ -74,7 +76,12 @@ export default class ViewSingleWarning extends Component<any, IState> {
                 </Container>
                 <Container>
                     <Content padder>
-                        <CardItemWithHeader header="Date/Time" body={this.state.warning.WarningDateTime}/>
+                        <H3 style={{...Styles.centreText as any, ...Styles.mb15, ...Styles.mt15}}>
+                            {this.prettyType()} Warning
+                        </H3>
+                        <Text style={{...Styles.centreText as any, ...Styles.mb15}}>
+                            This happened {this.timeFromWarning()} ago on {this.prettyDate()}.
+                        </Text>
                         {this.renderWarningInformation()}
                         <Button
                             style={{...Styles.mb15, ...Styles.mt15}}
@@ -164,5 +171,62 @@ export default class ViewSingleWarning extends Component<any, IState> {
         }
 
         return render;
+    }
+
+    /**
+     * Returns the date this warning occurred on in a nice human readable format.
+     */
+    private prettyDate = () => {
+        const date = this.state.warning.WarningDateTime;
+
+        // First, extract date.
+        const year = date.substring(0, 4);
+        const month = date.substring(5, 7);
+        const day = date.substring(8, 10);
+
+        // Now extract time.
+        const hours = date.substring(11, 13);
+        const minutes = date.substring(14, 16);
+        const seconds = date.substring(17, 19);
+
+        return `${day}/${month}/${year} at ${hours}:${minutes}`;
+    }
+
+    /**
+     * Returns the amount of time that has passed since this warning happened.
+     */
+    private timeFromWarning = () => {
+        const date = this.state.warning.WarningDateTime;
+
+        const warningDateTime = new Date(date);
+        const now = new Date();
+
+        const diff = datetimeDifference(warningDateTime, now);
+
+        if (diff.months > 0) {
+            return `${diff.months} months`;
+        }
+
+        if (diff.days > 0) {
+            return `${diff.days} days`;
+        }
+
+        if (diff.hours > 0) {
+            return `${diff.hours} hours`;
+        }
+
+        if (diff.minutes > 0) {
+            return `${diff.minutes} minutes`;
+        }
+
+        return `${diff.seconds} seconds`;
+    }
+
+    /**
+     * Formats the type so that the first letter is upper case.
+     */
+    private prettyType = () => {
+        const type = this.state.warning.WarningType;
+        return (type.substr(0, 1).toUpperCase()) + type.substr(1);
     }
 }

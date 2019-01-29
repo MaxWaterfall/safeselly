@@ -45,7 +45,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
 
         return (
             <Grid>
-                <Row size={4}>
+                <Row size={9}>
                     <MapView
                         style={Styles.fillObject}
                         provider={PROVIDER_GOOGLE}
@@ -70,19 +70,10 @@ export default class ViewAllWarnings extends Component<any, IState> {
                         <Content padder>
                             <Button
                                 full
-                                style={Styles.mb15}
                                 onPress={this.refreshWarnings}
                             >
                                 <Text>
                                     Refresh
-                                </Text>
-                            </Button>
-                            <Button
-                                full
-                                info
-                            >
-                                <Text>
-                                    Filter
                                 </Text>
                             </Button>
                         </Content>
@@ -118,7 +109,6 @@ export default class ViewAllWarnings extends Component<any, IState> {
     private refreshWarnings = () => {
         getWarnings(this.state.warnings![this.state.warnings!.length - 1].WarningId)
             .then((warnings) => {
-                console.log(warnings);
                 if (warnings.length === 0) {
                     Toast.show({
                         text: "Up to date.",
@@ -129,6 +119,10 @@ export default class ViewAllWarnings extends Component<any, IState> {
 
                 this.setState({
                     warnings: this.state.warnings!.concat(warnings),
+                });
+                Toast.show({
+                    text: `Retrieved ${warnings.length} warning(s).`,
+                    type: "success",
                 });
             })
             .catch((err) => {
