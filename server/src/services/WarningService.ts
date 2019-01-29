@@ -81,7 +81,9 @@ export async function submitWarning(username: string, warning: IWarning) {
     }
 
     // Generate warning id. Gets the hex value.
-    const warningId = (Math.ceil(Math.random()) * NUMBER_OF_IDS).toString(16);
+    const randomNumber = Math.random();
+    const warningId = (Math.ceil(randomNumber * NUMBER_OF_IDS)).toString(16);
+    log.info("warningId " + warningId);
 
     // Add warning to database.
     try {
