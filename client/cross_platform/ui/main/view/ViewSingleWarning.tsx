@@ -203,22 +203,22 @@ export default class ViewSingleWarning extends Component<any, IState> {
         const diff = datetimeDifference(warningDateTime, now);
 
         if (diff.months > 0) {
-            return `${diff.months} months`;
+            return `${diff.months} month(s)`;
         }
 
         if (diff.days > 0) {
-            return `${diff.days} days`;
+            return `${diff.days} day(s)`;
         }
 
         if (diff.hours > 0) {
-            return `${diff.hours} hours`;
+            return `${diff.hours} hour(s)`;
         }
 
         if (diff.minutes > 0) {
-            return `${diff.minutes} minutes`;
+            return `${diff.minutes} minute(s)`;
         }
 
-        return `${diff.seconds} seconds`;
+        return `${diff.seconds} second(s)`;
     }
 
     /**

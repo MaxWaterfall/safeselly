@@ -1,24 +1,33 @@
-import { Button, Icon, Toast, View, Text, ActionSheet } from "native-base";
+import { ActionSheet, Button, Icon, Text, Toast, View } from "native-base";
 import React, { Component } from "react";
 import MapView, {Marker, PROVIDER_GOOGLE, Region} from "react-native-maps";
-import { getWarnings, initialRegion } from "../../../services/ViewWarningsService";
+import { getWarningsAfterId, getWarningsFrom, initialRegion } from "../../../services/ViewWarningsService";
 import { FailedToConnectScreen } from "../../general/FailedToConnectScreen";
 import { LoadingScreen } from "../../general/LoadingScreen";
 import { IWarning } from "./../../../helper/Warnings";
-import { getInitialWarnings } from "./../../../services/ViewWarningsService";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
 
-type FilterType = "Past Hour" | "Past Day" | "Past Week";
 const FILTER_BUTTONS = ["Past Hour", "Past Day", "Past Week", "Cancel"];
 const CANCEL_INDEX = 3;
 
+enum FilterTypes {
+    HOUR = 1,
+    DAY = 24,
+    WEEK = DAY * 7,
+}
+
+interface IFilter {
+    text: "Past Hour" | "Past Day" | "Past Week";
+    hours: FilterTypes;
+}
+
 interface IState {
     region?: Region;
-    warnings?: IWarning[];
+    warnings: IWarning[];
     loading: boolean;
     failed: boolean;
-    filter: FilterType;
+    filter: IFilter;
 }
 
 export default class ViewAllWarnings extends Component<any, IState> {
@@ -34,7 +43,11 @@ export default class ViewAllWarnings extends Component<any, IState> {
         this.state = {
             loading: true,
             failed: false,
-            filter: "Past Hour",
+            filter: {
+                text: "Past Hour",
+                hours: FilterTypes.HOUR,
+            },
+            warnings: [],
         };
 
         this.loadInitialStateFromConstructor();
@@ -83,7 +96,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
                         onPress={this.filterWarnings}
                     >
                         <Text>
-                            Filter: {this.state.filter}
+                            Filter: {this.state.filter.text}
                         </Text>
                     </Button>
                 </View>
@@ -95,48 +108,23 @@ export default class ViewAllWarnings extends Component<any, IState> {
      * Gets the initial set of warnings from the warning service.
      */
     private loadInitialStateFromConstructor = () => {
-        getInitialWarnings()
+        console.log("Before call: " + JSON.stringify(this.state.warnings));
+        getWarningsFrom(this.state.filter.hours)
             .then((warnings) => {
+                console.log("Before set state: " + JSON.stringify(warnings));
                 this.setState({
                     region: initialRegion,
                     warnings,
                     loading: false,
+                }, () => {
+                    console.log("After call: " + JSON.stringify(this.state.warnings));
                 });
+                
             })
-            .catch((err) => {
+            .catch(() => {
                 this.setState({
                     loading: false,
                     failed: true,
-                });
-            });
-    }
-
-    /**
-     * Gets more warnings from the warning service.
-     */
-    private refreshWarnings = () => {
-        getWarnings(this.state.warnings![this.state.warnings!.length - 1].WarningId)
-            .then((warnings) => {
-                if (warnings.length === 0) {
-                    Toast.show({
-                        text: "Up to date.",
-                        type: "success",
-                    });
-                    return;
-                }
-
-                this.setState({
-                    warnings: this.state.warnings!.concat(warnings),
-                });
-                Toast.show({
-                    text: `Retrieved ${warnings.length} warning(s).`,
-                    type: "success",
-                });
-            })
-            .catch((err) => {
-                Toast.show({
-                    text: err.message,
-                    type: "danger",
                 });
             });
     }
@@ -150,6 +138,43 @@ export default class ViewAllWarnings extends Component<any, IState> {
         this.loadInitialStateFromConstructor();
     }
 
+    /**
+     * Gets more warnings from the warning service.
+     */
+    private refreshWarnings = () => {
+        console.log("Before check: " + JSON.stringify(this.state.warnings));
+        if (this.state.warnings.length === 0) {
+            this.loadInitialStateFromConstructor();
+            return;
+        }
+
+        getWarningsAfterId(this.state.warnings![this.state.warnings!.length - 1].WarningId)
+            .then((warnings) => {
+                if (warnings.length === 0) {
+                    Toast.show({
+                        text: "Up to date.",
+                        type: "success",
+                    });
+                    return;
+                }
+
+                this.setState({
+                    warnings: this.state.warnings!.concat(warnings),
+                });
+
+                Toast.show({
+                    text: `Retrieved ${warnings.length} warning(s).`,
+                    type: "success",
+                });
+            })
+            .catch((err) => {
+                Toast.show({
+                    text: err.message,
+                    type: "danger",
+                });
+            });
+    }
+
     private filterWarnings = () => {
         ActionSheet.show(
             {
@@ -159,8 +184,32 @@ export default class ViewAllWarnings extends Component<any, IState> {
             },
             (buttonIndex) => {
                 if (buttonIndex !== CANCEL_INDEX) {
-                    // Load correct warnings.
-                    this.setState({filter: FILTER_BUTTONS[buttonIndex] as FilterType});
+                    if (FILTER_BUTTONS[buttonIndex] === "Past Hour") {
+                        this.setState({
+                            filter: {
+                                text: "Past Hour",
+                                hours: FilterTypes.HOUR,
+                            },
+                        }, this.loadInitialState);
+                    }
+
+                    if (FILTER_BUTTONS[buttonIndex] === "Past Day") {
+                        this.setState({
+                            filter: {
+                                text: "Past Day",
+                                hours: FilterTypes.DAY,
+                            },
+                        }, this.loadInitialState);
+                    }
+
+                    if (FILTER_BUTTONS[buttonIndex] === "Past Week") {
+                        this.setState({
+                            filter: {
+                                text: "Past Week",
+                                hours: FilterTypes.WEEK,
+                            },
+                        }, this.loadInitialState);
+                    }
                 }
             },
         );

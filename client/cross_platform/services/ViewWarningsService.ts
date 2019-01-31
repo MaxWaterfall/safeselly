@@ -14,26 +14,25 @@ export const initialRegion = {
 };
 
 /**
- * Retrieves warnings from the server.
+ * Retrieves all warnings from the server with a WarningDateTime within the past {hours} hours.
  */
-export async function getInitialWarnings(): Promise<IWarning[]> {
-    let warnings;
+export async function getWarningsFrom(hours: number): Promise<IWarning[]> {
     try {
-        warnings = await makeAuthenticatedRequest("GET", "/warning/", {});
+        return await makeAuthenticatedRequest("GET", `/warning/filter/${hours}`, {});
     } catch (err) {
+        console.log(err);
         throw err;
     }
-
-    return warnings;
 }
 
 /**
  * Retrieves all warnings from the server after a given warning id.
  */
-export async function getWarnings(warningId: string): Promise<IWarning[]> {
+export async function getWarningsAfterId(warningId: string): Promise<IWarning[]> {
     try {
         return await makeAuthenticatedRequest("GET", `/warning/${warningId}/after`, {});
     } catch (err) {
+        console.log(err);
         throw err;
     }
 }
