@@ -22,8 +22,8 @@ interface IState {
 
 export default class ViewSingleWarning extends Component<any, IState> {
 
-     // @ts-ignore navigation has implicit any type and I cannot change it.
-     public static navigationOptions = ({navigation}) => {
+    // @ts-ignore navigation has implicit any type and I cannot change it.
+    public static navigationOptions = ({navigation}) => {
         return {
             header: <HeaderBar backButton onPress={() => navigation.pop()}/>,
         };
@@ -76,15 +76,15 @@ export default class ViewSingleWarning extends Component<any, IState> {
                 </Container>
                 <Container>
                     <Content padder>
-                        <H3 style={{...Styles.centreText as any, ...Styles.mb15, ...Styles.mt15}}>
+                        <H3 style={{...Styles.centreText as any, ...Styles.mb10, ...Styles.mt10}}>
                             {this.prettyType()} Warning
                         </H3>
-                        <Text style={{...Styles.centreText as any, ...Styles.mb15}}>
+                        <Text style={{...Styles.centreText as any, ...Styles.mb10}}>
                             This happened {this.timeFromWarning()} ago on {this.prettyDate()}.
                         </Text>
                         {this.renderWarningInformation()}
                         <Button
-                            style={{...Styles.mb15, ...Styles.mt15}}
+                            style={Styles.mbt10}
                             full
                             success
                         >
@@ -187,7 +187,6 @@ export default class ViewSingleWarning extends Component<any, IState> {
         // Now extract time.
         const hours = date.substring(11, 13);
         const minutes = date.substring(14, 16);
-        const seconds = date.substring(17, 19);
 
         return `${day}/${month}/${year} at ${hours}:${minutes}`;
     }

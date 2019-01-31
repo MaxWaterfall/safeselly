@@ -1,11 +1,18 @@
 import { StyleSheet } from "react-native";
 
 export default {
-    mb15: {
-        marginBottom: 15,
+    mb10: {
+        marginBottom: 10,
     },
-    mt15: {
-        marginTop: 15,
+    mt10: {
+        marginTop: 10,
+    },
+    mbt10: {
+        marginBottom: 10,
+        marginTop: 10,
+    },
+    padder: {
+        margin: 10,
     },
     centreText: {
         textAlign: "center",

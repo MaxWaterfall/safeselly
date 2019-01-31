@@ -7,13 +7,13 @@ export const FailedToConnectScreen = (props: {onPress(): void}) => {
         <Container>
             <Content padder>
                 <Text
-                    style={{...Styles.centreText as any, ...Styles.mt15}}
+                    style={{...Styles.centreText as any, ...Styles.mt10}}
                 >
                     Cannot connect to the server, try again.
                 </Text>
                 <Button
                     full
-                    style={Styles.mt15}
+                    style={Styles.mt10}
                     onPress={props.onPress}
                 >
                     <Text>

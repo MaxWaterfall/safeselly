@@ -41,10 +41,10 @@ export default class EnterUsername extends Component<any, IState> {
         return (
             <Container>
                 <Content padder>
-                    <Text style={[Styles.centreText as any, Styles.mb15, Styles.mt15]}>
+                    <Text style={[Styles.centreText as any, Styles.mbt10]}>
                         Enter your University of Birmingham username below.
                     </Text>
-                    <Item regular style={Styles.mb15}>
+                    <Item regular style={Styles.mb10}>
                         <Input
                             placeholder="UoB Username"
                             onChangeText={(text) => this.setState({username: text})}
@@ -55,7 +55,7 @@ export default class EnterUsername extends Component<any, IState> {
                     <Button
                         primary
                         full
-                        style={Styles.mb15}
+                        style={Styles.mb10}
                         onPress={this.pressNext}
                     >
                         <Text>Next</Text>

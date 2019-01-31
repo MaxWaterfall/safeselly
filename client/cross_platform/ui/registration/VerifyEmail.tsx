@@ -38,16 +38,16 @@ export default class VerifyEmail extends Component<any, IState> {
         return (
             <Container>
                 <Content padder>
-                    <Text style={[Styles.centreText as any, Styles.mb15, Styles.mt15]}>
+                    <Text style={[Styles.centreText as any, Styles.mb10, Styles.mt10]}>
                         We've sent an email to {getUsername()}@bham.ac.uk.
                     </Text>
-                    <Text style={[Styles.centreText as any, Styles.mb15]}>
+                    <Text style={[Styles.centreText as any, Styles.mb10]}>
                         Click the link in the email, then tap the button below.
                     </Text>
                     <Button
                         primary
                         full
-                        style={Styles.mb15}
+                        style={Styles.mb10}
                         onPress={this.pressNext}
                     >
                         <Text>I've clicked the link</Text>
@@ -55,7 +55,7 @@ export default class VerifyEmail extends Component<any, IState> {
                     <Button
                         info
                         full
-                        style={Styles.mb15}
+                        style={Styles.mb10}
                         onPress={() => this.props.navigation.pop()}
                     >
                         <Text>I entered the wrong username</Text>

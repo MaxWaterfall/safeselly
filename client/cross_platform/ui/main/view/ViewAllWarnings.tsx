@@ -1,4 +1,4 @@
-import { Button, Col, Content, Grid, Row, Text, Toast } from "native-base";
+import { Button, Col, Content, Grid, Row, Text, Toast, View } from "native-base";
 import React, { Component } from "react";
 import MapView, {Marker, PROVIDER_GOOGLE, Region} from "react-native-maps";
 import { initialRegion, getWarnings } from "../../../services/ViewWarningsService";
@@ -44,42 +44,35 @@ export default class ViewAllWarnings extends Component<any, IState> {
         }
 
         return (
-            <Grid>
-                <Row size={9}>
-                    <MapView
-                        style={Styles.fillObject}
-                        provider={PROVIDER_GOOGLE}
-                        region={this.state.region}
-                        onRegionChangeComplete={this.onRegionChangeComplete}
+            <View style={{flex: 1 , flexDirection: "column"}}>
+                <MapView
+                    style={{flexGrow: 1}}
+                    provider={PROVIDER_GOOGLE}
+                    region={this.state.region}
+                    onRegionChangeComplete={this.onRegionChangeComplete}
+                >
+                    {this.state.warnings!.map((warning: IWarning) => {
+                        return (
+                            <Marker
+                                key={warning.WarningId}
+                                coordinate={{latitude: warning.Latitude, longitude: warning.Longitude}}
+                                onPress={() => this.props.navigation.push("ViewSingleWarning", {
+                                    warning,
+                                })}
+                            />
+                        );
+                    })}
+                </MapView>
+                <Button
+                        style={Styles.padder}
+                        full
+                        onPress={this.refreshWarnings}
                     >
-                        {this.state.warnings!.map((warning: IWarning) => {
-                            return (
-                                <Marker
-                                    key={warning.WarningId}
-                                    coordinate={{latitude: warning.Latitude, longitude: warning.Longitude}}
-                                    onPress={() => this.props.navigation.push("ViewSingleWarning", {
-                                        warning,
-                                    })}
-                                />
-                            );
-                        })}
-                    </MapView>
-                </Row>
-                <Row size={1}>
-                    <Col>
-                        <Content padder>
-                            <Button
-                                full
-                                onPress={this.refreshWarnings}
-                            >
-                                <Text>
-                                    Refresh
-                                </Text>
-                            </Button>
-                        </Content>
-                    </Col>
-                </Row>
-            </Grid>
+                        <Text>
+                            Refresh
+                        </Text>
+                    </Button>
+            </View>
         );
     }
 
