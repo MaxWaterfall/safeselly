@@ -37,6 +37,21 @@ router.get("/", (req: Request, res: Response) => {
 });
 
 /**
+ * Returns all warnings that have a WarningDateTime within the last x hours.
+ */
+router.get("/filter/:hours", (req: Request, res: Response) => {
+    WarningService.getAllWarningsFrom(req.params.hours)
+        .then((value) => {
+            res.status(200);
+            res.send(value);
+        })
+        .catch ((err: HttpRequestError) => {
+            res.status(err.status);
+            res.send(err.message);
+        });
+});
+
+/**
  * Returns all warnings submitted after {id}.
  */
 router.get("/:id/after", (req: Request, res: Response) => {

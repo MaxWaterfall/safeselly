@@ -4,6 +4,7 @@ import { IWarning, validateWarning } from "./../helper/WarningTypes";
 import * as WarningRepository from "./../repositories/WarningRepository";
 
 const NUMBER_OF_IDS = 1000000000000; // 100 billion.
+const MAX_HOUR_FILTER = 24 * 7; // 1 week.
 
 /**
  * Returns all warnings in the database.
@@ -11,6 +12,29 @@ const NUMBER_OF_IDS = 1000000000000; // 100 billion.
 export async function getAllWarnings() {
     try {
         return await WarningRepository.getAllWarnings();
+    } catch (err) {
+        throw err;
+    }
+}
+/**
+ * Returns all warnings with a WarningDateTime less than {hours} hours ago.
+ * Throws error if validation fails.
+ * @param hours
+ */
+export async function getAllWarningsFrom(hours: string) {
+    // Check it's a number.
+    const hoursNumber = Number(hours);
+    if (isNaN(hoursNumber)) {
+        throw new HttpRequestError(400, "Hours must be a number.");
+    }
+
+    // Check it's not more than the max.
+    if (hoursNumber < 0 || hoursNumber > MAX_HOUR_FILTER) {
+        throw new HttpRequestError(400, "Hours must be more than 0 and no more than 1 week.");
+    }
+
+    try {
+        return await WarningRepository.getAllWarningsFrom(hoursNumber);
     } catch (err) {
         throw err;
     }

@@ -44,6 +44,11 @@ const getGeneralWarningSql = `
     FROM GeneralWarning
     WHERE WarningId = ?
 `;
+const getAllWarningsFromSql = `
+    SELECT WarningId, WarningType, WarningDateTime, Latitude, Longitude
+    FROM Warning
+    WHERE WarningDateTime > DATE_SUB(NOW(),INTERVAL ? HOUR)
+`;
 
 export async function submitWarning(username: string, warning: IWarning, dateTime: string, warningId: string) {
     // First add to the Warning table.
@@ -122,6 +127,19 @@ export async function getAllWarnings() {
     } catch (err) {
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error.");
+    }
+}
+
+/**
+ * Returns all warnings with a WarningDateTime within the past {hours} hours.
+ * @param hours
+ */
+export async function getAllWarningsFrom(hours: number) {
+    try {
+        return await db.query(getAllWarningsFromSql, [hours]);
+    } catch (err) {
+        log.databaseError(err);
+        throw new HttpRequestError(500, "Internal Server Error");
     }
 }
 
