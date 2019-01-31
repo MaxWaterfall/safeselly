@@ -1,6 +1,6 @@
 import { setUserCredentials } from "../data/CredentialStorage";
+import { getItem, setItem } from "./../data/DataStorage";
 import { makeRequest } from "./NetworkService";
-import { setItem, getItem } from "./../data/DataStorage";
 
 const MAX_USERNAME_LENGTH = 10;
 const MIN_USERNAME_LENGTH = 4;

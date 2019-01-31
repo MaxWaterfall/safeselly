@@ -1,15 +1,15 @@
 // @ts-ignore No type definitions exist for this library.
 import datetimeDifference from "datetime-difference";
-import { Button, Container, Content, H3, Text } from "native-base";
+import { Button, Container, Content, H3, Text, Icon } from "native-base";
 import React, { Component } from "react";
 import MapView, { LatLng, Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
 import { getWarningInformation, initialRegion } from "../../../services/ViewWarningsService";
-import { CardItemWithHeader } from "../../general/CardItemWithHeader";
 import { FailedToConnectScreen } from "../../general/FailedToConnectScreen";
 import { LoadingScreen } from "../../general/LoadingScreen";
 import { IGeneralWarning, IWarning } from "./../../../helper/Warnings";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
+import { ViewGeneralWarning } from "./ViewGeneralWarning";
 
 interface IState {
     loading: boolean;
@@ -17,7 +17,7 @@ interface IState {
     region: Region;
     markerLatLng: LatLng;
     warning: IWarning;
-    information?: any;
+    information?: IGeneralWarning;
 }
 
 export default class ViewSingleWarning extends Component<any, IState> {
@@ -85,20 +85,24 @@ export default class ViewSingleWarning extends Component<any, IState> {
                         {this.renderWarningInformation()}
                         <Button
                             style={Styles.mbt10}
-                            full
+                            block
                             success
+                            iconLeft
                         >
+                            <Icon name="eye"/>
                             <Text>
                                 I saw this happen
                             </Text>
                         </Button>
                         <Button
-                            full
+                            block
                             danger
+                            iconRight
                         >
                             <Text>
                                 This warning is spam
                             </Text>
+                            <Icon name="alert"/>
                         </Button>
                     </Content>
                 </Container>
@@ -115,16 +119,16 @@ export default class ViewSingleWarning extends Component<any, IState> {
      */
     private getWarningInformationInitial = () => {
         getWarningInformation(this.state.warning.WarningId, this.state.warning.WarningType)
-        .then((value: any) => {
-            this.setState({
-                loading: false,
-                information: value,
+            .then((value: any) => {
+                this.setState({
+                    loading: false,
+                    information: value,
+                });
+            })
+            .catch((err) => {
+                // Request failed.
+                this.setState({failed: true});
             });
-        })
-        .catch((err) => {
-            // Request failed.
-            this.setState({failed: true});
-        });
     }
 
     /**
@@ -139,38 +143,12 @@ export default class ViewSingleWarning extends Component<any, IState> {
      * Renders the specific information of the warning.
      */
     private renderWarningInformation = () => {
-        const render: JSX.Element[] = [];
-        let index = 0;
-        for (const property in this.state!.information) {
-            if (this.state.information!.hasOwnProperty(property)) {
-                // Find index of second capital letter. We can start at 1 as we know 0
-                // will be the first capital letter.
-                index = -1;
-                for (let i = 1; i < property.length; i++) {
-                    if (property.charAt(i) === property.charAt(i).toUpperCase()) {
-                        index = i;
-                        break;
-                    }
-                }
-
-                let formattedProperty = property;
-                if (index !== -1) {
-                    // Format property by inserting a space.
-                    formattedProperty = property.substring(0, index) + " " + property.substring(index, property.length);
-                }
-
-                // Add this item to the array.
-                render.push((
-                    <CardItemWithHeader
-                        key={index++}
-                        header={formattedProperty}
-                        body={this.state.information[property]}
-                    />
-                ));
-            }
+        if (this.state.warning.WarningType === "general") {
+            console.log(this.state.information);
+            return <ViewGeneralWarning info={this.state.information as IGeneralWarning}/>;
         }
 
-        return render;
+        return <Text>Error</Text>;
     }
 
     /**

@@ -20,6 +20,6 @@ export interface IWarning {
 }
 
 export interface IGeneralWarning {
-    peopleDescription: string;
-    warningDescription: string;
+    PeopleDescription: string;
+    WarningDescription: string;
 }
