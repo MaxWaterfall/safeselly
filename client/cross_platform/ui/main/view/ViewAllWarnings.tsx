@@ -108,18 +108,13 @@ export default class ViewAllWarnings extends Component<any, IState> {
      * Gets the initial set of warnings from the warning service.
      */
     private loadInitialStateFromConstructor = () => {
-        console.log("Before call: " + JSON.stringify(this.state.warnings));
         getWarningsFrom(this.state.filter.hours)
             .then((warnings) => {
-                console.log("Before set state: " + JSON.stringify(warnings));
                 this.setState({
                     region: initialRegion,
                     warnings,
                     loading: false,
-                }, () => {
-                    console.log("After call: " + JSON.stringify(this.state.warnings));
                 });
-                
             })
             .catch(() => {
                 this.setState({
@@ -142,7 +137,6 @@ export default class ViewAllWarnings extends Component<any, IState> {
      * Gets more warnings from the warning service.
      */
     private refreshWarnings = () => {
-        console.log("Before check: " + JSON.stringify(this.state.warnings));
         if (this.state.warnings.length === 0) {
             this.loadInitialStateFromConstructor();
             return;

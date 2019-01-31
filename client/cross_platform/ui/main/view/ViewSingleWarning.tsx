@@ -1,9 +1,9 @@
 // @ts-ignore No type definitions exist for this library.
 import datetimeDifference from "datetime-difference";
-import { Button, Container, Content, H1, H2, H3, Text } from "native-base";
+import { Button, Container, Content, H3, Text } from "native-base";
 import React, { Component } from "react";
 import MapView, { LatLng, Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
-import { getInitialWarnings, getWarningInformation, initialRegion } from "../../../services/ViewWarningsService";
+import { getWarningInformation, initialRegion } from "../../../services/ViewWarningsService";
 import { CardItemWithHeader } from "../../general/CardItemWithHeader";
 import { FailedToConnectScreen } from "../../general/FailedToConnectScreen";
 import { LoadingScreen } from "../../general/LoadingScreen";

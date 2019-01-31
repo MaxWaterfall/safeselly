@@ -20,7 +20,6 @@ export async function getWarningsFrom(hours: number): Promise<IWarning[]> {
     try {
         return await makeAuthenticatedRequest("GET", `/warning/filter/${hours}`, {});
     } catch (err) {
-        console.log(err);
         throw err;
     }
 }
@@ -32,7 +31,6 @@ export async function getWarningsAfterId(warningId: string): Promise<IWarning[]>
     try {
         return await makeAuthenticatedRequest("GET", `/warning/${warningId}/after`, {});
     } catch (err) {
-        console.log(err);
         throw err;
     }
 }

@@ -1,5 +1,6 @@
 import { setUserCredentials } from "../data/CredentialStorage";
 import { makeRequest } from "./NetworkService";
+import { setItem, getItem } from "./../data/DataStorage";
 
 const MAX_USERNAME_LENGTH = 10;
 const MIN_USERNAME_LENGTH = 4;
@@ -57,6 +58,29 @@ export async function finishRegistration() {
         const response = await makeRequest("GET", "/access/access-token", getHeader(), {});
         // Save user credentials
         await setUserCredentials({username: usernameGlobal, accessToken: response.access_token});
+        // Update local storage
+        await setRegistered();
+    } catch (err) {
+        throw err;
+    }
+}
+
+export async function isRegistered() {
+    try {
+        const value = await getItem("registered");
+        if (value === "true") {
+            return true;
+        } else if (value === "false") {
+            return false;
+        }
+    } catch (err) {
+        return false;
+    }
+}
+
+async function setRegistered() {
+    try {
+        await setItem("registered", "true");
     } catch (err) {
         throw err;
     }
