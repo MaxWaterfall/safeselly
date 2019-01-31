@@ -2,9 +2,9 @@ import {
     Body,
     Button,
     Header,
+    Icon,
     Left,
     Right,
-    Text,
     Title,
 } from "native-base";
 import React from "react";
@@ -19,10 +19,8 @@ export const HeaderBar = (props: IProps) => {
         return (
             <Header>
                 <Left>
-                    <Button onPress={props.onPress}>
-                        <Text>
-                            {"<-"}
-                        </Text>
+                    <Button onPress={props.onPress} transparent>
+                        <Icon name="arrow-round-back"/>
                     </Button>
                 </Left>
                 <Body>

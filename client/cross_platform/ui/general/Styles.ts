@@ -11,8 +11,11 @@ export default {
         marginBottom: 10,
         marginTop: 10,
     },
-    padder: {
+    margin: {
         margin: 10,
+    },
+    padder: {
+        padding: 10,
     },
     centreText: {
         textAlign: "center",

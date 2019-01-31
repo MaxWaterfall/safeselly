@@ -46,7 +46,7 @@ export default class ChooseLocation extends Component<any, IState> {
                     {this.renderMarker()}
                 </MapView>
                 <Button
-                    style={Styles.padder}
+                    style={Styles.margin}
                     full
                     primary
                     onPress={this.moveToNextScreen}
@@ -79,6 +79,7 @@ export default class ChooseLocation extends Component<any, IState> {
             return (
                 <Marker
                     draggable
+                    onDragEnd={this.onMapPress}
                     coordinate={this.state.warningLocation as LatLng}
                 />
             );

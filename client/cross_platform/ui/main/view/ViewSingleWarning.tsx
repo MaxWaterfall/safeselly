@@ -80,7 +80,7 @@ export default class ViewSingleWarning extends Component<any, IState> {
                             {this.prettyType()} Warning
                         </H3>
                         <Text style={{...Styles.centreText as any, ...Styles.mb10}}>
-                            This happened {this.timeFromWarning()} ago on {this.prettyDate()}.
+                            This incident happened {this.timeFromWarning()} ago on {this.prettyDate()}.
                         </Text>
                         {this.renderWarningInformation()}
                         <Button
