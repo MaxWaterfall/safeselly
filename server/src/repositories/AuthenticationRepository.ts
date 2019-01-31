@@ -3,8 +3,8 @@ import {HttpRequestError} from "./../helper/HttpRequestError";
 import {db} from "./../Server";
 
 const getAccessTokenSql = `
-    SELECT AccessToken FROM User
-    WHERE User.Username = ?
+    SELECT accessToken FROM User
+    WHERE username = ?
 `;
 
 /**
@@ -14,7 +14,7 @@ export async function getAccessToken(username: string) {
     try {
         const result = await db.query(getAccessTokenSql, [username]) as any[];
         if (result.length > 0) {
-            return result[0].AccessToken;
+            return result[0].accessToken;
         }
         return "";
     } catch (err) {

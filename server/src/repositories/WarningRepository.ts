@@ -12,42 +12,42 @@ const submitGeneralWarningSql = `
     VALUES (?, ?, ?)
 `;
 const getAllWarningsSql = `
-    SELECT WarningId, WarningType, WarningDateTime, Latitude, Longitude
+    SELECT warningId, warningType, warningDateTime, latitude, longitude
     FROM Warning
 `;
 const getAllWarningsAfterIdSql = `
-    SELECT WarningId, WarningType, WarningDateTime, Latitude, Longitude
+    SELECT warningId, warningType, warningDateTime, latitude, longitude
     FROM Warning
-    WHERE RowNumber >
-        (SELECT RowNumber FROM Warning WHERE WarningId = ?)
+    WHERE rowNumber >
+        (SELECT rowNumber FROM Warning WHERE warningId = ?)
 `;
 const upvoteWarningSql = `
     INSERT INTO Vote
     VALUES (?, ?, true, false)
     ON DUPLICATE KEY UPDATE
-        Upvote = true,
-        Downvote = false
+        upvote = true,
+        downvote = false
 `;
 const downvoteWarningSql = `
     INSERT INTO Vote
     VALUES (?, ?, false, true)
     ON DUPLICATE KEY UPDATE
-        Upvote = false,
-        Downvote = true
+        upvote = false,
+        downvote = true
 `;
 const getWarningTypeSql = `
-    SELECT WarningType FROM Warning
-    WHERE WarningId = ?
+    SELECT warningType FROM Warning
+    WHERE warningId = ?
 `;
 const getGeneralWarningSql = `
-    SELECT PeopleDescription, WarningDescription
+    SELECT peopleDescription, warningDescription
     FROM GeneralWarning
-    WHERE WarningId = ?
+    WHERE warningId = ?
 `;
 const getAllWarningsFromSql = `
-    SELECT WarningId, WarningType, WarningDateTime, Latitude, Longitude
+    SELECT warningId, warningType, warningDateTime, latitude, longitude
     FROM Warning
-    WHERE WarningDateTime > DATE_SUB(NOW(),INTERVAL ? HOUR)
+    WHERE warningDateTime > DATE_SUB(NOW(),INTERVAL ? HOUR)
 `;
 
 export async function submitWarning(username: string, warning: IWarning, dateTime: string, warningId: string) {

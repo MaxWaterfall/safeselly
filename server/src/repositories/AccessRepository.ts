@@ -2,32 +2,32 @@ import * as log from "../helper/Logger";
 import {HttpRequestError} from "./../helper/HttpRequestError";
 import {db} from "./../Server";
 
-const doesUserExistSql = "SELECT COUNT(Username) FROM User WHERE Username = ?";
-const addUserSql = "INSERT INTO User (Username) VALUES (?)";
+const doesUserExistSql = "SELECT COUNT(username) FROM User WHERE username = ?";
+const addUserSql = "INSERT INTO User (username) VALUES (?)";
 const addDeviceSql = `
-    INSERT INTO Device (DeviceToken, Username, VerificationToken, Verified)
+    INSERT INTO Device (deviceToken, username, verificationToken, verified)
     VALUES (
         ?, ?, ?, false
     )
 `;
 const deviceVerifiedSql = `
-    SELECT COUNT(Username) FROM Device
+    SELECT COUNT(username) FROM Device
     WHERE
-        DeviceToken = ? AND
-        Verified = true AND
-        Username = ?
+        deviceToken = ? AND
+        verified = true AND
+        username = ?
 `;
 const addAccessTokenSql = `
     UPDATE User
-    SET AccessToken = ?
-    WHERE Username = ?
+    SET accessToken = ?
+    WHERE username = ?
 `;
-const verifyDeviceSql = "UPDATE Device SET Verified = true WHERE VerificationToken = ?";
+const verifyDeviceSql = "UPDATE Device SET verified = true WHERE verificationToken = ?";
 
 export async function doesUserExist(username: string): Promise<boolean> {
     try {
         const result = await db.query(doesUserExistSql, [username]) as any[];
-        if (result[0]["COUNT(Username)"] > 0) {
+        if (result[0]["COUNT(username)"] > 0) {
             return true;
         }
         return false;
@@ -76,7 +76,7 @@ export async function verifyDevice(verificationToken: string) {
 export async function isDeviceVerified(username: string, deviceToken: string) {
     try {
         const result = await db.query(deviceVerifiedSql, [deviceToken, username]) as any[];
-        if (result[0]["COUNT(Username)"] > 0) {
+        if (result[0]["COUNT(username)"] > 0) {
             return true;
         }
         return false;
