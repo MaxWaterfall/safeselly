@@ -1,4 +1,4 @@
-package com.client;
+package com.maxwaterfall.safeselly;
 
 import android.app.Application;
 
