@@ -28,8 +28,11 @@ export default class SubmitGeneralWarning extends Component<IProps> {
                     bordered
                     onChangeText={this.updatePeopleDescription}
                     style={Styles.mb10}
+                    value={this.props.info.peopleDescription}
                 >
-                    {this.props.info.peopleDescription}
+                    <Text>
+                        {this.props.info.peopleDescription}
+                    </Text>
                 </Textarea>
                 <Text>
                     Describe the incident:
@@ -39,8 +42,11 @@ export default class SubmitGeneralWarning extends Component<IProps> {
                     bordered
                     onChangeText={this.updateWarningDescription}
                     style={Styles.mb10}
+                    value={this.props.info.warningDescription}
                 >
-                    {this.props.info.warningDescription}
+                    <Text>
+                        {this.props.info.warningDescription}
+                    </Text>
                 </Textarea>
             </Form>
 

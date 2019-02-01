@@ -114,6 +114,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
                     region: initialRegion,
                     warnings,
                     loading: false,
+                    failed: false,
                 });
             })
             .catch(() => {

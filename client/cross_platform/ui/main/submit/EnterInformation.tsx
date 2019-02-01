@@ -88,30 +88,32 @@ export default class EnterInformation extends Component<any, IState> {
      * Submits the warning to the server.
      */
     public submitWarning = () => {
-        this.setState({loading: true});
-        sendWarning({
-            type: this.state.warningType,
-            location: {
-                lat: this.state.warningLocation.latitude,
-                long: this.state.warningLocation.longitude,
-            },
-            dateTime: formatDate(this.state.warningDate),
-            information: this.state.warningInformation,
-        })
-            .then(() => {
-                this.props.navigation.popToTop();
-                Toast.show({
-                    text: "Thankyou for your submission.",
-                    type: "success",
-                });
+        this.setState({loading: true}, () => {
+            sendWarning({
+                type: this.state.warningType,
+                location: {
+                    lat: this.state.warningLocation.latitude,
+                    long: this.state.warningLocation.longitude,
+                },
+                dateTime: formatDate(this.state.warningDate),
+                information: this.state.warningInformation,
             })
-            .catch((err) => {
-                this.setState({loading: false});
-                Toast.show({
-                    text: err.message,
-                    type: "danger",
+                .then(() => {
+                    this.props.navigation.popToTop();
+                    Toast.show({
+                        text: "Thankyou for your submission.",
+                        type: "success",
+                    });
+                })
+                .catch((err) => {
+                    this.setState({loading: false}, () => {
+                        Toast.show({
+                            text: err.message,
+                            type: "danger",
+                        });
+                    });
                 });
-            });
+        });
     }
 
     /**
