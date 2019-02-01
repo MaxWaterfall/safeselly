@@ -57,7 +57,7 @@ export async function getWarning(warningId: string) {
             throw new HttpRequestError(400, "warning_id does not exist.");
         }
 
-        warningType = result[0].WarningType;
+        warningType = result[0].warningType;
     } catch (err) {
         throw err;
     }
