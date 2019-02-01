@@ -7,7 +7,9 @@
     "rules": {
         "indent": [true, "spaces", 4],
         "semicolon": [true, "always"],
-        "object-literal-sort-keys": false
+        "object-literal-sort-keys": false,
+        "no-string-literal": false,
+
     },
     "rulesDirectory": []
 }

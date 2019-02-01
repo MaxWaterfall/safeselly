@@ -65,17 +65,9 @@ export async function sendVerificationEmail(username: string, deviceToken: strin
     }
 
     // TODO: Check last email has not been sent within x minutes.
-    // Add user to DB (if they don't already exist).
+    // Add user to DB and device to DB.
     try {
-        const userExists = await AccessRepository.doesUserExist(username);
-        if (userExists) {
-            // Add device only.
-            await AccessRepository.addDevice(username, deviceToken, verificationToken);
-        } else {
-            // Add device and user.
-            await AccessRepository.addUser(username);
-            await AccessRepository.addDevice(username, deviceToken, verificationToken);
-        }
+        AccessRepository.addUser(username, deviceToken, verificationToken);
     } catch (err) {
         throw (err);
     }
@@ -99,7 +91,7 @@ export async function getAccessToken(username: string, deviceToken: string): Pro
     try {
         const deviceVerified = await AccessRepository.isDeviceVerified(username, deviceToken);
         if (!deviceVerified) {
-            throw new HttpRequestError(400, "Device has not been verified.");
+            throw new HttpRequestError(400, "User has not been verified.");
         }
     } catch (err) {
         throw (err);

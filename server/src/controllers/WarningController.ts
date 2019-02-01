@@ -17,7 +17,7 @@ router.post("/", (req: Request, res: Response) => {
         })
         .catch((err: HttpRequestError) => {
             res.status(err.status);
-            res.send(`Error: ${err.message}`);
+            res.send(err.message);
         });
 });
 

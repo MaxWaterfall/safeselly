@@ -20,7 +20,7 @@ router.get("/device-token", (req: Request, res: Response) => {
         })
         .catch((err: HttpRequestError) => {
             res.status(err.status);
-            res.send(`Error: ${err.message}`);
+            res.send(err.message);
         });
 });
 
@@ -33,7 +33,7 @@ router.get("/send-email", (req: Request, res: Response) => {
         })
         .catch((err: HttpRequestError) => {
             res.status(err.status);
-            res.send(`Error: ${err.message}`);
+            res.send(err.message);
         });
 });
 
@@ -47,7 +47,7 @@ router.get("/verify/:token", (req: Request, res: Response) => {
         })
         .catch((err: HttpRequestError) => {
             res.status(err.status);
-            res.send(`Error: ${err.message}`);
+            res.send(err.message);
         });
 });
 
@@ -60,7 +60,7 @@ router.get("/access-token", (req: Request, res: Response) => {
         })
         .catch((err: HttpRequestError) => {
             res.status(err.status);
-            res.send(`Error: ${err.message}`);
+            res.send(err.message);
         });
 });
 

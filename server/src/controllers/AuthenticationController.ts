@@ -10,11 +10,11 @@ const router: Router = Router();
 
 // Checks the request is authorized and valid.
 router.use((req: Request, res: Response, next) => {
-    // Extract access_token, username, and device_token from the header.
+    // Extract access_token, username from the header.
     const accessToken = req.get("access_token") as string;
     const username = req.get("username") as string;
 
-    // Check access token is valid for this username and device token.
+    // Check access token is valid for this username.
     AuthenticationService.isRequestAuthorised(username, accessToken)
         .then(() => {
             next();

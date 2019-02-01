@@ -4,18 +4,11 @@ USE SafeSelly;
 CREATE TABLE User (
     username VARCHAR(32) NOT NULL UNIQUE,
 	accessToken VARCHAR(64),
-
-    PRIMARY KEY (Username)
-);
-
-CREATE TABLE Device (
-	deviceToken VARCHAR(64) NOT NULL UNIQUE,
-    username VARCHAR(32) NOT NULL,
-    verificationToken VARCHAR(64) UNIQUE,
+	deviceToken VARCHAR(64) NOT NULL,
+	verificationToken VARCHAR(64) UNIQUE,
 	verified boolean,
 
-	PRIMARY KEY (deviceToken),
-    FOREIGN KEY (username) REFERENCES User(username)
+    PRIMARY KEY (username)
 );
 
 CREATE TABLE Warning (

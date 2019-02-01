@@ -2,53 +2,28 @@ import * as log from "../helper/Logger";
 import {HttpRequestError} from "./../helper/HttpRequestError";
 import {db} from "./../Server";
 
-const doesUserExistSql = "SELECT COUNT(username) FROM User WHERE username = ?";
-const addUserSql = "INSERT INTO User (username) VALUES (?)";
-const addDeviceSql = `
-    INSERT INTO Device (deviceToken, username, verificationToken, verified)
-    VALUES (
-        ?, ?, ?, false
-    )
-`;
-const deviceVerifiedSql = `
-    SELECT COUNT(username) FROM Device
-    WHERE
-        deviceToken = ? AND
-        verified = true AND
-        username = ?
+const addUserSql = `
+    INSERT INTO User (username, deviceToken, verificationToken, verified)
+    VALUES (?, ?, ?, false)
+    ON DUPLICATE KEY UPDATE
+        deviceToken = ?,
+        verificationToken = ?,
+        verified = false
 `;
 const addAccessTokenSql = `
     UPDATE User
     SET accessToken = ?
     WHERE username = ?
 `;
-const verifyDeviceSql = "UPDATE Device SET verified = true WHERE verificationToken = ?";
+const verifyDeviceSql = "UPDATE User SET verified = true WHERE verificationToken = ?";
+const deviceVerifiedSql = `
+    SELECT verified FROM User
+    WHERE username = ? AND deviceToken = ?
+`;
 
-export async function doesUserExist(username: string): Promise<boolean> {
+export async function addUser(username: string, deviceToken: string, verificationToken: string) {
     try {
-        const result = await db.query(doesUserExistSql, [username]) as any[];
-        if (result[0]["COUNT(username)"] > 0) {
-            return true;
-        }
-        return false;
-    } catch (err) {
-        log.databaseError(err);
-        throw new HttpRequestError(500, "Internal Server Error.");
-    }
-}
-
-export async function addUser(username: string) {
-    try {
-        await db.query(addUserSql, [username]);
-    } catch (err) {
-        log.databaseError(err);
-        throw new HttpRequestError(500, "Internal Server Error.");
-    }
-}
-
-export async function addDevice(username: string, deviceToken: string, verificationToken: string) {
-    try {
-        await db.query(addDeviceSql, [deviceToken, username, verificationToken]);
+        await db.query(addUserSql, [username, deviceToken, verificationToken, deviceToken, verificationToken]);
     } catch (err) {
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error.");
@@ -75,8 +50,9 @@ export async function verifyDevice(verificationToken: string) {
 
 export async function isDeviceVerified(username: string, deviceToken: string) {
     try {
-        const result = await db.query(deviceVerifiedSql, [deviceToken, username]) as any[];
-        if (result[0]["COUNT(username)"] > 0) {
+        const result = await db.query(deviceVerifiedSql, [username, deviceToken]) as any[];
+        log.info(JSON.stringify(result));
+        if (result[0]["verified"] === 1) {
             return true;
         }
         return false;
