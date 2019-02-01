@@ -1,9 +1,9 @@
 // @ts-ignore No type definitions exist for this library.
 import datetimeDifference from "datetime-difference";
-import { Button, Container, Content, H3, Text, Icon } from "native-base";
+import { Button, Container, Content, H3, Icon, Text, Toast } from "native-base";
 import React, { Component } from "react";
 import MapView, { LatLng, Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
-import { getWarningInformation, initialRegion } from "../../../services/ViewWarningsService";
+import { getWarningInformation, voteWarning } from "../../../services/ViewWarningsService";
 import { FailedToConnectScreen } from "../../general/FailedToConnectScreen";
 import { LoadingScreen } from "../../general/LoadingScreen";
 import { IGeneralWarning, IWarning } from "./../../../helper/Warnings";
@@ -38,15 +38,15 @@ export default class ViewSingleWarning extends Component<any, IState> {
             loading: true,
             failed: false,
             region: {
-                latitude: warning.Latitude,
-                longitude: warning.Longitude,
+                latitude: warning.latitude,
+                longitude: warning.longitude,
                 latitudeDelta: 0.007,
                 longitudeDelta: 0.003,
             },
             warning,
             markerLatLng: {
-                latitude: warning.Latitude,
-                longitude: warning.Longitude,
+                latitude: warning.latitude,
+                longitude: warning.longitude,
             },
         };
 
@@ -88,6 +88,7 @@ export default class ViewSingleWarning extends Component<any, IState> {
                             block
                             success
                             iconLeft
+                            onPress={() => this.voteWarning(true)}
                         >
                             <Icon name="eye"/>
                             <Text>
@@ -98,6 +99,7 @@ export default class ViewSingleWarning extends Component<any, IState> {
                             block
                             danger
                             iconRight
+                            onPress={() => this.voteWarning(false)}
                         >
                             <Text>
                                 This warning is spam
@@ -118,7 +120,7 @@ export default class ViewSingleWarning extends Component<any, IState> {
      * Gets the information for this specific warning from the server.
      */
     private getWarningInformationInitial = () => {
-        getWarningInformation(this.state.warning.WarningId, this.state.warning.WarningType)
+        getWarningInformation(this.state.warning.warningId, this.state.warning.warningType)
             .then((value: any) => {
                 this.setState({
                     loading: false,
@@ -143,8 +145,7 @@ export default class ViewSingleWarning extends Component<any, IState> {
      * Renders the specific information of the warning.
      */
     private renderWarningInformation = () => {
-        if (this.state.warning.WarningType === "general") {
-            console.log(this.state.information);
+        if (this.state.warning.warningType === "general") {
             return <ViewGeneralWarning info={this.state.information as IGeneralWarning}/>;
         }
 
@@ -155,7 +156,7 @@ export default class ViewSingleWarning extends Component<any, IState> {
      * Returns the date this warning occurred on in a nice human readable format.
      */
     private prettyDate = () => {
-        const date = this.state.warning.WarningDateTime;
+        const date = this.state.warning.warningDateTime;
 
         // First, extract date.
         const year = date.substring(0, 4);
@@ -173,7 +174,7 @@ export default class ViewSingleWarning extends Component<any, IState> {
      * Returns the amount of time that has passed since this warning happened.
      */
     private timeFromWarning = () => {
-        const date = this.state.warning.WarningDateTime;
+        const date = this.state.warning.warningDateTime;
 
         const warningDateTime = new Date(date);
         const now = new Date();
@@ -203,7 +204,27 @@ export default class ViewSingleWarning extends Component<any, IState> {
      * Formats the type so that the first letter is upper case.
      */
     private prettyType = () => {
-        const type = this.state.warning.WarningType;
+        const type = this.state.warning.warningType;
         return (type.substr(0, 1).toUpperCase()) + type.substr(1);
+    }
+
+    /**
+     * Sends a request to the server to vote this warning.
+     */
+    private voteWarning = (upvote: boolean) => {
+        voteWarning(this.state.warning.warningId, upvote)
+            .then(() => {
+                Toast.show({
+                    text: "Thankyou for your feedback.",
+                    type: "success",
+                });
+            })
+            .catch(() => {
+                Toast.show({
+                    text: "Network error, try again.",
+                    type: "danger",
+                });
+            });
+        // Downvote
     }
 }

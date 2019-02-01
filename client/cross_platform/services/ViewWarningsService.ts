@@ -3,8 +3,8 @@ import { makeAuthenticatedRequest } from "./NetworkService";
 
 const SELLY_OAK_LAT = 52.436720;
 const SELLY_OAK_LONG = -1.939000;
-const LATITUDE_DELTA = 0.0922;
-const LONGITUDE_DELTA = 0.0421;
+const LATITUDE_DELTA = 0.026;
+const LONGITUDE_DELTA = 0.0159;
 
 export const initialRegion = {
     latitude: SELLY_OAK_LAT,
@@ -44,6 +44,23 @@ export async function getWarningInformation(warningId: string, warningType: Warn
         if (warningType === "general") {
             return await makeAuthenticatedRequest("GET", `/warning/${warningId}`, {}) as IGeneralWarning;
         }
+    } catch (err) {
+        throw err;
+    }
+}
+
+/**
+ * Adds a vote to the warning with id {warningId}.
+ * @param warningId
+ */
+export async function voteWarning(warningId: string, upvote: boolean) {
+    try {
+        if (upvote) {
+            return await makeAuthenticatedRequest("POST", `/warning/${warningId}/upvote`, {});
+        }
+
+        // Downvote.
+        return await makeAuthenticatedRequest("POST", `/warning/${warningId}/downvote`, {});
     } catch (err) {
         throw err;
     }

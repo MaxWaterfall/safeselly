@@ -12,14 +12,14 @@ export interface IWarningSubmission {
 }
 
 export interface IWarning {
-    WarningId: string;
-    WarningType: WarningType;
-    WarningDateTime: string;
-    Latitude: number;
-    Longitude: number;
+    warningId: string;
+    warningType: WarningType;
+    warningDateTime: string;
+    latitude: number;
+    longitude: number;
 }
 
 export interface IGeneralWarning {
-    PeopleDescription: string;
-    WarningDescription: string;
+    peopleDescription: string;
+    warningDescription: string;
 }

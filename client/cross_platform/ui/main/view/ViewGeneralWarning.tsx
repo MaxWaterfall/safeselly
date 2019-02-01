@@ -8,19 +8,29 @@ interface IProps {
 }
 
 export const ViewGeneralWarning = (props: IProps) => {
+    const renderPeopleDescription = () => {
+        if (props.info.peopleDescription !== "") {
+            return (
+                <View>
+                    <Text style={[{fontWeight: "bold"}]}>
+                        Description of person(s) involved:
+                    </Text>
+                    <Text style={Styles.mb10}>
+                        {props.info.peopleDescription}
+                    </Text>
+                </View>
+            );
+        }
+    };
+
     return (
         <View>
-            <Text style={[{fontWeight: "bold"}]}>
-                Description of person(s) involved:
-            </Text>
-            <Text style={Styles.mb10}>
-                {props.info.PeopleDescription}
-            </Text>
+            {renderPeopleDescription()}
             <Text style={[{fontWeight: "bold"}]}>
                 Description of incident:
             </Text>
             <Text style={Styles.mb10}>
-                {props.info.WarningDescription}
+                {props.info.warningDescription}
             </Text>
         </View>
     );

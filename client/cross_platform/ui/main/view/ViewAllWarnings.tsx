@@ -44,8 +44,8 @@ export default class ViewAllWarnings extends Component<any, IState> {
             loading: true,
             failed: false,
             filter: {
-                text: "Past Hour",
-                hours: FilterTypes.HOUR,
+                text: "Past Day",
+                hours: FilterTypes.DAY,
             },
             warnings: [],
         };
@@ -73,8 +73,8 @@ export default class ViewAllWarnings extends Component<any, IState> {
                     {this.state.warnings!.map((warning: IWarning) => {
                         return (
                             <Marker
-                                key={warning.WarningId}
-                                coordinate={{latitude: warning.Latitude, longitude: warning.Longitude}}
+                                key={warning.warningId}
+                                coordinate={{latitude: warning.latitude, longitude: warning.longitude}}
                                 onPress={() => this.props.navigation.push("ViewSingleWarning", {
                                     warning,
                                 })}
@@ -129,8 +129,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
      * Sets the state so that loading is true.
      */
     private loadInitialState = () => {
-        this.setState({loading: true});
-        this.loadInitialStateFromConstructor();
+        this.setState({loading: true}, this.loadInitialStateFromConstructor);
     }
 
     /**
@@ -142,7 +141,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
             return;
         }
 
-        getWarningsAfterId(this.state.warnings![this.state.warnings!.length - 1].WarningId)
+        getWarningsAfterId(this.state.warnings![this.state.warnings!.length - 1].warningId)
             .then((warnings) => {
                 if (warnings.length === 0) {
                     Toast.show({
@@ -154,11 +153,11 @@ export default class ViewAllWarnings extends Component<any, IState> {
 
                 this.setState({
                     warnings: this.state.warnings!.concat(warnings),
-                });
-
-                Toast.show({
-                    text: `Retrieved ${warnings.length} warning(s).`,
-                    type: "success",
+                }, () => {
+                    Toast.show({
+                        text: `Retrieved ${warnings.length} warning(s).`,
+                        type: "success",
+                    });
                 });
             })
             .catch((err) => {
@@ -169,6 +168,10 @@ export default class ViewAllWarnings extends Component<any, IState> {
             });
     }
 
+    /**
+     * Changes the state based on the chosen filter.
+     * Then reloads the initial state to get the new warnings.
+     */
     private filterWarnings = () => {
         ActionSheet.show(
             {

@@ -9,7 +9,7 @@ interface IProps {
     updateWarningInformation(info: WarningInformationType): void;
 }
 
-export default class GeneralWarning extends Component<IProps> {
+export default class SubmitGeneralWarning extends Component<IProps> {
     // @ts-ignore
     public static navigationOptions = ({navigation}) => {
         return {

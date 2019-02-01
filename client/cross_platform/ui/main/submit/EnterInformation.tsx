@@ -7,7 +7,7 @@ import { formatDate, sendWarning } from "./../../../services/SubmitWarningServic
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
 import DateTime from "./DateTime";
-import GeneralWarning from "./GeneralWarning";
+import SubmitGeneralWarning from "./SubmitGeneralWarning";
 
 interface IState {
     warningLocation: LatLng;
@@ -127,7 +127,7 @@ export default class EnterInformation extends Component<any, IState> {
             };
         }
 
-        // Default for now.
+        // Default.
         return {
             peopleDescription: "",
             warningDescription: "",
@@ -142,7 +142,7 @@ export default class EnterInformation extends Component<any, IState> {
 
         if (type === "general") {
             return (
-                <GeneralWarning
+                <SubmitGeneralWarning
                     info={this.state.warningInformation as IGeneralWarning}
                     updateWarningInformation={this.updateWarningInformation}
                 />
