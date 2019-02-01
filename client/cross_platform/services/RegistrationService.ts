@@ -88,7 +88,7 @@ async function setRegistered() {
 
 function getHeader() {
     return {
-        username: usernameGlobal,
-        device_token: deviceTokenGlobal,
+        "username": usernameGlobal,
+        "device-token": deviceTokenGlobal,
     };
 }

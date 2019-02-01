@@ -1,7 +1,8 @@
 import {Alert} from "react-native";
 import {getUserCredentials, IUserCredentials} from "../data/CredentialStorage";
 
-const requestURL = "http://10.0.2.2:3000";
+//const requestURL = "http://10.0.2.2:3000";
+const requestURL = "https://max.abmackenzie.com";
 
 /**
  * This function is a wrapper around fetch that handles errors and differently formatted responses.
@@ -24,7 +25,7 @@ export async function makeAuthenticatedRequest(method: string, path: string, bod
         headers: {
             "Content-Type": "application/json",
             "username": credentials.username,
-            "access_token": credentials.accessToken,
+            "access-token": credentials.accessToken,
         },
     };
 
