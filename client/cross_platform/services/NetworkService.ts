@@ -95,7 +95,6 @@ export function handleNetworkError(error: any) {
     if (error instanceof HttpRequestError) {
         Alert.alert("Error", error.message);
     } else {
-        // console.log(error);
         Alert.alert("Error", "Please try again.");
     }
 }
