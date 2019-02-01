@@ -51,7 +51,6 @@ export async function verifyDevice(verificationToken: string) {
 export async function isDeviceVerified(username: string, deviceToken: string) {
     try {
         const result = await db.query(deviceVerifiedSql, [username, deviceToken]) as any[];
-        log.info(JSON.stringify(result));
         if (result[0]["verified"] === 1) {
             return true;
         }

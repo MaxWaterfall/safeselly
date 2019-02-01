@@ -43,7 +43,8 @@ router.get("/verify/:token", (req: Request, res: Response) => {
 
     AccessService.verifyDevice(token)
         .then(() => {
-            res.sendStatus(200);
+            res.status(200);
+            res.send("Registered successfully! Follow the instructions within the app. You can close this window.");
         })
         .catch((err: HttpRequestError) => {
             res.status(err.status);
