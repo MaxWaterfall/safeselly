@@ -3,6 +3,8 @@ import { AccessController, AuthenticationController, WarningController} from "./
 import { Database } from "./helper/Database";
 import * as log from "./helper/Logger";
 
+export const hostName = "localhost:3000";
+
 export let db = new Database({
     database: "SafeSelly",
     host: "localhost",

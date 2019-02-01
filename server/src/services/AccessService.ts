@@ -3,6 +3,7 @@ import * as crypto from "crypto";
 import {HttpRequestError} from "../helper/HttpRequestError";
 import * as AccessRepository from "../repositories/AccessRepository";
 import * as log from "./../helper/Logger";
+import { sendRegisterEmail } from "./EmailService";
 
 const expiryTime = 60000; // 1 minute.
 const deviceTokenLength = 32;
@@ -72,7 +73,12 @@ export async function sendVerificationEmail(username: string, deviceToken: strin
         throw (err);
     }
 
-    // TODO: Send the email.
+    try {
+        sendRegisterEmail(username, verificationToken);
+    } catch (err) {
+        throw err;
+    }
+    
     return `Sent verification email to ${username}@bham.ac.uk.`;
 }
 
