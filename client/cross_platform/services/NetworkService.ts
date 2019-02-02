@@ -1,7 +1,7 @@
-import {Alert} from "react-native";
-import {getUserCredentials, IUserCredentials} from "../data/CredentialStorage";
+import { Alert } from "react-native";
+import { getUserCredentials, IUserCredentials } from "../data/CredentialStorage";
 
-//const requestURL = "http://10.0.2.2:3000";
+// const requestURL = "http://10.0.2.2:3000";
 const requestURL = "https://max.abmackenzie.com";
 
 /**

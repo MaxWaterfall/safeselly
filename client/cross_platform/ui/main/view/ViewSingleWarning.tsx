@@ -1,6 +1,6 @@
 // @ts-ignore No type definitions exist for this library.
 import datetimeDifference from "datetime-difference";
-import { Button, Container, Content, H3, Icon, Text, Toast } from "native-base";
+import { Button, Container, Content, H3, Icon, Text, Toast, View } from "native-base";
 import React, { Component } from "react";
 import MapView, { LatLng, Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
 import { getWarningInformation, voteWarning } from "../../../services/ViewWarningsService";
@@ -10,6 +10,7 @@ import { IGeneralWarning, IWarning } from "./../../../helper/Warnings";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
 import { ViewGeneralWarning } from "./ViewGeneralWarning";
+import { ViewSingleWarningHeader } from "./ViewSingleWarningHeader";
 
 interface IState {
     loading: boolean;
@@ -76,10 +77,12 @@ export default class ViewSingleWarning extends Component<any, IState> {
                 </Container>
                 <Container>
                     <Content padder>
-                        <H3 style={{...Styles.centreText as any, ...Styles.mb10, ...Styles.mt10}}>
-                            {this.prettyType()} Warning
-                        </H3>
-                        <Text style={{...Styles.centreText as any, ...Styles.mb10}}>
+                        <ViewSingleWarningHeader
+                            upvotes={10}
+                            downvotes={10}
+                            title={this.prettyType() + " Warning"}
+                        />
+                        <Text style={[Styles.centreText as any, Styles.mb10]}>
                             This incident happened {this.timeFromWarning()} ago on {this.prettyDate()}.
                         </Text>
                         {this.renderWarningInformation()}

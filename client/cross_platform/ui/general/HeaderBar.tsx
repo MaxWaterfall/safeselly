@@ -9,6 +9,8 @@ import {
 } from "native-base";
 import React from "react";
 
+const title = "Safe Selly Beta";
+
 interface IProps {
     backButton?: boolean;
     onPress?(): void;
@@ -25,7 +27,7 @@ export const HeaderBar = (props: IProps) => {
                 </Left>
                 <Body>
                     <Title>
-                        Safe Selly
+                        {title}
                     </Title>
                 </Body>
                 <Right/>
@@ -37,7 +39,7 @@ export const HeaderBar = (props: IProps) => {
         <Header>
             <Body>
                 <Title>
-                    Safe Selly
+                    {title}
                 </Title>
             </Body>
             <Right/>

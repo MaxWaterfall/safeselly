@@ -1,4 +1,4 @@
-import { Button, Footer, FooterTab, Text, Icon } from "native-base";
+import { Button, Footer, FooterTab, Icon } from "native-base";
 import React, { Component } from "react";
 import {createAppContainer, createBottomTabNavigator} from "react-navigation";
 import Submit from "./submit/Submit";
