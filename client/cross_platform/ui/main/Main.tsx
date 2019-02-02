@@ -1,4 +1,4 @@
-import { Button, Footer, FooterTab, Text } from "native-base";
+import { Button, Footer, FooterTab, Text, Icon } from "native-base";
 import React, { Component } from "react";
 import {createAppContainer, createBottomTabNavigator} from "react-navigation";
 import Submit from "./submit/Submit";
@@ -32,9 +32,7 @@ const MainNavigator = createBottomTabNavigator(
                             active={props.navigation.state.index === 0}
                             onPress={() => props.navigation.navigate("View")}
                         >
-                            <Text>
-                                View
-                            </Text>
+                            <Icon name="map"/>
                         </Button>
                     </FooterTab>
                     <FooterTab>
@@ -43,9 +41,7 @@ const MainNavigator = createBottomTabNavigator(
                             active={props.navigation.state.index === 1}
                             onPress={() => props.navigation.navigate("Submit")}
                         >
-                            <Text>
-                                Submit
-                            </Text>
+                            <Icon name="add"/>
                         </Button>
                     </FooterTab>
                 </Footer>
