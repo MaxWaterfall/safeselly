@@ -1,6 +1,6 @@
 import { Text, View } from "native-base";
 import React from "react";
-import { IGeneralWarning } from "../../../helper/Warnings";
+import { IGeneralWarning } from "../../../../../shared/Warnings";
 import Styles from "../../general/Styles";
 
 interface IProps {

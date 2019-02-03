@@ -1,8 +1,8 @@
 import React, { Component } from "react";
 import { createAppContainer, createStackNavigator } from "react-navigation";
 import ChooseLocation from "./ChooseLocation";
-import Introduction from "./Introduction";
 import EnterInformation from "./EnterInformation";
+import Introduction from "./Introduction";
 
 export default class Submit extends Component {
     public render() {

@@ -1,6 +1,6 @@
-import { Container, Form, Text, Textarea} from "native-base";
+import { Form, Text, Textarea} from "native-base";
 import React, { Component } from "react";
-import { IGeneralWarning, WarningInformationType } from "../../../helper/Warnings";
+import { IGeneralWarning, WarningInformationType } from "../../../../../shared/Warnings";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
 

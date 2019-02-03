@@ -1,7 +1,7 @@
 import { Button, Container, Content, H3, Item, Text, Toast } from "native-base";
 import React, { Component } from "react";
 import { LatLng } from "react-native-maps";
-import { IGeneralWarning, WarningInformationType, WarningType } from "../../../helper/Warnings";
+import { IGeneralWarning, WarningInformationType, WarningType } from "../../../../../shared/Warnings";
 import { LoadingScreen } from "../../general/LoadingScreen";
 import { formatDate, sendWarning } from "./../../../services/SubmitWarningService";
 import { HeaderBar } from "./../../general/HeaderBar";

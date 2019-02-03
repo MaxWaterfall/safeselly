@@ -1,4 +1,8 @@
-import { IGeneralWarning, IWarning, WarningType } from "../helper/Warnings";
+import {
+    IReturnWarning,
+    ISpecificReturnWarning,
+    WarningType,
+} from "../../../shared/Warnings";
 import { makeAuthenticatedRequest } from "./NetworkService";
 
 const SELLY_OAK_LAT = 52.436720;
@@ -16,7 +20,7 @@ export const initialRegion = {
 /**
  * Retrieves all warnings from the server with a WarningDateTime within the past {hours} hours.
  */
-export async function getWarningsFrom(hours: number): Promise<IWarning[]> {
+export async function getWarningsFrom(hours: number): Promise<IReturnWarning[]> {
     try {
         return await makeAuthenticatedRequest("GET", `/warning/filter/${hours}`, {});
     } catch (err) {
@@ -27,7 +31,7 @@ export async function getWarningsFrom(hours: number): Promise<IWarning[]> {
 /**
  * Retrieves all warnings from the server after a given warning id.
  */
-export async function getWarningsAfterId(warningId: string): Promise<IWarning[]> {
+export async function getWarningsAfterId(warningId: string): Promise<IReturnWarning[]> {
     try {
         return await makeAuthenticatedRequest("GET", `/warning/${warningId}/after`, {});
     } catch (err) {
@@ -39,11 +43,15 @@ export async function getWarningsAfterId(warningId: string): Promise<IWarning[]>
  * Retrieves specific warning information from the server.
  * @param warningId
  */
-export async function getWarningInformation(warningId: string, warningType: WarningType) {
+export async function getWarningInformation(
+    warningId: string, warningType: WarningType): Promise<ISpecificReturnWarning> {
+
     try {
         if (warningType === "general") {
-            return await makeAuthenticatedRequest("GET", `/warning/${warningId}`, {}) as IGeneralWarning;
+            return await makeAuthenticatedRequest("GET", `/warning/${warningId}`, {});
         }
+
+        throw new Error("Invalid warning type.");
     } catch (err) {
         throw err;
     }

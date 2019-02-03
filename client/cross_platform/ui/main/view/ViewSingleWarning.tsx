@@ -6,7 +6,7 @@ import MapView, { LatLng, Marker, PROVIDER_GOOGLE, Region } from "react-native-m
 import { getWarningInformation, voteWarning } from "../../../services/ViewWarningsService";
 import { FailedToConnectScreen } from "../../general/FailedToConnectScreen";
 import { LoadingScreen } from "../../general/LoadingScreen";
-import { IGeneralWarning, IWarning } from "./../../../helper/Warnings";
+import { IGeneralWarning, IReturnWarning, ISpecificReturnWarning } from "./../../../../../shared/Warnings";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
 import { ViewGeneralWarning } from "./ViewGeneralWarning";
@@ -17,8 +17,8 @@ interface IState {
     failed: boolean;
     region: Region;
     markerLatLng: LatLng;
-    warning: IWarning;
-    information?: IGeneralWarning;
+    warning: IReturnWarning;
+    specific?: ISpecificReturnWarning;
 }
 
 export default class ViewSingleWarning extends Component<any, IState> {
@@ -33,21 +33,21 @@ export default class ViewSingleWarning extends Component<any, IState> {
     public constructor(props: any) {
         super(props);
 
-        const warning: IWarning = this.props.navigation.getParam("warning");
+        const warning: IReturnWarning = this.props.navigation.getParam("warning");
 
         this.state = {
             loading: true,
             failed: false,
             region: {
-                latitude: warning.latitude,
-                longitude: warning.longitude,
+                latitude: warning.location.lat,
+                longitude: warning.location.long,
                 latitudeDelta: 0.007,
                 longitudeDelta: 0.003,
             },
             warning,
             markerLatLng: {
-                latitude: warning.latitude,
-                longitude: warning.longitude,
+                latitude: warning.location.lat,
+                longitude: warning.location.long,
             },
         };
 
@@ -123,11 +123,11 @@ export default class ViewSingleWarning extends Component<any, IState> {
      * Gets the information for this specific warning from the server.
      */
     private getWarningInformationInitial = () => {
-        getWarningInformation(this.state.warning.warningId, this.state.warning.warningType)
-            .then((value: any) => {
+        getWarningInformation(this.state.warning.warningId, this.state.warning.type)
+            .then((value) => {
                 this.setState({
                     loading: false,
-                    information: value,
+                    specific: value,
                 });
             })
             .catch((err) => {
@@ -148,8 +148,8 @@ export default class ViewSingleWarning extends Component<any, IState> {
      * Renders the specific information of the warning.
      */
     private renderWarningInformation = () => {
-        if (this.state.warning.warningType === "general") {
-            return <ViewGeneralWarning info={this.state.information as IGeneralWarning}/>;
+        if (this.state.warning.type === "general") {
+            return <ViewGeneralWarning info={this.state.specific!.information as IGeneralWarning}/>;
         }
 
         return <Text>Error</Text>;
@@ -159,7 +159,7 @@ export default class ViewSingleWarning extends Component<any, IState> {
      * Returns the date this warning occurred on in a nice human readable format.
      */
     private prettyDate = () => {
-        const date = this.state.warning.warningDateTime;
+        const date = this.state.warning.dateTime;
 
         // First, extract date.
         const year = date.substring(0, 4);
@@ -177,7 +177,7 @@ export default class ViewSingleWarning extends Component<any, IState> {
      * Returns the amount of time that has passed since this warning happened.
      */
     private timeFromWarning = () => {
-        const date = this.state.warning.warningDateTime;
+        const date = this.state.warning.dateTime;
 
         const warningDateTime = new Date(date);
         const now = new Date();
@@ -207,7 +207,7 @@ export default class ViewSingleWarning extends Component<any, IState> {
      * Formats the type so that the first letter is upper case.
      */
     private prettyType = () => {
-        const type = this.state.warning.warningType;
+        const type = this.state.warning.type;
         return (type.substr(0, 1).toUpperCase()) + type.substr(1);
     }
 

@@ -4,7 +4,7 @@ import MapView, {Marker, PROVIDER_GOOGLE, Region} from "react-native-maps";
 import { getWarningsAfterId, getWarningsFrom, initialRegion } from "../../../services/ViewWarningsService";
 import { FailedToConnectScreen } from "../../general/FailedToConnectScreen";
 import { LoadingScreen } from "../../general/LoadingScreen";
-import { IWarning } from "./../../../helper/Warnings";
+import { IReturnWarning } from "./../../../../../shared/Warnings";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
 
@@ -24,7 +24,7 @@ interface IFilter {
 
 interface IState {
     region?: Region;
-    warnings: IWarning[];
+    warnings: IReturnWarning[];
     loading: boolean;
     failed: boolean;
     filter: IFilter;
@@ -70,11 +70,11 @@ export default class ViewAllWarnings extends Component<any, IState> {
                     region={this.state.region}
                     onRegionChangeComplete={this.onRegionChangeComplete}
                 >
-                    {this.state.warnings!.map((warning: IWarning) => {
+                    {this.state.warnings!.map((warning: IReturnWarning) => {
                         return (
                             <Marker
                                 key={warning.warningId}
-                                coordinate={{latitude: warning.latitude, longitude: warning.longitude}}
+                                coordinate={{latitude: warning.location.lat, longitude: warning.location.long}}
                                 onPress={() => this.props.navigation.push("ViewSingleWarning", {
                                     warning,
                                 })}

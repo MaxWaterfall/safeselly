@@ -1,5 +1,6 @@
 export const MAX_PEOPLE_DESCRIPTION_LENGTH = 300;
 export const MAX_WARNING_DESCRIPTION_LENGTH = 300;
+export const MIN_WARNING_DESCRIPTION_LENGTH = 20;
 export const SELLY_OAK_LAT = 52.436720;
 export const SELLY_OAK_LONG = -1.939000;
 export const DISTANCE_FROM_SELLY_OAK = 5000; // 5km.
@@ -105,12 +106,17 @@ function validateGeneralWarning(warning: IGeneralWarning) {
 
     if (warning.peopleDescription.length > MAX_PEOPLE_DESCRIPTION_LENGTH) {
         throw new Error(
-            `People description length is more than ${MAX_PEOPLE_DESCRIPTION_LENGTH} characters.`);
+            `Description of persons must be less than ${MAX_PEOPLE_DESCRIPTION_LENGTH} characters.`);
     }
 
     if (warning.warningDescription.length > MAX_WARNING_DESCRIPTION_LENGTH) {
         throw new Error(
-            `Warning description length is more than ${MAX_WARNING_DESCRIPTION_LENGTH} characters.`);
+            `Description of incident must be less than ${MAX_WARNING_DESCRIPTION_LENGTH} characters.`);
+    }
+
+    if (warning.warningDescription.length < MIN_WARNING_DESCRIPTION_LENGTH) {
+        throw new Error(
+            `Description of incident must be more than ${MIN_WARNING_DESCRIPTION_LENGTH} characters.`);
     }
 }
 

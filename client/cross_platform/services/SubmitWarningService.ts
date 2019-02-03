@@ -1,26 +1,13 @@
-import { IWarningSubmission } from "./../helper/Warnings";
+import { ISubmissionWarning, validateWarning } from "./../../../shared/Warnings";
 import { makeAuthenticatedRequest } from "./NetworkService";
 
-export const PEOP_DESC_MAX_LENGTH = 400;
-export const WARN_DESC_MAX_LENGTH = 400;
-export const WARN_DESC_MIN_LENGTH = 20;
-export const MAX_DIS_FROM_SELLY_OAK = 5; // km
-
-export async function sendWarning(warning: IWarningSubmission) {
-    // Validate warning.
-    if (warning.information.peopleDescription.length > PEOP_DESC_MAX_LENGTH) {
-        throw new Error("Person(s) description cannot be longer than " + PEOP_DESC_MAX_LENGTH + " characters.");
-    }
-
-    if (warning.information.warningDescription.length > WARN_DESC_MAX_LENGTH) {
-        throw new Error("Incident description cannot be longer than " + WARN_DESC_MAX_LENGTH + " characters.");
-    }
-
-    if (warning.information.warningDescription.length < WARN_DESC_MIN_LENGTH) {
-        throw new Error("Incident description needs to be at least " + WARN_DESC_MIN_LENGTH + " characters long.");
-    }
-
+/**
+ * Validates then sends a new warning to the server.
+ * @param warning
+ */
+export async function sendWarning(warning: ISubmissionWarning) {
     try {
+        validateWarning(warning);
         await makeAuthenticatedRequest("POST", "/warning/", {warning});
     } catch (err) {
         throw err;
