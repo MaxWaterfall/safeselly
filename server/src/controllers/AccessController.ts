@@ -1,7 +1,6 @@
 import {Request, Response, Router} from "express";
 import {HttpRequestError} from "./../helper/HttpRequestError";
 import * as AccessService from "./../services/AccessService";
-import { isBodyValid } from "./Validator";
 
 // Assign our router to the express router instance.
 const router: Router = Router();
@@ -26,7 +25,7 @@ router.get("/device-token", (req: Request, res: Response) => {
 
 // Sends a verification email to the user.
 router.get("/send-email", (req: Request, res: Response) => {
-    AccessService.sendVerificationEmail(req.get("username") as string, req.get("device_token") as string)
+    AccessService.sendVerificationEmail(req.get("username") as string, req.get("device-token") as string)
         .then((value) => {
             res.status(200); // OK.
             res.send(value);
@@ -54,7 +53,7 @@ router.get("/verify/:token", (req: Request, res: Response) => {
 
 // Returns an access token.
 router.get("/access-token", (req: Request, res: Response) => {
-    AccessService.getAccessToken(req.get("username") as string, req.get("device_token") as string)
+    AccessService.getAccessToken(req.get("username") as string, req.get("device-token") as string)
         .then((value) => {
             res.status(200); // OK.
             res.send({access_token: value});
