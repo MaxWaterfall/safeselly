@@ -1,6 +1,6 @@
 import {Request, Response, Router} from "express";
+import { ISubmissionWarning } from "../../../shared/Warnings";
 import {HttpRequestError} from "./../helper/HttpRequestError";
-import { IWarning } from "./../helper/WarningTypes";
 import * as WarningService from "./../services/WarningService";
 
 // Assign our router to the express router instance.
@@ -10,7 +10,7 @@ const router: Router = Router();
  * Allows a user to submit a warning.
  */
 router.post("/", (req: Request, res: Response) => {
-    const warning: IWarning = req.body.warning;
+    const warning: ISubmissionWarning = req.body.warning;
     WarningService.submitWarning(req.get("username") as string, warning)
         .then(() => {
             res.sendStatus(200); // OK.
@@ -52,26 +52,11 @@ router.get("/filter/:hours", (req: Request, res: Response) => {
 });
 
 /**
- * Returns all warnings submitted after {id}.
- */
-router.get("/:id/after", (req: Request, res: Response) => {
-    WarningService.getWarningAfterId(req.params.id)
-        .then((value) => {
-            res.status(200);
-            res.send(value);
-        })
-        .catch((err: HttpRequestError) => {
-            res.status(err.status);
-            res.send(err.message);
-        });
-});
-
-/**
  * Returns all information for warning with {id}.
  * This includes specific warning information based on it's type.
  */
 router.get("/:id", (req: Request, res: Response) => {
-    WarningService.getWarning(req.params.id)
+    WarningService.getWarning(req.get("username") as string, req.params.id)
         .then((value) => {
             res.status(200);
             res.send(value);

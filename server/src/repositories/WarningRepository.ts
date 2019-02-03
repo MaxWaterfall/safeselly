@@ -1,6 +1,14 @@
+import {
+    IGeneralWarning,
+    IReturnWarning,
+    ISpecificReturnWarning,
+    ISubmissionWarning,
+    IVote,
+    WarningInformationType,
+    WarningType,
+} from "../../../shared/Warnings";
 import * as log from "../helper/Logger";
 import { HttpRequestError } from "./../helper/HttpRequestError";
-import { IWarning, WarningType } from "./../helper/WarningTypes";
 import { db } from "./../Server";
 
 const submitWarningSql = `
@@ -14,12 +22,6 @@ const submitGeneralWarningSql = `
 const getAllWarningsSql = `
     SELECT warningId, warningType, warningDateTime, latitude, longitude
     FROM Warning
-`;
-const getAllWarningsAfterIdSql = `
-    SELECT warningId, warningType, warningDateTime, latitude, longitude
-    FROM Warning
-    WHERE rowNumber >
-        (SELECT rowNumber FROM Warning WHERE warningId = ?)
 `;
 const upvoteWarningSql = `
     INSERT INTO Vote
@@ -49,8 +51,26 @@ const getAllWarningsFromSql = `
     FROM Warning
     WHERE warningDateTime > DATE_SUB(NOW(),INTERVAL ? HOUR)
 `;
+const getVotesForWarningSql = `
+    SELECT
+        (SELECT COUNT(*) FROM Vote WHERE warningId = ? AND upvote = 1) as upvotes,
+        (SELECT COUNT(*) FROM Vote WHERE warningId = ? AND downvote = 1) as downvotes
+`;
+const hasUserVotedSql = `
+    SELECT upvote, downvote
+    FROM Vote
+    WHERE username = ? AND warningId = ?
+`;
 
-export async function submitWarning(username: string, warning: IWarning, dateTime: string, warningId: string) {
+/**
+ * Submits a warning into the database.
+ * @param username
+ * @param warning
+ * @param dateTime
+ * @param warningId
+ */
+export async function submitWarning(
+    username: string, warning: ISubmissionWarning, dateTime: string, warningId: string) {
     // First add to the Warning table.
     try {
         await db.query(submitWarningSql, [
@@ -87,11 +107,11 @@ export async function submitWarning(username: string, warning: IWarning, dateTim
  * Returns a warnings type.
  * @param warningId
  */
-export async function getWarningType(warningId: string) {
+export async function getWarningType(warningId: string): Promise<WarningType | ""> {
     try {
         const result = await db.query(getWarningTypeSql, [warningId]) as any[];
         if (result.length > 0) {
-            return result;
+            return result[0].warningType as WarningType;
         }
         return "";
     } catch (err) {
@@ -105,10 +125,15 @@ export async function getWarningType(warningId: string) {
  * @param warningId
  * @param warningType
  */
-export async function getWarningInformation(warningId: string, warningType: WarningType) {
+export async function getWarningInformation(
+    warningId: string, warningType: WarningType): Promise<WarningInformationType> {
     try {
+        // Get warning information.
         if (warningType === "general") {
-            return await db.query(getGeneralWarningSql, warningId) as any[];
+            const result = await db.query(getGeneralWarningSql, warningId) as any[];
+            return result[0] as IGeneralWarning;
+        } else {
+            throw new Error("warningType was not valid.");
         }
 
         // Other warning types here.
@@ -119,11 +144,23 @@ export async function getWarningInformation(warningId: string, warningType: Warn
 }
 
 /**
- * Returns all warnings.
+ * Returns generic information for all warnings.
  */
-export async function getAllWarnings() {
+export async function getAllWarnings(): Promise<IReturnWarning[]> {
     try {
-        return await db.query(getAllWarningsSql, []);
+        const result = await db.query(getAllWarningsSql, []) as any[];
+        return result.map((warning) => {
+            const returnWarning: IReturnWarning = {
+                warningId: warning.warningId,
+                type: warning.warningType,
+                location: {
+                    lat: warning.latitude,
+                    long: warning.longitude,
+                },
+                dateTime: warning.warningDateTime,
+            };
+            return returnWarning;
+        });
     } catch (err) {
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error.");
@@ -134,22 +171,21 @@ export async function getAllWarnings() {
  * Returns all warnings with a WarningDateTime within the past {hours} hours.
  * @param hours
  */
-export async function getAllWarningsFrom(hours: number) {
+export async function getAllWarningsFrom(hours: number): Promise<IReturnWarning[]> {
     try {
-        return await db.query(getAllWarningsFromSql, [hours]);
-    } catch (err) {
-        log.databaseError(err);
-        throw new HttpRequestError(500, "Internal Server Error");
-    }
-}
-
-/**
- * Returns all warnings submitted after the given warningId.
- * @param warningId
- */
-export async function getWarningsAfterId(warningId: string) {
-    try {
-        return await db.query(getAllWarningsAfterIdSql, [warningId]);
+        const result = await db.query(getAllWarningsFromSql, [hours]) as any[];
+        return result.map((warning) => {
+            const returnWarning: IReturnWarning = {
+                warningId: warning.warningId,
+                type: warning.warningType,
+                location: {
+                    lat: warning.latitude,
+                    long: warning.longitude,
+                },
+                dateTime: warning.warningDateTime,
+            };
+            return returnWarning;
+        });
     } catch (err) {
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error");
@@ -178,6 +214,55 @@ export async function upvoteWarning(warningId: string, username: string) {
 export async function downvoteWarning(warningId: string, username: string) {
     try {
         await db.query(downvoteWarningSql, [warningId, username]);
+    } catch (err) {
+        log.databaseError(err);
+        throw new HttpRequestError(500, "Internal Server Error");
+    }
+}
+
+/**
+ * Returns the number of upvotes and downvotes a warning has received.
+ * @param warningId
+ */
+export async function getVotesForWarning(warningId: string): Promise<IVote> {
+    try {
+        const result = await db.query(getVotesForWarningSql, [warningId, warningId]) as any[];
+        return result[0] as IVote;
+    } catch (err) {
+        log.databaseError(err);
+        throw new HttpRequestError(500, "Internal Server Error");
+    }
+}
+
+/**
+ * Returns whether or not a user has voted for a warning.
+ * @param username
+ * @param warningId
+ */
+export async function hasUserVoted(username: string, warningId: string): Promise<boolean> {
+    try {
+        const result = await db.query(hasUserVotedSql, [username, warningId]) as any[];
+        if (result[0] === undefined) {
+            return false;
+        }
+
+        if (result[0].upvote === undefined) {
+            return false;
+        }
+
+        if (result[0].upvote === 1) {
+            return true;
+        }
+
+        if (result[0].downvote === undefined) {
+            return false;
+        }
+
+        if (result[0]. downvote === 1) {
+            return true;
+        }
+
+        return false;
     } catch (err) {
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error");

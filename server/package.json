@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "tslint -c tslint.json 'src/**/*.ts'",
     "build": "tsc",
-    "start": "node build/Server.js",
+    "start": "node build/server/src/Server.js",
     "build-start": "npm run build && npm run start"
   },
   "author": "",

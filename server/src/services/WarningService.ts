@@ -1,6 +1,19 @@
+import { isPointInCircle } from "geolib";
 import { HttpRequestError } from "../helper/HttpRequestError";
+import {
+    DISTANCE_FROM_SELLY_OAK,
+    IGeneralWarning,
+    IReturnWarning,
+    ISpecificReturnWarning,
+    ISubmissionWarning,
+    IVote,
+    SELLY_OAK_LAT,
+    SELLY_OAK_LONG,
+    validateWarning,
+    WarningInformationType,
+    WarningType,
+} from "./../../../shared/Warnings";
 import * as log from "./../helper/Logger";
-import { IWarning, validateWarning } from "./../helper/WarningTypes";
 import * as WarningRepository from "./../repositories/WarningRepository";
 
 const NUMBER_OF_IDS = 1000000000000; // 100 billion.
@@ -9,7 +22,7 @@ const MAX_HOUR_FILTER = 24 * 7; // 1 week.
 /**
  * Returns all warnings in the database.
  */
-export async function getAllWarnings() {
+export async function getAllWarnings(): Promise<IReturnWarning[]> {
     try {
         return await WarningRepository.getAllWarnings();
     } catch (err) {
@@ -21,7 +34,7 @@ export async function getAllWarnings() {
  * Throws error if validation fails.
  * @param hours
  */
-export async function getAllWarningsFrom(hours: string) {
+export async function getAllWarningsFrom(hours: string): Promise<IReturnWarning[]> {
     // Check it's a number.
     const hoursNumber = Number(hours);
     if (isNaN(hoursNumber)) {
@@ -41,54 +54,58 @@ export async function getAllWarningsFrom(hours: string) {
 }
 
 /**
- * Returns all information for warning with {id}.
+ * Returns information for warning with {id}.
  * This includes specific warning information based on it's type.
  */
-export async function getWarning(warningId: string) {
+export async function getWarning(username: string, warningId: string): Promise<ISpecificReturnWarning> {
     if (warningId === undefined) {
         throw new HttpRequestError(400, "No warning_id given.");
     }
 
     // First get the type of the warning.
-    let warningType;
+    let warningType: WarningType;
     try {
         const result = await WarningRepository.getWarningType(warningId);
         if (result === "") {
             throw new HttpRequestError(400, "warning_id does not exist.");
         }
 
-        warningType = result[0].warningType;
+        warningType = result;
     } catch (err) {
         throw err;
     }
 
-    // Now retrieve the information.
+    // Get specific warning information based on type.
+    let information: WarningInformationType;
     try {
-        const result = await WarningRepository.getWarningInformation(warningId, warningType) as any[];
-        if (result.length > 0) {
-            return result[0];
-        }
-
-        log.error("The result returned from getWarningInformation had a length that was less than 0.");
-        throw new HttpRequestError(500, "Internal Server Error.");
+        information = await WarningRepository.getWarningInformation(warningId, warningType);
     } catch (err) {
         throw err;
     }
-}
 
-/**
- * Returns all warnings submitted after {id}.
- */
-export async function getWarningAfterId(warningId: string) {
-    if (warningId === undefined) {
-        throw new HttpRequestError(400, "No warning_id given.");
-    }
-
+    // Get number of votes.
+    let votes: IVote;
     try {
-        return await WarningRepository.getWarningsAfterId(warningId);
+        votes = await WarningRepository.getVotesForWarning(warningId);
     } catch (err) {
         throw err;
     }
+
+    // Get if the user has voted or not.
+    let hasUserVoted: boolean;
+    try {
+        hasUserVoted = await WarningRepository.hasUserVoted(username, warningId);
+    } catch (err) {
+        throw err;
+    }
+
+    const returnWarning: ISpecificReturnWarning = {
+        information,
+        votes,
+        hasUserVoted,
+    };
+
+    return returnWarning;
 }
 
 /**
@@ -96,12 +113,24 @@ export async function getWarningAfterId(warningId: string) {
  * @param username
  * @param warning
  */
-export async function submitWarning(username: string, warning: IWarning) {
+export async function submitWarning(username: string, warning: ISubmissionWarning) {
     // Validate the warning.
     try {
         validateWarning(warning);
     } catch (err) {
-        throw err;
+        throw new HttpRequestError(400, err);
+    }
+
+    // Check location is within bounds.
+    if (!isPointInCircle(
+        {latitude: warning.location.lat, longitude: warning.location.long},
+        {latitude: SELLY_OAK_LAT, longitude: SELLY_OAK_LONG},
+        DISTANCE_FROM_SELLY_OAK,
+    )) {
+        throw new HttpRequestError(400, `
+            Location [lat:${warning.location.lat}, long:${warning.location.long}]
+            is not within ${DISTANCE_FROM_SELLY_OAK}m of Selly Oak`,
+        );
     }
 
     // Generate warning id. Gets the hex value.
@@ -142,7 +171,9 @@ export async function downvoteWarning(warningId: string, username: string) {
     }
 }
 
-// Returns the current date and time, correctly formatted for the database type DATETIME.
+/**
+ *  Returns the current date and time, correctly formatted for the database type DATETIME.
+ */
 function getDate(): string {
     // Get current time and date. Need to match format 'YYYY-MM-DD HH:MM:SS' for database.
     const date = new Date();
