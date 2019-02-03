@@ -255,7 +255,7 @@ export default class ViewSingleWarning extends Component<any, IState> {
                 }
 
                 // Update voted (for UI only).
-                specific.hasUserVoted = true;
+                specific.userVoted = true;
 
                 this.setState({
                     specific,
