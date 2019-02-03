@@ -10,6 +10,7 @@ import {
 import * as log from "../helper/Logger";
 import { HttpRequestError } from "./../helper/HttpRequestError";
 import { db } from "./../Server";
+import { useDecimal } from "geolib";
 
 const submitWarningSql = `
     INSERT INTO Warning
@@ -59,6 +60,11 @@ const getVotesForWarningSql = `
 const hasUserVotedSql = `
     SELECT upvote, downvote
     FROM Vote
+    WHERE username = ? AND warningId = ?
+`;
+const didUserSubmitWarningSql = `
+    SELECT username
+    FROM Warning
     WHERE username = ? AND warningId = ?
 `;
 
@@ -259,6 +265,25 @@ export async function hasUserVoted(username: string, warningId: string): Promise
         }
 
         if (result[0]. downvote === 1) {
+            return true;
+        }
+
+        return false;
+    } catch (err) {
+        log.databaseError(err);
+        throw new HttpRequestError(500, "Internal Server Error");
+    }
+}
+
+/**
+ * Returns whether or not the user submitted a warning.
+ * @param username
+ * @param warningId
+ */
+export async function didUserSubmitWarning(username: string, warningId: string): Promise<boolean> {
+    try {
+        const result = await db.query(didUserSubmitWarningSql, [username, warningId]) as any[];
+        if (result.length > 0) {
             return true;
         }
 

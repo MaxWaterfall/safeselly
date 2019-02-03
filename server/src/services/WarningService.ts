@@ -92,9 +92,17 @@ export async function getWarning(username: string, warningId: string): Promise<I
     }
 
     // Get if the user has voted or not.
-    let hasUserVoted: boolean;
+    let userVoted: boolean;
     try {
-        hasUserVoted = await WarningRepository.hasUserVoted(username, warningId);
+        userVoted = await WarningRepository.hasUserVoted(username, warningId);
+    } catch (err) {
+        throw err;
+    }
+
+    // Get if the user submitted this warning.
+    let userSubmitted: boolean;
+    try {
+        userSubmitted = await WarningRepository.didUserSubmitWarning(username, warningId);
     } catch (err) {
         throw err;
     }
@@ -102,7 +110,8 @@ export async function getWarning(username: string, warningId: string): Promise<I
     const returnWarning: ISpecificReturnWarning = {
         information,
         votes,
-        hasUserVoted,
+        userVoted,
+        userSubmitted,
     };
 
     return returnWarning;

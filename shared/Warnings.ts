@@ -44,7 +44,8 @@ export interface IReturnWarning {
 export interface ISpecificReturnWarning {
     information: WarningInformationType;
     votes: IVote;
-    hasUserVoted: boolean;
+    userVoted: boolean;
+    userSubmitted: boolean;
 }
 
 /**
