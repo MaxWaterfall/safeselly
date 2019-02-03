@@ -78,37 +78,15 @@ export default class ViewSingleWarning extends Component<any, IState> {
                 <Container>
                     <Content padder>
                         <ViewSingleWarningHeader
-                            upvotes={10}
-                            downvotes={10}
+                            upvotes={this.state.specific!.votes.upvotes}
+                            downvotes={this.state.specific!.votes.downvotes}
                             title={this.prettyType() + " Warning"}
                         />
                         <Text style={[Styles.centreText as any, Styles.mb10]}>
                             This incident happened {this.timeFromWarning()} ago on {this.prettyDate()}.
                         </Text>
                         {this.renderWarningInformation()}
-                        <Button
-                            style={Styles.mbt10}
-                            block
-                            success
-                            iconLeft
-                            onPress={() => this.voteWarning(true)}
-                        >
-                            <Icon name="eye"/>
-                            <Text>
-                                I saw this happen
-                            </Text>
-                        </Button>
-                        <Button
-                            block
-                            danger
-                            iconRight
-                            onPress={() => this.voteWarning(false)}
-                        >
-                            <Text>
-                                This warning is spam
-                            </Text>
-                            <Icon name="alert"/>
-                        </Button>
+                        {this.renderVoteButtons()}
                     </Content>
                 </Container>
             </Container>
@@ -117,6 +95,56 @@ export default class ViewSingleWarning extends Component<any, IState> {
 
     private onRegionChangeComplete = (region: Region) => {
         this.setState({ region });
+    }
+
+    private renderVoteButtons = () => {
+        if (!this.state.specific!.userVoted) {
+            return (
+                <View>
+                    <Button
+                        style={Styles.mbt10}
+                        block
+                        success
+                        iconLeft
+                        onPress={() => this.voteWarning(true)}
+                    >
+                        <Icon name="eye"/>
+                        <Text>
+                            I saw this happen
+                        </Text>
+                    </Button>
+                    <Button
+                        block
+                        danger
+                        iconRight
+                        onPress={() => this.voteWarning(false)}
+                    >
+                        <Text>
+                            This warning is spam
+                        </Text>
+                        <Icon name="alert"/>
+                    </Button>
+                </View>
+            );
+        }
+
+        if (this.state.specific!.userSubmitted) {
+            return (
+                <View>
+                    <Text style={Styles.centreText as any}>
+                        You submitted this warning.
+                    </Text>
+                </View>
+            );
+        }
+
+        return (
+            <View>
+                <Text style={Styles.centreText as any}>
+                    You have already voted for this warning.
+                </Text>
+            </View>
+        );
     }
 
     /**
@@ -217,9 +245,25 @@ export default class ViewSingleWarning extends Component<any, IState> {
     private voteWarning = (upvote: boolean) => {
         voteWarning(this.state.warning.warningId, upvote)
             .then(() => {
-                Toast.show({
-                    text: "Thankyou for your feedback.",
-                    type: "success",
+                const specific = this.state.specific!;
+
+                // Update the votes (for UI only).
+                if (upvote) {
+                    specific.votes.upvotes += 1;
+                } else {
+                    specific.votes.downvotes += 1;
+                }
+
+                // Update voted (for UI only).
+                specific.hasUserVoted = true;
+
+                this.setState({
+                    specific,
+                }, () => {
+                    Toast.show({
+                        text: "Thankyou for your feedback.",
+                        type: "success",
+                    });
                 });
             })
             .catch(() => {
@@ -228,6 +272,5 @@ export default class ViewSingleWarning extends Component<any, IState> {
                     type: "danger",
                 });
             });
-        // Downvote
     }
 }
