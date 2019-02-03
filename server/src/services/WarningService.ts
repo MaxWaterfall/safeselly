@@ -146,9 +146,11 @@ export async function submitWarning(username: string, warning: ISubmissionWarnin
     const randomNumber = Math.random();
     const warningId = (Math.ceil(randomNumber * NUMBER_OF_IDS)).toString(16);
 
-    // Add warning to database.
+    // Add warning to database then add a vote to the warning.
     try {
         await WarningRepository.submitWarning(username, warning, getDate(), warningId);
+        await WarningRepository.upvoteWarning(warningId, username);
+        // TODO: delete warning if second query fails.
     } catch (err) {
         throw (err);
     }

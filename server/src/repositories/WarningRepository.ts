@@ -10,7 +10,6 @@ import {
 import * as log from "../helper/Logger";
 import { HttpRequestError } from "./../helper/HttpRequestError";
 import { db } from "./../Server";
-import { useDecimal } from "geolib";
 
 const submitWarningSql = `
     INSERT INTO Warning
