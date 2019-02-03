@@ -1,6 +1,6 @@
 import * as log from "../helper/Logger";
 import { HttpRequestError } from "./../helper/HttpRequestError";
-import { IWarning, WarningType } from "./../helper/WarningTypes";
+import { IWarning, WarningType, IVote } from "./../helper/WarningTypes";
 import { db } from "./../Server";
 
 const submitWarningSql = `
@@ -49,6 +49,11 @@ const getAllWarningsFromSql = `
     FROM Warning
     WHERE warningDateTime > DATE_SUB(NOW(),INTERVAL ? HOUR)
 `;
+const getVotesForWarningSql = `
+    SELECT COUNT(upvote) as upvotes, COUNT(downvote) as downvotes
+    FROM Vote
+    WHERE warningId = ?
+`;
 
 export async function submitWarning(username: string, warning: IWarning, dateTime: string, warningId: string) {
     // First add to the Warning table.
@@ -91,7 +96,7 @@ export async function getWarningType(warningId: string) {
     try {
         const result = await db.query(getWarningTypeSql, [warningId]) as any[];
         if (result.length > 0) {
-            return result;
+            return result[0].warningType;
         }
         return "";
     } catch (err) {
@@ -178,6 +183,16 @@ export async function upvoteWarning(warningId: string, username: string) {
 export async function downvoteWarning(warningId: string, username: string) {
     try {
         await db.query(downvoteWarningSql, [warningId, username]);
+    } catch (err) {
+        log.databaseError(err);
+        throw new HttpRequestError(500, "Internal Server Error");
+    }
+}
+
+export async function getVotesForWarning(warningId: string): Promise<IVote> {
+    try {
+        const result = await db.query(getVotesForWarningSql, [warningId]) as any[];
+        return result[0] as IVote;
     } catch (err) {
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error");

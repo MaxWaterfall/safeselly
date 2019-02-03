@@ -1,6 +1,5 @@
 import { isPointInCircle } from "geolib";
 import { HttpRequestError } from "./HttpRequestError";
-import * as log from "./Logger";
 
 const MAX_PEOPLE_DESCRIPTION_LENGTH = 300;
 const MAX_WARNING_DESCRIPTION_LENGTH = 500;
@@ -8,6 +7,11 @@ const SELLY_OAK_LAT = 52.436720;
 const SELLY_OAK_LONG = -1.939000;
 const DISTANCE_FROM_SELLY_OAK = 5000; // 5km.
 
+
+export interface IVote {
+    upvotes: number,
+    downvotes: number,
+}
 export type WarningType = "general";
 
 /**

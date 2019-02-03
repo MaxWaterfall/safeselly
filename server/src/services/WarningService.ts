@@ -1,6 +1,6 @@
 import { HttpRequestError } from "../helper/HttpRequestError";
 import * as log from "./../helper/Logger";
-import { IWarning, validateWarning } from "./../helper/WarningTypes";
+import { IWarning, validateWarning, WarningType, IVote } from "./../helper/WarningTypes";
 import * as WarningRepository from "./../repositories/WarningRepository";
 
 const NUMBER_OF_IDS = 1000000000000; // 100 billion.
@@ -50,14 +50,22 @@ export async function getWarning(warningId: string) {
     }
 
     // First get the type of the warning.
-    let warningType;
+    let warningType: WarningType;
     try {
         const result = await WarningRepository.getWarningType(warningId);
         if (result === "") {
             throw new HttpRequestError(400, "warning_id does not exist.");
         }
 
-        warningType = result[0].warningType;
+        warningType = result;
+    } catch (err) {
+        throw err;
+    }
+
+    // Get number of votes.
+    let votes: IVote;
+    try {
+        votes = await WarningRepository.getVotesForWarning(warningId);
     } catch (err) {
         throw err;
     }
@@ -66,7 +74,7 @@ export async function getWarning(warningId: string) {
     try {
         const result = await WarningRepository.getWarningInformation(warningId, warningType) as any[];
         if (result.length > 0) {
-            return result[0];
+            return {...result[0], ...votes};
         }
 
         log.error("The result returned from getWarningInformation had a length that was less than 0.");
