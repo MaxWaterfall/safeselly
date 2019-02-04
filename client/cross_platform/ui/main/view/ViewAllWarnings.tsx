@@ -1,7 +1,12 @@
 import { ActionSheet, Button, Icon, Text, Toast, View } from "native-base";
 import React, { Component } from "react";
 import MapView, {Marker, PROVIDER_GOOGLE, Region} from "react-native-maps";
-import { getWarningsAfterId, getWarningsFrom, initialRegion } from "../../../services/ViewWarningsService";
+import {
+    getViewedWarnings,
+    getWarningsAfterId,
+    getWarningsFrom,
+    initialRegion,
+} from "../../../services/ViewWarningsService";
 import { FailedToConnectScreen } from "../../general/FailedToConnectScreen";
 import { LoadingScreen } from "../../general/LoadingScreen";
 import { IReturnWarning } from "./../../../../../shared/Warnings";
@@ -28,6 +33,7 @@ interface IState {
     loading: boolean;
     failed: boolean;
     filter: IFilter;
+    lastViewedWarningId: string;
 }
 
 export default class ViewAllWarnings extends Component<any, IState> {
@@ -48,6 +54,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
                 hours: FilterTypes.DAY,
             },
             warnings: [],
+            lastViewedWarningId: "",
         };
 
         this.loadInitialStateFromConstructor();
@@ -73,11 +80,10 @@ export default class ViewAllWarnings extends Component<any, IState> {
                     {this.state.warnings!.map((warning: IReturnWarning) => {
                         return (
                             <Marker
-                                key={warning.warningId}
+                                key={`${warning.warningId}-${Date.now()}`}
                                 coordinate={{latitude: warning.location.lat, longitude: warning.location.long}}
-                                onPress={() => this.props.navigation.push("ViewSingleWarning", {
-                                    warning,
-                                })}
+                                onPress={() => this.pressMarker(warning)}
+                                pinColor={this.chooseMarkerColour(warning.warningId)}
                             >
                             </Marker>
                         );
@@ -102,6 +108,17 @@ export default class ViewAllWarnings extends Component<any, IState> {
                 </View>
             </View>
         );
+    }
+
+    /**
+     * Moves to the ViewSingleWarning screen.
+     */
+    private pressMarker = (warning: IReturnWarning) => {
+        this.setState({lastViewedWarningId: warning.warningId}, () => {
+            this.props.navigation.push("ViewSingleWarning", {
+                warning,
+            });
+        });
     }
 
     /**
@@ -213,6 +230,21 @@ export default class ViewAllWarnings extends Component<any, IState> {
         );
     }
 
+    /**
+     * Selects the markers colour based on whether the warning has been viewed or not.
+     */
+    private chooseMarkerColour = (warningId: string) => {
+        if (getViewedWarnings().has(warningId) || this.state.lastViewedWarningId === warningId) {
+            // Warning has been viewed.
+            return "orange";
+        }
+
+        return "red";
+    }
+
+    /**
+     * Updates the region displayed on the map when the user moves it.
+     */
     private onRegionChangeComplete = (region: Region) => {
         this.setState({ region });
     }

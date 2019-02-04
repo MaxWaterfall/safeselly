@@ -1,4 +1,3 @@
-import { Alert } from "react-native";
 import { getUserCredentials, IUserCredentials } from "../data/CredentialStorage";
 
 const requestURL = "http://10.0.2.2:3000";
@@ -71,7 +70,7 @@ async function parseResponse(response: Response) {
         // Parse the body into JSON so we can read it.
         responseBody = await response.json();
         if (!response.ok) {
-            throw new HttpRequestError(response.status, responseBody.error);
+            throw new Error(responseBody);
         }
 
         // Return the body as a JSON object.
@@ -80,21 +79,7 @@ async function parseResponse(response: Response) {
 
     responseBody = await response.text();
     if (!response.ok) {
-        throw new HttpRequestError(response.status, responseBody);
+        throw new Error(responseBody);
     }
     return responseBody;
-}
-
-export class HttpRequestError extends Error {
-    constructor(public status: number, public message: string) {
-        super(message);
-    }
-}
-
-export function handleNetworkError(error: any) {
-    if (error instanceof HttpRequestError) {
-        Alert.alert("Error", error.message);
-    } else {
-        Alert.alert("Error", "Please try again.");
-    }
 }

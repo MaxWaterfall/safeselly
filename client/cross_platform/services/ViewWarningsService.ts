@@ -10,6 +10,8 @@ const SELLY_OAK_LONG = -1.939000;
 const LATITUDE_DELTA = 0.026;
 const LONGITUDE_DELTA = 0.0159;
 
+const viewedWarnings: Map<string, boolean> = new Map();
+
 export const initialRegion = {
     latitude: SELLY_OAK_LAT,
     longitude: SELLY_OAK_LONG,
@@ -47,11 +49,13 @@ export async function getWarningInformation(
     warningId: string, warningType: WarningType): Promise<ISpecificReturnWarning> {
 
     try {
+        let result;
         if (warningType === "general") {
-            return await makeAuthenticatedRequest("GET", `/warning/${warningId}`, {});
+            result = await makeAuthenticatedRequest("GET", `/warning/${warningId}`, {});
+            viewWarning(warningId);
         }
 
-        throw new Error("Invalid warning type.");
+        return result;
     } catch (err) {
         throw err;
     }
@@ -72,4 +76,19 @@ export async function voteWarning(warningId: string, upvote: boolean) {
     } catch (err) {
         throw err;
     }
+}
+
+/**
+ * Adds a warning to the viewedWarnings list.
+ * @param warningId
+ */
+function viewWarning(warningId: string) {
+    viewedWarnings.set(warningId, true);
+}
+
+/**
+ * Gets a list of all the warnings the user has recently viewed.
+ */
+export function getViewedWarnings() {
+    return viewedWarnings;
 }
