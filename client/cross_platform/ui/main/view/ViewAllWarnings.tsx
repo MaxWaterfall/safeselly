@@ -6,6 +6,7 @@ import {
     getWarningsAfterId,
     getWarningsFrom,
     initialRegion,
+    loadViewedWarnings,
 } from "../../../services/ViewWarningsService";
 import { FailedToConnectScreen } from "../../general/FailedToConnectScreen";
 import { LoadingScreen } from "../../general/LoadingScreen";
@@ -123,10 +124,11 @@ export default class ViewAllWarnings extends Component<any, IState> {
 
     /**
      * Gets the initial set of warnings from the warning service.
+     * Also tells ViewWarningsService to load viewed warnings.
      */
     private loadInitialStateFromConstructor = () => {
-        getWarningsFrom(this.state.filter.hours)
-            .then((warnings) => {
+        Promise.all([getWarningsFrom(this.state.filter.hours), loadViewedWarnings()])
+            .then(([warnings]) => {
                 this.setState({
                     region: initialRegion,
                     warnings,
@@ -134,7 +136,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
                     failed: false,
                 });
             })
-            .catch(() => {
+            .catch((err) => {
                 this.setState({
                     loading: false,
                     failed: true,
@@ -143,8 +145,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
     }
 
     /**
-     * Gets the initial set of warnings from the warning service.
-     * Sets the state so that loading is true.
+     * Sets loading to true before calling loadInitialStateFromConstructor
      */
     private loadInitialState = () => {
         this.setState({loading: true}, this.loadInitialStateFromConstructor);
@@ -154,14 +155,10 @@ export default class ViewAllWarnings extends Component<any, IState> {
      * Gets more warnings from the warning service.
      */
     private refreshWarnings = () => {
-        if (this.state.warnings.length === 0) {
-            this.loadInitialStateFromConstructor();
-            return;
-        }
-
-        getWarningsAfterId(this.state.warnings![this.state.warnings!.length - 1].warningId)
+        getWarningsFrom(this.state.filter.hours)
             .then((warnings) => {
-                if (warnings.length === 0) {
+                if (JSON.stringify(warnings) === JSON.stringify(this.state.warnings)) {
+                    // No update has occurred.
                     Toast.show({
                         text: "Up to date.",
                         type: "success",
@@ -169,11 +166,10 @@ export default class ViewAllWarnings extends Component<any, IState> {
                     return;
                 }
 
-                this.setState({
-                    warnings: this.state.warnings!.concat(warnings),
-                }, () => {
+                // Update has occurred.
+                this.setState({warnings}, () => {
                     Toast.show({
-                        text: `Retrieved ${warnings.length} warning(s).`,
+                        text: "Updated warnings.",
                         type: "success",
                     });
                 });
@@ -205,7 +201,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
                                 text: "Past Hour",
                                 hours: FilterTypes.HOUR,
                             },
-                        }, this.loadInitialState);
+                        }, this.refreshWarnings);
                     }
 
                     if (FILTER_BUTTONS[buttonIndex] === "Past Day") {
@@ -214,7 +210,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
                                 text: "Past Day",
                                 hours: FilterTypes.DAY,
                             },
-                        }, this.loadInitialState);
+                        }, this.refreshWarnings);
                     }
 
                     if (FILTER_BUTTONS[buttonIndex] === "Past Week") {
@@ -223,7 +219,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
                                 text: "Past Week",
                                 hours: FilterTypes.WEEK,
                             },
-                        }, this.loadInitialState);
+                        }, this.refreshWarnings);
                     }
                 }
             },
