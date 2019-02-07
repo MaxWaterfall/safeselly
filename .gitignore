@@ -8,3 +8,9 @@ log
 
 # Editor.
 .vscode
+
+# Private keys.
+serviceAccountKey.json
+
+# Config.
+config.json
