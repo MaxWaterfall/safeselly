@@ -1,20 +1,21 @@
 import express from "express";
+import * as config from "./config.json";
 import { AccessController, AuthenticationController, UserController, WarningController} from "./controllers";
 import { Database } from "./helper/Database";
 import * as log from "./helper/Logger";
 
-export const hostName = "localhost:3000";
+export const hostName = config.hostName;
 
 export let db = new Database({
-    database: "SafeSelly",
-    host: "localhost",
-    password: "password",
-    user: "max",
+    database: config.databaseName,
+    host: config.databaseHost,
+    password: config.databasePassword,
+    user: config.databaseUsername,
 });
 
 // Create new express application instance.
 const app: express.Application = express();
-const port: number = 3000;
+const port: number = config.port;
 // Parse the body.
 app.use(express.json());
 // Below route is used to register, does not require authentication.
