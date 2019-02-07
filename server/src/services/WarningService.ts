@@ -15,6 +15,7 @@ import {
 } from "./../../../shared/Warnings";
 import * as log from "./../helper/Logger";
 import * as WarningRepository from "./../repositories/WarningRepository";
+import * as NotificationService from "./NotificationService";
 
 const NUMBER_OF_IDS = 1000000000000; // 100 billion.
 const MAX_HOUR_FILTER = 24 * 7; // 1 week.
@@ -154,6 +155,10 @@ export async function submitWarning(username: string, warning: ISubmissionWarnin
     } catch (err) {
         throw (err);
     }
+
+    // Pass onto the NotificationService.
+    NotificationService.newWarningSubmission(warningId, warning);
+
 }
 
 /**
