@@ -11,6 +11,7 @@ import {
 import { FailedToConnectScreen } from "../../general/FailedToConnectScreen";
 import { LoadingScreen } from "../../general/LoadingScreen";
 import { IReturnWarning } from "./../../../../../shared/Warnings";
+import * as NotificationService from "./../../../services/NotificationService";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
 
@@ -59,6 +60,10 @@ export default class ViewAllWarnings extends Component<any, IState> {
         };
 
         this.loadInitialStateFromConstructor();
+        NotificationService.addNotificationListener("ViewAllWarnings", (warning: IReturnWarning) => {
+            
+           // this.props.navigation.push(this.pressMarker());
+        });
     }
 
     public render() {

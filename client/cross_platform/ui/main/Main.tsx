@@ -3,16 +3,37 @@ import React, { Component } from "react";
 import {createAppContainer, createBottomTabNavigator} from "react-navigation";
 import Submit from "./submit/Submit";
 import View from "./view/View";
+import * as NotificationService from "../../services/NotificationService";
+import { LoadingScreen } from "../general/LoadingScreen";
+
+interface IState {
+    loading: boolean;
+}
 
 /**
  * Parent component for all main screens.
  */
-export default class Main extends Component {
+export default class Main extends Component<any, IState> {
     constructor(props: any) {
         super(props);
+
+        this.state = {
+            loading: true,
+        };
+
+        // Set up the notification service.
+        NotificationService.setUp()
+            .finally(() => {
+                this.setState({loading: false});
+            });
+
     }
 
     public render() {
+        if (this.state.loading) {
+            return <LoadingScreen/>;
+        }
+
         return <MainNavigatorContainer/>;
     }
 }

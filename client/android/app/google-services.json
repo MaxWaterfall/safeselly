@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "644209419168",
+    "firebase_url": "https://safe-selly-1547462361025.firebaseio.com",
+    "project_id": "safe-selly-1547462361025",
+    "storage_bucket": "safe-selly-1547462361025.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:644209419168:android:7f2083e5b844068d",
+        "android_client_info": {
+          "package_name": "com.maxwaterfall.safeselly"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "644209419168-jvv7cs3fff47ihk7n682qp10rbueksd3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDAZFStENnrarMA8fE7MBHKQ42OP22Sy2I"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
