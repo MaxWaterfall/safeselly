@@ -68,17 +68,17 @@ export async function sendVerificationEmail(username: string, deviceToken: strin
     // TODO: Check last email has not been sent within x minutes.
     // Add user to DB and device to DB.
     try {
-        AccessRepository.addUser(username, deviceToken, verificationToken);
+        await AccessRepository.addUser(username, deviceToken, verificationToken);
     } catch (err) {
         throw (err);
     }
 
     try {
-        sendRegisterEmail(username, verificationToken);
+        await sendRegisterEmail(username, verificationToken);
     } catch (err) {
         throw err;
     }
-    
+
     return `Sent verification email to ${username}@bham.ac.uk.`;
 }
 
@@ -106,7 +106,7 @@ export async function getAccessToken(username: string, deviceToken: string): Pro
     // Generate the access token.
     let accessToken = "";
     try {
-        accessToken = crypto.randomBytes(accessTokenLength).toString("hex");
+        accessToken = await crypto.randomBytes(accessTokenLength).toString("hex");
     } catch (err) {
         log.tokenGenerationError(err);
         throw new HttpRequestError(500, "Internal Server Error");
