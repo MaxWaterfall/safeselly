@@ -1,7 +1,13 @@
 import { ActionSheet, Button, Icon, Text, Toast, View } from "native-base";
 import React, { Component } from "react";
 import MapView, {Marker, PROVIDER_GOOGLE, Region} from "react-native-maps";
-import { getWarningsAfterId, getWarningsFrom, initialRegion } from "../../../services/ViewWarningsService";
+import {
+    getViewedWarnings,
+    getWarningsAfterId,
+    getWarningsFrom,
+    initialRegion,
+    loadViewedWarnings,
+} from "../../../services/ViewWarningsService";
 import { FailedToConnectScreen } from "../../general/FailedToConnectScreen";
 import { LoadingScreen } from "../../general/LoadingScreen";
 import { IReturnWarning } from "./../../../../../shared/Warnings";
@@ -28,6 +34,7 @@ interface IState {
     loading: boolean;
     failed: boolean;
     filter: IFilter;
+    lastViewedWarningId: string;
 }
 
 export default class ViewAllWarnings extends Component<any, IState> {
@@ -48,6 +55,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
                 hours: FilterTypes.DAY,
             },
             warnings: [],
+            lastViewedWarningId: "",
         };
 
         this.loadInitialStateFromConstructor();
@@ -73,11 +81,10 @@ export default class ViewAllWarnings extends Component<any, IState> {
                     {this.state.warnings!.map((warning: IReturnWarning) => {
                         return (
                             <Marker
-                                key={warning.warningId}
+                                key={`${warning.warningId}-${Date.now()}`}
                                 coordinate={{latitude: warning.location.lat, longitude: warning.location.long}}
-                                onPress={() => this.props.navigation.push("ViewSingleWarning", {
-                                    warning,
-                                })}
+                                onPress={() => this.pressMarker(warning)}
+                                pinColor={this.chooseMarkerColour(warning.warningId)}
                             >
                             </Marker>
                         );
@@ -105,11 +112,23 @@ export default class ViewAllWarnings extends Component<any, IState> {
     }
 
     /**
+     * Moves to the ViewSingleWarning screen.
+     */
+    private pressMarker = (warning: IReturnWarning) => {
+        this.setState({lastViewedWarningId: warning.warningId}, () => {
+            this.props.navigation.push("ViewSingleWarning", {
+                warning,
+            });
+        });
+    }
+
+    /**
      * Gets the initial set of warnings from the warning service.
+     * Also tells ViewWarningsService to load viewed warnings.
      */
     private loadInitialStateFromConstructor = () => {
-        getWarningsFrom(this.state.filter.hours)
-            .then((warnings) => {
+        Promise.all([getWarningsFrom(this.state.filter.hours), loadViewedWarnings()])
+            .then(([warnings]) => {
                 this.setState({
                     region: initialRegion,
                     warnings,
@@ -117,7 +136,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
                     failed: false,
                 });
             })
-            .catch(() => {
+            .catch((err) => {
                 this.setState({
                     loading: false,
                     failed: true,
@@ -126,8 +145,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
     }
 
     /**
-     * Gets the initial set of warnings from the warning service.
-     * Sets the state so that loading is true.
+     * Sets loading to true before calling loadInitialStateFromConstructor
      */
     private loadInitialState = () => {
         this.setState({loading: true}, this.loadInitialStateFromConstructor);
@@ -137,14 +155,10 @@ export default class ViewAllWarnings extends Component<any, IState> {
      * Gets more warnings from the warning service.
      */
     private refreshWarnings = () => {
-        if (this.state.warnings.length === 0) {
-            this.loadInitialStateFromConstructor();
-            return;
-        }
-
-        getWarningsAfterId(this.state.warnings![this.state.warnings!.length - 1].warningId)
+        getWarningsFrom(this.state.filter.hours)
             .then((warnings) => {
-                if (warnings.length === 0) {
+                if (JSON.stringify(warnings) === JSON.stringify(this.state.warnings)) {
+                    // No update has occurred.
                     Toast.show({
                         text: "Up to date.",
                         type: "success",
@@ -152,11 +166,10 @@ export default class ViewAllWarnings extends Component<any, IState> {
                     return;
                 }
 
-                this.setState({
-                    warnings: this.state.warnings!.concat(warnings),
-                }, () => {
+                // Update has occurred.
+                this.setState({warnings}, () => {
                     Toast.show({
-                        text: `Retrieved ${warnings.length} warning(s).`,
+                        text: "Updated warnings.",
                         type: "success",
                     });
                 });
@@ -188,7 +201,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
                                 text: "Past Hour",
                                 hours: FilterTypes.HOUR,
                             },
-                        }, this.loadInitialState);
+                        }, this.refreshWarnings);
                     }
 
                     if (FILTER_BUTTONS[buttonIndex] === "Past Day") {
@@ -197,7 +210,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
                                 text: "Past Day",
                                 hours: FilterTypes.DAY,
                             },
-                        }, this.loadInitialState);
+                        }, this.refreshWarnings);
                     }
 
                     if (FILTER_BUTTONS[buttonIndex] === "Past Week") {
@@ -206,13 +219,28 @@ export default class ViewAllWarnings extends Component<any, IState> {
                                 text: "Past Week",
                                 hours: FilterTypes.WEEK,
                             },
-                        }, this.loadInitialState);
+                        }, this.refreshWarnings);
                     }
                 }
             },
         );
     }
 
+    /**
+     * Selects the markers colour based on whether the warning has been viewed or not.
+     */
+    private chooseMarkerColour = (warningId: string) => {
+        if (getViewedWarnings().has(warningId) || this.state.lastViewedWarningId === warningId) {
+            // Warning has been viewed.
+            return "orange";
+        }
+
+        return "red";
+    }
+
+    /**
+     * Updates the region displayed on the map when the user moves it.
+     */
     private onRegionChangeComplete = (region: Region) => {
         this.setState({ region });
     }

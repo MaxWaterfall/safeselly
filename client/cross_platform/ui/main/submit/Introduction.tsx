@@ -18,6 +18,8 @@ export default class Introduction extends Component<any> {
                         Submit a Warning
                     </H2>
                     <Text style={{...Styles.centreText as any, ...Styles.mb10}}>
+                        If this is an emergency, please contact the police by calling 999 immediately.{"\n\n"}
+
                         Follow the instructions to submit a warning.
                         Any spam submissions will result in an immediate ban, please do not abuse the system.
                     </Text>

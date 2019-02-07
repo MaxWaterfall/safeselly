@@ -1,14 +1,20 @@
+// @ts-ignore
+import datetimeDifference from "datetime-difference";
+import { AppState } from "react-native";
 import {
     IReturnWarning,
     ISpecificReturnWarning,
     WarningType,
 } from "../../../shared/Warnings";
+import { getItem, setItem } from "./../data/DataStorage";
 import { makeAuthenticatedRequest } from "./NetworkService";
 
 const SELLY_OAK_LAT = 52.436720;
 const SELLY_OAK_LONG = -1.939000;
 const LATITUDE_DELTA = 0.026;
 const LONGITUDE_DELTA = 0.0159;
+
+let viewedWarnings: Map<string, Date>;
 
 export const initialRegion = {
     latitude: SELLY_OAK_LAT,
@@ -47,11 +53,13 @@ export async function getWarningInformation(
     warningId: string, warningType: WarningType): Promise<ISpecificReturnWarning> {
 
     try {
+        let result;
         if (warningType === "general") {
-            return await makeAuthenticatedRequest("GET", `/warning/${warningId}`, {});
+            result = await makeAuthenticatedRequest("GET", `/warning/${warningId}`, {});
+            viewWarning(warningId);
         }
 
-        throw new Error("Invalid warning type.");
+        return result;
     } catch (err) {
         throw err;
     }
@@ -73,3 +81,79 @@ export async function voteWarning(warningId: string, upvote: boolean) {
         throw err;
     }
 }
+
+/**
+ * Adds a warning to the viewedWarnings list.
+ * @param warningId
+ */
+function viewWarning(warningId: string) {
+    viewedWarnings.set(warningId, new Date());
+}
+
+/**
+ * Gets a list of all the warnings the user has recently viewed.
+ */
+export function getViewedWarnings() {
+    return viewedWarnings;
+}
+
+/**
+ * Saves the contents of viewedWarnings to local storage.
+ */
+async function saveViewedWarnings() {
+    try {
+        // We have to convert the Map into an array of tuples so it can be stored as an object.
+        const arrayFrom: Array<{key: string, value: string}> = [];
+        viewedWarnings.forEach((value, key) => {
+            arrayFrom.push({key, value: value.toJSON()});
+        });
+
+        // Convert our array to a string and then store it.
+        await setItem("viewedWarnings", JSON.stringify(arrayFrom));
+    } catch (err) {
+        // Nothing we can do from this error.
+    }
+}
+
+/**
+ * Loads contents from local storage into viewedWarnings.
+ */
+export async function loadViewedWarnings() {
+    try {
+        // Get our viewed warnings in string form from storage.
+        const viewedWarningsString = await getItem("viewedWarnings");
+        const now = new Date();
+
+        // If this is null, we have never stored any viewed warnings.
+        if (viewedWarningsString !== null) {
+            viewedWarnings = new Map();
+
+            // Convert our string back into an array of tuples.
+            const viewedWarningsObject = JSON.parse(viewedWarningsString) as Array<{key: string, value: string}>;
+
+            // Loop through the array, only adding elements to the map if their date < 8 days old.
+            viewedWarningsObject.forEach((element) => {
+                const date = new Date(element.value);
+                if (datetimeDifference(now, date).days < 8) {
+                    viewedWarnings.set(element.key, date);
+                }
+            });
+        } else {
+            viewedWarnings = new Map();
+        }
+    } catch (err) {
+        // Nothing we can do, just create a new Map.
+        viewedWarnings = new Map();
+    }
+
+}
+
+/**
+ * This listener will be called when the apps state changes.
+ */
+AppState.addEventListener("change", (nextAppState) => {
+    if (nextAppState === "background" || nextAppState === "inactive") {
+        saveViewedWarnings();
+        return;
+    }
+});
