@@ -1,6 +1,6 @@
 import * as mail from "nodemailer";
-import { hostName } from "./../Server";
 import { HttpRequestError } from "../helper/HttpRequestError";
+import { hostName } from "./../Server";
 
 const EMAIL = "safesellyregister@gmail.com";
 const EMAIL_PASSWORD = "zimsaz-wyznUc-8qefxi";
@@ -11,15 +11,20 @@ const transporter = mail.createTransport({
     auth: {
         user: EMAIL,
         pass: EMAIL_PASSWORD,
-    }
+    },
 });
 
+/**
+ * Sends the registration email to the users email address.
+ * @param username
+ * @param verificationToken
+ */
 export async function sendRegisterEmail(username: string, verificationToken: string) {
     const mailOptions = {
         from: EMAIL,
         to: username + "@bham.ac.uk",
         subject: "Register for Safe Selly App",
-        text: 
+        text:
             `Click the link to register then follow the instructions within the app. \n
             http://${hostName}/access/verify/${verificationToken}`,
     };

@@ -6,6 +6,7 @@ CREATE TABLE User (
 	accessToken VARCHAR(64),
 	deviceToken VARCHAR(64) NOT NULL,
 	verificationToken VARCHAR(64) UNIQUE,
+	fcmToken VARCHAR(128),
 	verified boolean,
 
     PRIMARY KEY (username)

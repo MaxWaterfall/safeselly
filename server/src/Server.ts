@@ -1,5 +1,5 @@
 import express from "express";
-import { AccessController, AuthenticationController, WarningController} from "./controllers";
+import { AccessController, AuthenticationController, UserController, WarningController} from "./controllers";
 import { Database } from "./helper/Database";
 import * as log from "./helper/Logger";
 
@@ -20,7 +20,7 @@ app.use(express.json());
 // Below route is used to register, does not require authentication.
 app.use("/access", AccessController);
 // All routes below are now protected with authentication.
-app.use(AuthenticationController);
+app.use("/user", AuthenticationController, UserController);
 app.use("/warning", AuthenticationController, WarningController);
 export const allAuthenticatedRoutes = getAllAuthenticatedRoutes();
 log.info("All authenticated routes:" + JSON.stringify(allAuthenticatedRoutes));
