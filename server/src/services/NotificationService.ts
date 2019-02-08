@@ -31,12 +31,7 @@ function sendWarningToAll(warning: IReturnWarning, title: string, body: string) 
             body,
         },
         data: {
-            warning: {
-                warningId: warning.warningId,
-                type: warning.type,
-                location: JSON.stringify(warning.location),
-                dateTime: warning.dateTime,
-            },
+            warning: JSON.stringify(warning),
         },
     };
 
