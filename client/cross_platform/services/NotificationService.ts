@@ -169,6 +169,9 @@ function setUpListeners() {
             // Set channel Id.
             notif.android.setChannelId("main-channel");
 
+            // Set icons.
+            notif.android.setSmallIcon("@drawable/ic_stat_ss");
+
             // Set to cancel will user opens it.
             notif.android.setAutoCancel(true);
 
