@@ -3,12 +3,12 @@ import * as conf from "./config.json";
 import { AccessController, AuthenticationController, UserController, WarningController} from "./controllers";
 import { Database } from "./helper/Database";
 import * as log from "./helper/Logger";
-import * as NotificationService from "./services/NotificationService";
 
 export const config = conf;
 export const hostName = config.hostName;
 
 export let db = new Database({
+    connectionLimit: config.connectionLimit,
     database: config.databaseName,
     host: config.databaseHost,
     password: config.databasePassword,
@@ -29,13 +29,7 @@ app.use("/access", AccessController);
 app.use("/user", AuthenticationController, UserController);
 app.use("/warning", AuthenticationController, WarningController);
 
-// Connect to the database then start server.
-db.connect().then(() => {
-    log.info("Connected to database.");
-
-    app.listen(port, () => {
-        log.info(`Server started listening on port ${port}.`);
-    });
-}).catch((err) => {
-    log.error(`Failed to connect to the database. ${err}`);
+// Start server.
+app.listen(port, () => {
+    log.info(`Server started listening on port ${port}.`);
 });
