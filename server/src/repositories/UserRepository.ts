@@ -7,6 +7,10 @@ const setFCMTokenSql = `
     SET fcmToken = ?
     WHERE username = ?
 `;
+const submitFeedbackSql = `
+    INSERT INTO Feedback
+    VALUES (NULL, ?, ?)
+`;
 
 /**
  * Updates the users FCM Token.
@@ -16,6 +20,20 @@ const setFCMTokenSql = `
 export async function setFCMToken(username: string, fcmToken: string) {
     try {
         await db.query(setFCMTokenSql, [fcmToken, username]);
+    } catch (err) {
+        log.databaseError(err);
+        throw new HttpRequestError(500, "Internal Server Error");
+    }
+}
+
+/**
+ * Adds feedback for this user.
+ * @param username
+ * @param feedback
+ */
+export async function submitFeedback(username: string, feedback: string) {
+    try {
+        await db.query(submitFeedbackSql, [username, feedback]);
     } catch (err) {
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error");

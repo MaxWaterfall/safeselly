@@ -45,3 +45,12 @@ CREATE Table Vote (
 	FOREIGN KEY(warningId) REFERENCES Warning(warningId),
 	FOREIGN KEY(username) REFERENCES User(username)
 );
+
+CREATE Table Feedback (
+	int feedbackId AUTO_INCREMENT NOT NULL UNIQUE,
+	username VARCHAR(32) NOT NULL,
+	feedback TEXT NOT NULL,
+
+	PRIMARY KEY(feedbackId),
+	FOREIGN KEY(username) REFERENCES User(username)
+)
