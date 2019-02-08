@@ -19,4 +19,18 @@ router.post("/fcm-token", (req: Request, res: Response) => {
         });
 });
 
+/**
+ * Endpoint to allow clients to submit feedback.
+ */
+router.post("/feedback", (req: Request, res: Response) => {
+    UserService.submitFeedback(req.get("username") as string, req.body.feedback)
+        .then(() => {
+            res.sendStatus(200);
+        })
+        .catch((err: HttpRequestError) => {
+            res.status(err.status);
+            res.send(err.message);
+        });
+});
+
 export const UserController: Router = router;
