@@ -6,6 +6,7 @@ import { LoadingScreen } from "../general/LoadingScreen";
 import { IReturnWarning } from "./../../../../shared/Warnings";
 import Submit from "./submit/Submit";
 import View from "./view/View";
+import Feedback from "./feedback/Feedback";
 
 interface IState {
     loading: boolean;
@@ -49,6 +50,7 @@ const MainNavigator = createBottomTabNavigator(
     {
         View: {screen: View},
         Submit: {screen: Submit},
+        Feedback: {screen: Feedback},
     },
     {
         tabBarComponent: (props) => {
@@ -75,6 +77,15 @@ const MainNavigator = createBottomTabNavigator(
                             onPress={() => props.navigation.navigate("Submit")}
                         >
                             <Icon name="add"/>
+                        </Button>
+                    </FooterTab>
+                    <FooterTab>
+                        <Button
+                            vertical
+                            active={props.navigation.state.index === 2}
+                            onPress={() => props.navigation.navigate("Feedback")}
+                        >
+                            <Icon name="paper"/>
                         </Button>
                     </FooterTab>
                 </Footer>
