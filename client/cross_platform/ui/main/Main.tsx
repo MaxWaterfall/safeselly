@@ -4,9 +4,9 @@ import {createAppContainer, createBottomTabNavigator} from "react-navigation";
 import * as NotificationService from "../../services/NotificationService";
 import { LoadingScreen } from "../general/LoadingScreen";
 import { IReturnWarning } from "./../../../../shared/Warnings";
+import Feedback from "./feedback/Feedback";
 import Submit from "./submit/Submit";
 import View from "./view/View";
-import Feedback from "./feedback/Feedback";
 
 interface IState {
     loading: boolean;

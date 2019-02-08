@@ -1,6 +1,7 @@
-import { Button, Container, Content, H2, Text, Textarea } from "native-base";
+import { Button, Container, Content, H2, Text, Textarea, Toast } from "native-base";
 import React, { Component } from "react";
 import { LoadingScreen } from "../../general/LoadingScreen";
+import * as FeedbackService from "./../../../services/FeedbackService";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
 
@@ -39,7 +40,7 @@ export default class SubmitFeedback extends Component<any, IState> {
                     <Text style={{...Styles.centreText as any, ...Styles.mb10}}>
                         This app was created for my dissertation.
                         I would greatly appreciate any feedback
-                        whether it be a bug, feature or anything else you can think of.
+                        whether it be a bug, feature idea or anything else you can think of.
                     </Text>
                     <Textarea
                         rowSpan={4}
@@ -68,7 +69,28 @@ export default class SubmitFeedback extends Component<any, IState> {
 
     private submitFeedback = () => {
         this.setState({loading: true}, () => {
-            // Submit feedback here.
+            FeedbackService.submitFeedback(this.state.feedback)
+                .then(() => {
+                    this.setState({
+                        loading: false,
+                        feedback: "",
+                    }, () => {
+                        Toast.show({
+                            text: "Thankyou for your feedback.",
+                            type: "success",
+                        });
+                    });
+                })
+                .catch((err) => {
+                    this.setState({
+                        loading: false,
+                    }, () => {
+                        Toast.show({
+                            text: err.message,
+                            type: "danger",
+                        });
+                    });
+                });
         });
     }
 }
