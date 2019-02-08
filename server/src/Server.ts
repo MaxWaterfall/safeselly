@@ -28,8 +28,6 @@ app.use("/access", AccessController);
 // All routes below are now protected with authentication.
 app.use("/user", AuthenticationController, UserController);
 app.use("/warning", AuthenticationController, WarningController);
-export const allAuthenticatedRoutes = getAllAuthenticatedRoutes();
-log.info("All authenticated routes:" + JSON.stringify(allAuthenticatedRoutes));
 
 // Connect to the database then start server.
 db.connect().then(() => {
@@ -41,9 +39,3 @@ db.connect().then(() => {
 }).catch((err) => {
     log.error(`Failed to connect to the database. ${err}`);
 });
-
-function getAllAuthenticatedRoutes(): string[] {
-    let routes: string[] = [];
-    routes = routes.concat(WarningController.stack.filter((x) => x.route).map((x) => "/warning" + x.route.path));
-    return routes;
-}

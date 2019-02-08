@@ -192,28 +192,30 @@ export async function downvoteWarning(warningId: string, username: string) {
  */
 function getDate(): string {
     // Get current time and date. Need to match format 'YYYY-MM-DD HH:MM:SS' for database.
-    const date = new Date();
-    let month = date.getMonth().toString();
-    let day = date.getDay().toString();
-    let hours = date.getHours().toString();
-    let minutes = date.getMinutes().toString();
-    let seconds = date.getSeconds().toString();
+    const now = new Date();
+    let month = (now.getMonth() + 1).toString();
+    let date = now.getDate().toString();
+    let hours = now.getHours().toString();
+    let minutes = now.getMinutes().toString();
+    let seconds = now.getSeconds().toString();
 
     // We don't want our dates to be 0 based.
     if (month === "0") {
         month = "1";
     }
-    if (day === "0") {
-        day = "1";
+    if (date === "0") {
+        date = "1";
     }
 
     month = format(month);
-    day = format(day);
+    date = format(date);
     hours = format(hours);
     minutes = format(minutes);
     seconds = format(seconds);
 
-    return `${date.getFullYear()}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    const output = `${now.getFullYear()}-${month}-${date} ${hours}:${minutes}:${seconds}`;
+
+    return output;
 }
 
  /**

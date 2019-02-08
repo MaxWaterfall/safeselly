@@ -1,9 +1,6 @@
 import {Request, Response, Router} from "express";
 import {HttpRequestError} from "../helper/HttpRequestError";
-import * as log from "./../helper/Logger";
-import {allAuthenticatedRoutes} from "./../Server";
 import * as AuthenticationService from "./../services/AuthenticationService";
-import {isBodyValid} from "./Validator";
 
 // Assign our router to the express router instance.
 const router: Router = Router();

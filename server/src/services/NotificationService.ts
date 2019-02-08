@@ -31,7 +31,12 @@ function sendWarningToAll(warning: IReturnWarning, title: string, body: string) 
             body,
         },
         data: {
-            warning: JSON.stringify(warning),
+            warning: {
+                warningId: warning.warningId,
+                type: warning.type,
+                location: JSON.stringify(warning.location),
+                dateTime: warning.dateTime,
+            },
         },
     };
 
@@ -55,11 +60,12 @@ export async function newWarningSubmission(warningId: string, warning: ISubmissi
         const title = warning.type.substring(0, 1).toUpperCase() + warning.type.substring(1) + " Warning";
         const streetName = await getStreetName(warning.location.lat, warning.location.long);
         const body = `There has been an incident on or near ${streetName}.`;
+        const date = new Date(Date.parse(warning.dateTime)).toJSON();
         sendWarningToAll({
             warningId,
             type: warning.type,
             location: warning.location,
-            dateTime: warning.dateTime,
+            dateTime: date,
         }, title, body);
     }
 }
@@ -71,6 +77,11 @@ export async function newWarningSubmission(warningId: string, warning: ISubmissi
  * @param long
  */
 async function getStreetName(lat: number, long: number) {
+
+    if (process.env.NODE_ENV !== "production") {
+        // Don't want to waste these API calls as they cost real money.
+        return "Selly Oak";
+    }
     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${config.googleApiKey}`;
 
     let data;

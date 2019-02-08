@@ -8,7 +8,8 @@
     "lint": "tslint -c tslint.json 'src/**/*.ts'",
     "build": "tsc",
     "start": "node build/server/src/Server.js",
-    "build-start": "npm run build && npm run start"
+    "build-start": "npm run build && npm run start",
+    "build-start-prod": "npm run build && NODE_ENV=production node build/server/src/Server.js"
   },
   "author": "",
   "license": "ISC",
