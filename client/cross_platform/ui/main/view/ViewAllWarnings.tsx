@@ -3,7 +3,6 @@ import React, { Component } from "react";
 import MapView, {Marker, PROVIDER_GOOGLE, Region} from "react-native-maps";
 import {
     getViewedWarnings,
-    getWarningsAfterId,
     getWarningsFrom,
     initialRegion,
     loadViewedWarnings,
@@ -60,10 +59,13 @@ export default class ViewAllWarnings extends Component<any, IState> {
         };
 
         this.loadInitialStateFromConstructor();
-        NotificationService.addNotificationListener("ViewAllWarnings", (warning: IReturnWarning) => {
-            
-           // this.props.navigation.push(this.pressMarker());
-        });
+        NotificationService.addNotificationReceivedListener("ViewAllWarnings", this.receivedNotification);
+        NotificationService.addNotificationOpenedListener("ViewAllWarnings", this.pressMarker);
+    }
+
+    public componentWillUnmount() {
+        NotificationService.removeNotificationReceivedListener("ViewAllWarnings");
+        NotificationService.removeNotificationOpenedListener("ViewAllWarnings");
     }
 
     public render() {
@@ -114,6 +116,14 @@ export default class ViewAllWarnings extends Component<any, IState> {
                 </View>
             </View>
         );
+    }
+
+    /**
+     * Adds the newly received warning to our list of warnings.
+     */
+    private receivedNotification = (warning: IReturnWarning) => {
+         // Add this warning to our list.
+        this.refreshWarnings();
     }
 
     /**

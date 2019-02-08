@@ -1,10 +1,11 @@
 import { Button, Footer, FooterTab, Icon } from "native-base";
 import React, { Component } from "react";
 import {createAppContainer, createBottomTabNavigator} from "react-navigation";
-import Submit from "./submit/Submit";
-import View from "./view/View";
 import * as NotificationService from "../../services/NotificationService";
 import { LoadingScreen } from "../general/LoadingScreen";
+import { IReturnWarning } from "./../../../../shared/Warnings";
+import Submit from "./submit/Submit";
+import View from "./view/View";
 
 interface IState {
     loading: boolean;
@@ -26,7 +27,6 @@ export default class Main extends Component<any, IState> {
             .finally(() => {
                 this.setState({loading: false});
             });
-
     }
 
     public render() {
@@ -35,6 +35,13 @@ export default class Main extends Component<any, IState> {
         }
 
         return <MainNavigatorContainer/>;
+    }
+
+    /**
+     * Called just before the component is about to removed from the DOM.
+     */
+    public componentWillUnmount() {
+        NotificationService.removeNotificationOpenedListener("Main");
     }
 }
 
@@ -45,6 +52,11 @@ const MainNavigator = createBottomTabNavigator(
     },
     {
         tabBarComponent: (props) => {
+            NotificationService.addNotificationOpenedListener("Main", (warning) => {
+                // Move to view, the user has opened a notification.
+                props.navigation.navigate("View");
+            });
+
             return (
                 <Footer>
                     <FooterTab>
