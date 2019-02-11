@@ -1,4 +1,4 @@
-export * from "./AccessController";
+export * from "./UserController";
 export * from "./WarningController";
 export * from "./AuthenticationController";
-export * from "./UserController";
+export * from "./AccessController";

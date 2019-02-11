@@ -1,18 +1,21 @@
 import {Request, Response, Router} from "express";
-import {HttpRequestError} from "./../helper/HttpRequestError";
-import * as AccessService from "./../services/AccessService";
+import {HttpRequestError} from "../helper/HttpRequestError";
+import * as UserService from "../services/UserService";
 
 // Assign our router to the express router instance.
 const router: Router = Router();
 
+// PROTOCOL:
 // 1. Client requests a device token.
 // 2. Client requests verification email.
 // 3. Client clicks link in email.
 // 4. Client requests access token.
 
-// Returns a device token.
+/**
+ * Returns a device token.
+ */
 router.get("/device-token", (req: Request, res: Response) => {
-    AccessService.getDeviceToken(req.get("username") as string)
+    UserService.getDeviceToken(req.get("username") as string)
         .then((value) => {
             res.status(200); // OK.
             res.send({device_token: value});
@@ -23,9 +26,11 @@ router.get("/device-token", (req: Request, res: Response) => {
         });
 });
 
-// Sends a verification email to the user.
+/**
+ * Sends a verification email to the user.
+ */
 router.get("/send-email", (req: Request, res: Response) => {
-    AccessService.sendVerificationEmail(req.get("username") as string, req.get("device-token") as string)
+    UserService.sendVerificationEmail(req.get("username") as string, req.get("device-token") as string)
         .then((value) => {
             res.status(200); // OK.
             res.send(value);
@@ -36,11 +41,13 @@ router.get("/send-email", (req: Request, res: Response) => {
         });
 });
 
-// Verifies the user (they click this link in the email).
+/**
+ * Verifies the user (they click this link in the email).
+ */
 router.get("/verify/:token", (req: Request, res: Response) => {
     const token = req.params.token;
 
-    AccessService.verifyDevice(token)
+    UserService.verifyDevice(token)
         .then(() => {
             res.status(200);
             res.send("Registered successfully! Follow the instructions within the app. You can close this window.");
@@ -51,9 +58,11 @@ router.get("/verify/:token", (req: Request, res: Response) => {
         });
 });
 
-// Returns an access token.
+/**
+ * Returns an access token for the user and device.
+ */
 router.get("/access-token", (req: Request, res: Response) => {
-    AccessService.getAccessToken(req.get("username") as string, req.get("device-token") as string)
+    UserService.getAccessToken(req.get("username") as string, req.get("device-token") as string)
         .then((value) => {
             res.status(200); // OK.
             res.send({access_token: value});

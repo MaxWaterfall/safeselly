@@ -1,6 +1,11 @@
 import express from "express";
 import * as conf from "./config.json";
-import { AccessController, AuthenticationController, UserController, WarningController} from "./controllers";
+import {
+    AccessController,
+    AuthenticationController,
+    UserController,
+    WarningController,
+ } from "./controllers";
 import { Database } from "./helper/Database";
 import * as log from "./helper/Logger";
 

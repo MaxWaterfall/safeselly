@@ -1,5 +1,5 @@
 import * as bcrypt from "bcrypt";
-import * as AuthenticationRepository from "../repositories/AuthenticationRepository";
+import * as UserRepository from "../repositories/USerRepository";
 import {HttpRequestError} from "./../helper/HttpRequestError";
 import * as log from "./../helper/Logger";
 
@@ -16,7 +16,7 @@ export async function isRequestAuthorised(username: string, accessToken: string)
     // TODO: implement caching to save on database calls.
     let hashedAccessToken = "";
     try {
-        hashedAccessToken = await AuthenticationRepository.getAccessToken(username);
+        hashedAccessToken = await UserRepository.getAccessToken(username);
     } catch (err) {
         throw err;
     }
