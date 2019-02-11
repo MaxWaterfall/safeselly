@@ -29,6 +29,7 @@ function sendWarningToAll(warning: IReturnWarning, title: string, body: string) 
         notification: {
             title,
             body,
+            sound: "default",
         },
         data: {
             warning: JSON.stringify(warning),
