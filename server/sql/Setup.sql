@@ -6,8 +6,9 @@ CREATE TABLE User (
 	accessToken VARCHAR(64),
 	deviceToken VARCHAR(64) NOT NULL,
 	verificationToken VARCHAR(64) UNIQUE,
-	fcmToken VARCHAR(128),
+	fcmToken VARCHAR(256),
 	verified boolean,
+	banned boolean,
 
     PRIMARY KEY (username)
 );
@@ -53,4 +54,4 @@ CREATE Table Feedback (
 
 	PRIMARY KEY(feedbackId),
 	FOREIGN KEY(username) REFERENCES User(username)
-)
+);
