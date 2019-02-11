@@ -38,10 +38,10 @@ function validateUsername(username: string) {
  */
 export async function startRegistration(username: string): Promise<void> {
     validateUsername(username);
-    usernameGlobal = username;
+    usernameGlobal = username.toUpperCase();
 
     try {
-        const response = await makeRequest("GET", "/access/device-token", {username}, {});
+        const response = await makeRequest("GET", "/access/device-token", {username: usernameGlobal}, {});
         deviceTokenGlobal = response.device_token;
         await makeRequest("GET", "/access/send-email", getHeader(), {});
     } catch (err) {

@@ -3,14 +3,36 @@ import firebase from "react-native-firebase";
 import { Notification, NotificationOpen } from "react-native-firebase/notifications";
 import { IReturnWarning } from "../../../shared/Warnings";
 import { makeAuthenticatedRequest } from "./NetworkService";
+import {isRegistered} from "./RegistrationService";
 
 let currentAppState: AppStateStatus = "active";
-let viewAllWarningsListener: (data: IReturnWarning) => void;
+
+interface IListenerList {
+    name: string;
+    callback: (data: IReturnWarning) => void;
+}
+
+/**
+ * List of functions that are called when a user receives a notification.
+ */
+let notificationReceivedListeners: IListenerList[] = [];
+/**
+ * List of functions that are called when the user opens a notification.
+ */
+let notificationOpenedListeners: IListenerList[] = [];
+let registered = false;
 
 /**
  * Sets up the app so that it's ready to receive notifications.
  */
 export async function setUp() {
+
+    registered = await isRegistered() as boolean;
+    if (!registered) {
+        // This should never happen. Method should only be called from ViewAllWarnings.
+        return;
+    }
+
     // Check if the user has permission.
     let enabled;
     try {
@@ -33,13 +55,20 @@ export async function setUp() {
     setUpTopics();
     setUpChannel();
     setUpFCMToken();
-    createNotificationListeners();
+    setUpListeners();
 }
 
+/**
+ * Subscribes this user to the relevant topics.
+ * This means it can receive notifications for these topics.
+ */
 function setUpTopics() {
     firebase.messaging().subscribeToTopic("all");
 }
 
+/**
+ * Creates the channel that the device will receive notifications through.
+ */
 function setUpChannel() {
     // Build the channel.
     const channel = new
@@ -53,6 +82,9 @@ function setUpChannel() {
     firebase.notifications().android.createChannel(channel);
 }
 
+/**
+ * Gets the FCM token from firebase and sends it to the server.
+ */
 async function setUpFCMToken() {
     const fcmToken = await firebase.messaging().getToken();
     if (fcmToken) {
@@ -80,19 +112,51 @@ firebase.messaging().onTokenRefresh((fcmToken) => {
 });
 
 /**
- * Allows components to listen for notifications.
- * @param name The name of component listening for the notification.
+ * Adds a function the the notificationReceivedListener list.
+ * @param name
  * @param callback
  */
-export function addNotificationListener(name: string, callback: (warning: IReturnWarning) => void) {
-    if (name === "ViewAllWarnings") {
-        viewAllWarningsListener = callback;
-    }
+export function addNotificationReceivedListener(name: string, callback: (warning: IReturnWarning) => void) {
+    notificationReceivedListeners.push({name, callback});
 }
 
-function createNotificationListeners() {
-    // Called when any notification is received on the device.
+/**
+ * Removes a function the the notificationReceivedListener list.
+ * @param name
+ */
+export function removeNotificationReceivedListener(name: string) {
+    notificationReceivedListeners = notificationReceivedListeners.filter((value) => {
+        return value.name !== name;
+    });
+}
+
+/**
+ * Adds a function the the notificationOpenedListener list.
+ * @param callback
+ */
+export function addNotificationOpenedListener(name: string, callback: (warning: IReturnWarning) => void) {
+    notificationOpenedListeners.push({name, callback});
+}
+
+/**
+ * Removes a function the the notificationOpenedListener list.
+ * @param callback
+ */
+export function removeNotificationOpenedListener(name: string) {
+    notificationOpenedListeners = notificationOpenedListeners.filter((value) => {
+        return value.name !== name;
+    });
+}
+
+function setUpListeners() {
+    /**
+     * Called when any notification is received on the device.
+     */
     firebase.notifications().onNotification((notification: Notification) => {
+        if (!registered) {
+            return;
+        }
+
         if (currentAppState === "active") {
             // Display the notification (not default behaviour).
             // Create the notification.
@@ -105,15 +169,38 @@ function createNotificationListeners() {
             // Set channel Id.
             notif.android.setChannelId("main-channel");
 
+            // Set icons.
+            notif.android.setSmallIcon("@drawable/ic_stat_ss");
+
+            // Set to cancel will user opens it.
+            notif.android.setAutoCancel(true);
+
             // Show notification.
             firebase.notifications().displayNotification(notif);
         }
+
+        const warning: IReturnWarning = JSON.parse(notification.data.warning) as IReturnWarning;
+
+        // Call all listeners.
+        for (const listener of notificationReceivedListeners) {
+            listener.callback(warning);
+        }
     });
 
-    // Called when any notification is opened.
+    /**
+     * Called when any notification is opened by the user.
+     */
     firebase.notifications().onNotificationOpened((notificationOpen: NotificationOpen) => {
+        if (!registered) {
+            return;
+        }
+
         const warning = JSON.parse(notificationOpen.notification.data.warning) as IReturnWarning;
-        viewAllWarningsListener(warning);
+
+        // Call all listeners.
+        for (const listener of notificationOpenedListeners) {
+            listener.callback(warning);
+        }
     });
 }
 
