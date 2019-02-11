@@ -1,6 +1,5 @@
 import * as fs from "fs";
 import { TransformableInfo } from "logform";
-import path from "path";
 import {createLogger, format, transports} from "winston";
 import DailyRotateFile = require("winston-daily-rotate-file");
 
@@ -25,9 +24,6 @@ const logger = createLogger({
             datePattern: "DD-MM-YY",
             level: env === "development" ? "debug" : "info",
             format: format.combine(
-                format.label({
-                    label: path.basename(module.parent!.filename),
-                }),
                 format.timestamp({
                     format: "hh:mm:ss",
                 }),
