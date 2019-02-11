@@ -1,5 +1,5 @@
 import * as bcrypt from "bcrypt";
-import * as UserRepository from "../repositories/USerRepository";
+import * as UserRepository from "../repositories/UserRepository";
 import {HttpRequestError} from "./../helper/HttpRequestError";
 import * as log from "./../helper/Logger";
 
