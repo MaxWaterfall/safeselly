@@ -33,6 +33,20 @@ const deviceVerifiedSql = `
     SELECT verified FROM User
     WHERE username = ? AND deviceToken = ?
 `;
+const isUserBannedSql = `
+    SELECT banned
+    FROM User
+    WHERE username = ?
+`;
+const banUserSql = `
+    UPDATE User
+    SET banned = true
+    WHERE username = (
+        SELECT username
+        FROM Warning
+        WHERE warningId = ?
+    )
+`;
 
 /**
  * Adds a user into the database.
@@ -69,7 +83,8 @@ export async function addAccessToken(username: string, accessToken: string) {
  */
 export async function verifyDevice(verificationToken: string) {
     try {
-        await db.query(verifyDeviceSql, [verificationToken]);
+        const result = await db.query(verifyDeviceSql, [verificationToken]) as any;
+        return result.affectedRows > 0;
     } catch (err) {
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error.");
@@ -133,6 +148,39 @@ export async function setFCMToken(username: string, fcmToken: string) {
 export async function submitFeedback(username: string, feedback: string) {
     try {
         await db.query(submitFeedbackSql, [username, feedback]);
+    } catch (err) {
+        log.databaseError(err);
+        throw new HttpRequestError(500, "Internal Server Error");
+    }
+}
+
+/**
+ * Checks if a user has been banned.
+ * @param username
+ */
+export async function isUserBanned(username: string) {
+    try {
+        const result = await db.query(isUserBannedSql, [username]) as any[];
+        if (result.length > 0) {
+            if (result[0]["banned"] === null) {
+                return false;
+            }
+            return result[0]["banned"] === 1;
+        }
+        return false;
+    } catch (err) {
+        log.databaseError(err);
+        throw new HttpRequestError(500, "Internal Server Error");
+    }
+}
+
+/**
+ * Bans a user.
+ * @param warningId
+ */
+export async function banUser(warningId: string) {
+    try {
+        await db.query(banUserSql, [warningId]);
     } catch (err) {
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error");

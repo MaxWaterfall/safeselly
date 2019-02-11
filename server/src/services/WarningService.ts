@@ -14,11 +14,14 @@ import {
     WarningType,
 } from "./../../../shared/Warnings";
 import * as log from "./../helper/Logger";
+import * as UserRepository from "./../repositories/UserRepository";
 import * as WarningRepository from "./../repositories/WarningRepository";
 import * as NotificationService from "./NotificationService";
 
 const NUMBER_OF_IDS = 1000000000000; // 100 billion.
 const MAX_HOUR_FILTER = 24 * 7; // 1 week.
+const MIN_TOTAL_VOTES_FOR_BAN = 10; // At least 10 votes required before user can be banned.
+const BAN_PERCENTAGE = 51; // If 51% of votes are downvotes, the user is banned.
 
 /**
  * Returns all warnings in the database.
@@ -184,6 +187,43 @@ export async function downvoteWarning(warningId: string, username: string) {
         await WarningRepository.downvoteWarning(warningId, username);
     } catch (err) {
         throw (err);
+    }
+
+    // Check if user needs to be banned.
+    try {
+        const shouldBan = await shouldBanUser(warningId);
+        if (shouldBan) {
+            // Ban user.
+            await UserRepository.banUser(warningId);
+        }
+    } catch (err) {
+        throw err;
+    }
+}
+
+/**
+ * Checks the ratio of upvotes to downvotes then bans the user if the ratio is too low.
+ * @param warningId
+ */
+async function shouldBanUser(warningId: string): Promise<boolean> {
+    // Get the number of upvotes and downvotes from the db.
+    try {
+        const votes = await WarningRepository.getVotesForWarning(warningId);
+        const totalVotes = votes.downvotes + votes.upvotes;
+
+        if (totalVotes < MIN_TOTAL_VOTES_FOR_BAN) {
+            return false;
+        }
+
+        const downvotePercentage = Math.round((votes.downvotes / totalVotes) * 100);
+
+        if (downvotePercentage >= BAN_PERCENTAGE) {
+            return true;
+        }
+
+        return false;
+    } catch (err) {
+        throw err;
     }
 }
 

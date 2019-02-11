@@ -97,7 +97,10 @@ export async function sendVerificationEmail(username: string, deviceToken: strin
  */
 export async function verifyDevice(verificationToken: string) {
     try {
-        await UserRepository.verifyDevice(verificationToken);
+        const result = await UserRepository.verifyDevice(verificationToken);
+        if (!result) {
+            throw new HttpRequestError(400, "Token doesn't exist.");
+        }
     } catch (err) {
         throw err;
     }
@@ -109,6 +112,15 @@ export async function verifyDevice(verificationToken: string) {
   * @param deviceToken
   */
 export async function getAccessToken(username: string, deviceToken: string): Promise<string> {
+    // Validate.
+    if (username === undefined) {
+        throw new HttpRequestError(400, "username is not valid.");
+    }
+
+    if (deviceToken === undefined) {
+        throw new HttpRequestError(400, "device-token is not valid.");
+    }
+
     // Check user has been verified.
     try {
         const deviceVerified = await UserRepository.isDeviceVerified(username, deviceToken);

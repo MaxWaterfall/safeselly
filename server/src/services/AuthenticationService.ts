@@ -12,6 +12,16 @@ export async function isRequestAuthorised(username: string, accessToken: string)
         throw new HttpRequestError(400, "Access token is not valid.");
     }
 
+    // Check if user is banned.
+    try {
+        const banned = await UserRepository.isUserBanned(username);
+        if (banned) {
+            throw new HttpRequestError(403, "You are banned due to abuse.");
+        }
+    } catch (err) {
+        throw err;
+    }
+
     // Get encrypted access token from database.
     // TODO: implement caching to save on database calls.
     let hashedAccessToken = "";
