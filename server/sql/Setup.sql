@@ -48,7 +48,7 @@ CREATE Table Vote (
 );
 
 CREATE Table Feedback (
-	int feedbackId AUTO_INCREMENT NOT NULL UNIQUE,
+	feedbackId int AUTO_INCREMENT NOT NULL UNIQUE,
 	username VARCHAR(32) NOT NULL,
 	feedback TEXT NOT NULL,
 

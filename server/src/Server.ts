@@ -10,7 +10,6 @@ import { Database } from "./helper/Database";
 import * as log from "./helper/Logger";
 
 export const config = conf;
-export const hostName = config.hostName;
 
 export let db = new Database({
     connectionLimit: config.connectionLimit,
@@ -28,11 +27,11 @@ const port: number = config.port;
 app.use(express.json());
 
 // Below route is used to register, does not require authentication.
-app.use("/access", AccessController);
+app.use(config.prefix + "access", AccessController);
 
 // All routes below are now protected with authentication.
-app.use("/user", AuthenticationController, UserController);
-app.use("/warning", AuthenticationController, WarningController);
+app.use(config.prefix + "user", AuthenticationController, UserController);
+app.use(config.prefix + "warning", AuthenticationController, WarningController);
 
 // Start server.
 app.listen(port, () => {
