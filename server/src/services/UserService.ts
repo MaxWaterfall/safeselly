@@ -1,5 +1,6 @@
 import { HttpRequestError } from "../helper/HttpRequestError";
 import * as UserRepository from "./../repositories/UserRepository";
+import { sendFeedbackEmail } from "./EmailService";
 
 /**
  * Updates the users fcm token in the database.
@@ -7,8 +8,12 @@ import * as UserRepository from "./../repositories/UserRepository";
  * @param token
  */
 export async function setFCMToken(username: string, fcmToken: string) {
+    if (fcmToken === undefined || fcmToken.length === 0) {
+        throw new HttpRequestError(400, "fcmToken is not valid.");
+    }
+
     try {
-        UserRepository.setFCMToken(username, fcmToken);
+       await UserRepository.setFCMToken(username, fcmToken);
     } catch (err) {
         throw err;
     }
@@ -25,8 +30,16 @@ export async function submitFeedback(username: string, feedback: string) {
         throw new HttpRequestError(400, "Feedback is not valid.");
     }
 
+    // Add to database.
     try {
-        UserRepository.submitFeedback(username, feedback);
+        await UserRepository.submitFeedback(username, feedback);
+    } catch (err) {
+        throw err;
+    }
+
+    // Send email to myself.
+    try {
+        await sendFeedbackEmail(username, feedback);
     } catch (err) {
         throw err;
     }

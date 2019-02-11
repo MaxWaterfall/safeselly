@@ -1,5 +1,5 @@
-import {Request, Response, Router} from "express";
-import {HttpRequestError} from "./../helper/HttpRequestError";
+import { Request, Response, Router } from "express";
+import { HttpRequestError } from "./../helper/HttpRequestError";
 import * as UserService from "./../services/UserService";
 
 // Assign our router to the express router instance.
