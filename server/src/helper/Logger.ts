@@ -29,7 +29,7 @@ const logger = createLogger({
                 }),
                 levelFormat(),
                 format.printf((inf: TransformableInfo) => {
-                    return `${inf.level} ${inf.timestamp} [${inf.label}]: ${inf.message}`;
+                    return `${inf.level} ${inf.timestamp}: ${inf.message}`;
                 }),
             ),
         }),
