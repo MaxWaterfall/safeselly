@@ -1,6 +1,8 @@
 node_modules
 build
 *.js
+!index.js
+!rn-cli.config.js
 log
 
 # Mac.
