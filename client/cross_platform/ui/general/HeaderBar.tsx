@@ -9,7 +9,7 @@ import {
 } from "native-base";
 import React from "react";
 
-const title = "Safe Selly Beta";
+const title = "Safe Selly";
 
 interface IProps {
     backButton?: boolean;
