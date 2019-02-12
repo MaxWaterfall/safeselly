@@ -1,5 +1,7 @@
 import { ActionSheet, Button, Icon, Text, Toast, View } from "native-base";
 import React, { Component } from "react";
+import firebase from "react-native-firebase";
+import { NotificationOpen } from "react-native-firebase/notifications";
 import MapView, {Marker, PROVIDER_GOOGLE, Region} from "react-native-maps";
 import {
     getViewedWarnings,
@@ -13,8 +15,6 @@ import { IReturnWarning } from "./../../../../../shared/Warnings";
 import * as NotificationService from "./../../../services/NotificationService";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
-import { NotificationOpen } from "react-native-firebase/notifications";
-import firebase from "react-native-firebase";
 
 const FILTER_BUTTONS = ["Past Hour", "Past Day", "Past Week", "Cancel"];
 const CANCEL_INDEX = 3;
