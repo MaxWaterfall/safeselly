@@ -44,8 +44,45 @@ export async function startRegistration(username: string): Promise<void> {
         const response = await makeRequest("GET", "/access/device-token", {username: usernameGlobal}, {});
         deviceTokenGlobal = response.device_token;
         await makeRequest("GET", "/access/send-email", getHeader(), {});
+
+        // Save the state so if the user quits we go back to this screen.
+        await saveRegistrationState();
     } catch (err) {
         throw err;
+    }
+}
+
+/**
+ * Saves the current registration state, so if the user quits the app, they can go back to where they were.
+ */
+async function saveRegistrationState() {
+    const usernameSet = setItem("username", usernameGlobal);
+    const deviceTokenSet = setItem("deviceToken", deviceTokenGlobal);
+    Promise.all([usernameSet, deviceTokenSet])
+        .catch((err) => {
+            // Do nothing.
+        });
+}
+
+/**
+ * Loads the current registration state.
+ * @returns a boolean representing whether the state could be loaded or not.
+ */
+export async function loadRegistrationState(): Promise<boolean> {
+    try {
+        const username = await getItem("username");
+        const deviceToken = await getItem("deviceToken");
+
+        if (username === null || deviceToken === null) {
+            return false;
+        }
+
+        // Set the global variables.
+        usernameGlobal = username;
+        deviceTokenGlobal = deviceToken;
+        return true;
+    } catch (err) {
+        return false;
     }
 }
 
