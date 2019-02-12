@@ -13,6 +13,8 @@ import { IReturnWarning } from "./../../../../../shared/Warnings";
 import * as NotificationService from "./../../../services/NotificationService";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
+import { NotificationOpen } from "react-native-firebase/notifications";
+import firebase from "react-native-firebase";
 
 const FILTER_BUTTONS = ["Past Hour", "Past Day", "Past Week", "Cancel"];
 const CANCEL_INDEX = 3;
@@ -60,7 +62,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
 
         this.loadInitialStateFromConstructor();
         NotificationService.addNotificationReceivedListener("ViewAllWarnings", this.receivedNotification);
-        NotificationService.addNotificationOpenedListener("ViewAllWarnings", this.pressMarker);
+        NotificationService.addNotificationOpenedListener("ViewAllWarnings", this.openedNotification);
     }
 
     public componentWillUnmount() {
@@ -139,11 +141,60 @@ export default class ViewAllWarnings extends Component<any, IState> {
     }
 
     /**
+     * Checks whether we were opened from a notification when the app was closed.
+     */
+    private async openedFromClose() {
+        const notificationOpen: NotificationOpen = await firebase.notifications().getInitialNotification();
+        if (notificationOpen) {
+            // App was opened by notification.
+            const warning = JSON.parse(notificationOpen.notification.data.warning) as IReturnWarning;
+            // Already received notification from the refresh. Now just need to open it.
+            this.openedNotification(warning);
+        }
+    }
+
+    /**
+     * Checks if we can add a warning to the state.
+     */
+    private canAddWarning = (warning: IReturnWarning) => {
+        for (const stateWarning of this.state.warnings) {
+            if (stateWarning.warningId === warning.warningId) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Adds the newly received warning to our list of warnings.
      */
     private receivedNotification = (warning: IReturnWarning) => {
-         // Add this warning to our list.
-        this.refreshWarnings();
+        if (this.canAddWarning(warning)) {
+            this.setState({
+                warnings: this.state.warnings.concat(warning),
+            }, () => {
+                Toast.show({
+                    text: "Updated warnings.",
+                    type: "success",
+                });
+            });
+        }
+    }
+
+    /**
+     * Same as received notification but opens the warning instead of showing a Toast.
+     */
+    private openedNotification = (warning: IReturnWarning) => {
+         // Add this warning to our list then open it.
+         if (this.canAddWarning(warning)) {
+            this.setState({
+                warnings: this.state.warnings.concat(warning),
+            }, () => {
+                this.pressMarker(warning);
+            });
+        } else {
+            this.pressMarker(warning);
+        }
     }
 
     /**
@@ -169,6 +220,9 @@ export default class ViewAllWarnings extends Component<any, IState> {
                     warnings,
                     loading: false,
                     failed: false,
+                }, () => {
+                    // Check if we were opened by the notification (from closed).
+                    this.openedFromClose();
                 });
             })
             .catch((err) => {

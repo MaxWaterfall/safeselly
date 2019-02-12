@@ -63,7 +63,7 @@ export async function setUp() {
  * This means it can receive notifications for these topics.
  */
 function setUpTopics() {
-    firebase.messaging().subscribeToTopic("all");
+    firebase.messaging().subscribeToTopic("all-prod");
 }
 
 /**
@@ -188,7 +188,7 @@ function setUpListeners() {
     });
 
     /**
-     * Called when any notification is opened by the user.
+     * Called when any notification is opened by the user (when app is in background/foreground).
      */
     firebase.notifications().onNotificationOpened((notificationOpen: NotificationOpen) => {
         if (!registered) {
@@ -197,7 +197,7 @@ function setUpListeners() {
 
         const warning = JSON.parse(notificationOpen.notification.data.warning) as IReturnWarning;
 
-        // Call all listeners.
+        // Call all opened listeners.
         for (const listener of notificationOpenedListeners) {
             listener.callback(warning);
         }
