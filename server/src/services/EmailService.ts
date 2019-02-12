@@ -27,7 +27,7 @@ export async function sendRegisterEmail(username: string, verificationToken: str
         subject: "Register for Safe Selly App",
         text:
             `Click the link to register then follow the instructions within the app. \n
-            ${config.hostName}${config.prefix}/access/verify/${verificationToken}`,
+            ${config.hostName}${config.prefix}access/verify/${verificationToken}`,
     };
 
     try {
