@@ -26,10 +26,13 @@ admin.initializeApp({
 function sendWarningToAll(warning: IReturnWarning, title: string, body: string) {
     const message = {
         topic: "all",
-        notification: {
-            title,
-            body,
-            sound: "default",
+        android: {
+            priority: "high",
+            notification: {
+                title,
+                body,
+                sound: "default",
+            },
         },
         data: {
             warning: JSON.stringify(warning),
