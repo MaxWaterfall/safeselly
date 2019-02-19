@@ -1,9 +1,10 @@
 import { ActionSheet, Button, Icon, Text, Toast, View } from "native-base";
 import React, { Component } from "react";
+import firebase from "react-native-firebase";
+import { NotificationOpen } from "react-native-firebase/notifications";
 import MapView, {Marker, PROVIDER_GOOGLE, Region} from "react-native-maps";
 import {
     getViewedWarnings,
-    getWarningsAfterId,
     getWarningsFrom,
     initialRegion,
     loadViewedWarnings,
@@ -60,10 +61,13 @@ export default class ViewAllWarnings extends Component<any, IState> {
         };
 
         this.loadInitialStateFromConstructor();
-        NotificationService.addNotificationListener("ViewAllWarnings", (warning: IReturnWarning) => {
-            
-           // this.props.navigation.push(this.pressMarker());
-        });
+        NotificationService.addNotificationReceivedListener("ViewAllWarnings", this.receivedNotification);
+        NotificationService.addNotificationOpenedListener("ViewAllWarnings", this.openedNotification);
+    }
+
+    public componentWillUnmount() {
+        NotificationService.removeNotificationReceivedListener("ViewAllWarnings");
+        NotificationService.removeNotificationOpenedListener("ViewAllWarnings");
     }
 
     public render() {
@@ -83,17 +87,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
                     region={this.state.region}
                     onRegionChangeComplete={this.onRegionChangeComplete}
                 >
-                    {this.state.warnings!.map((warning: IReturnWarning) => {
-                        return (
-                            <Marker
-                                key={`${warning.warningId}-${Date.now()}`}
-                                coordinate={{latitude: warning.location.lat, longitude: warning.location.long}}
-                                onPress={() => this.pressMarker(warning)}
-                                pinColor={this.chooseMarkerColour(warning.warningId)}
-                            >
-                            </Marker>
-                        );
-                    })}
+                    {this.renderMarkers()}
                 </MapView>
                 <View style={[{flexDirection: "row", justifyContent: "space-between"}, Styles.padder]}>
                     <Button
@@ -114,6 +108,93 @@ export default class ViewAllWarnings extends Component<any, IState> {
                 </View>
             </View>
         );
+    }
+
+    /**
+     * Renders all the markers.
+     */
+    private renderMarkers = () => {
+        return (
+            this.state.warnings!.map((warning: IReturnWarning) => {
+                if (warning.warningId === this.state.lastViewedWarningId) {
+                    // Update the key so the colour updates.
+                    return (
+                        <Marker
+                            key={`${warning.warningId}-viewed`}
+                            coordinate={{latitude: warning.location.lat, longitude: warning.location.long}}
+                            onPress={() => this.pressMarker(warning)}
+                            pinColor={this.chooseMarkerColour(warning.warningId)}
+                        />
+                    );
+                }
+
+                return (
+                    <Marker
+                        key={warning.warningId}
+                        coordinate={{latitude: warning.location.lat, longitude: warning.location.long}}
+                        onPress={() => this.pressMarker(warning)}
+                        pinColor={this.chooseMarkerColour(warning.warningId)}
+                    />
+                );
+            })
+        );
+    }
+
+    /**
+     * Checks whether we were opened from a notification when the app was closed.
+     */
+    private async openedFromClose() {
+        const notificationOpen: NotificationOpen = await firebase.notifications().getInitialNotification();
+        if (notificationOpen) {
+            // App was opened by notification.
+            const warning = JSON.parse(notificationOpen.notification.data.warning) as IReturnWarning;
+            // Already received notification from the refresh. Now just need to open it.
+            this.openedNotification(warning);
+        }
+    }
+
+    /**
+     * Checks if we can add a warning to the state.
+     */
+    private canAddWarning = (warning: IReturnWarning) => {
+        for (const stateWarning of this.state.warnings) {
+            if (stateWarning.warningId === warning.warningId) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Adds the newly received warning to our list of warnings.
+     */
+    private receivedNotification = (warning: IReturnWarning) => {
+        if (this.canAddWarning(warning)) {
+            this.setState({
+                warnings: this.state.warnings.concat(warning),
+            }, () => {
+                Toast.show({
+                    text: "Updated warnings.",
+                    type: "success",
+                });
+            });
+        }
+    }
+
+    /**
+     * Same as received notification but opens the warning instead of showing a Toast.
+     */
+    private openedNotification = (warning: IReturnWarning) => {
+         // Add this warning to our list then open it.
+         if (this.canAddWarning(warning)) {
+            this.setState({
+                warnings: this.state.warnings.concat(warning),
+            }, () => {
+                this.pressMarker(warning);
+            });
+        } else {
+            this.pressMarker(warning);
+        }
     }
 
     /**
@@ -139,6 +220,9 @@ export default class ViewAllWarnings extends Component<any, IState> {
                     warnings,
                     loading: false,
                     failed: false,
+                }, () => {
+                    // Check if we were opened by the notification (from closed).
+                    this.openedFromClose();
                 });
             })
             .catch((err) => {

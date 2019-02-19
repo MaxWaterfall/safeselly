@@ -158,7 +158,7 @@ export default class EnterInformation extends Component<any, IState> {
             warningDate: new Date(
                 currentDate.getFullYear(),
                 currentDate.getMonth(),
-                currentDate.getDay(),
+                currentDate.getDate(),
                 time.hours,
                 time.minutes,
             ),

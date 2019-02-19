@@ -9,10 +9,10 @@ import {
 import { getItem, setItem } from "./../data/DataStorage";
 import { makeAuthenticatedRequest } from "./NetworkService";
 
-const SELLY_OAK_LAT = 52.436720;
-const SELLY_OAK_LONG = -1.939000;
-const LATITUDE_DELTA = 0.026;
-const LONGITUDE_DELTA = 0.0159;
+const SELLY_OAK_LAT = 52.44190975688334;
+const SELLY_OAK_LONG = -1.9310344196856024;
+const LATITUDE_DELTA = 0.012998311140464125;
+const LONGITUDE_DELTA = 0.020888708531856537;
 
 let viewedWarnings: Map<string, Date>;
 

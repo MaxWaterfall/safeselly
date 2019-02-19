@@ -5,9 +5,7 @@ import ViewSingleWarning from "./ViewSingleWarning";
 
 export default class View extends Component {
     public render() {
-        return (
-            <ViewContainer/>
-        );
+        return <ViewContainer/>;
     }
 }
 
