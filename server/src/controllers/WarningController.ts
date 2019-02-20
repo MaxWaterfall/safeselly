@@ -53,7 +53,7 @@ router.get("/filter/:hours", (req: Request, res: Response) => {
 });
 
 /**
- * Returns all information for warning with {id}.
+ * Returns information for warning with {id}.
  * This includes specific warning information based on it's type.
  */
 router.get("/:id", (req: Request, res: Response) => {

@@ -22,18 +22,11 @@ CREATE TABLE Warning (
 	latitude DOUBLE NOT NULL,
 	longitude DOUBLE NOT NULL,
 	addedDateTime DATETIME NOT NULL,
+	peopleDescription TEXT,
+	warningDescription TEXT NOT NULL,
 	
 	PRIMARY KEY(rowNumber, warningId),
 	FOREIGN KEY(username) REFERENCES User(username)
-);
-
-CREATE Table GeneralWarning (
-	warningId VARCHAR(16) NOT NULL UNIQUE,
-	peopleDescription TEXT,
-	warningDescription TEXT NOT NULL,
-
-	PRIMARY KEY(warningId),
-	FOREIGN KEY(warningId) REFERENCES Warning(warningId)
 );
 
 CREATE Table Vote (

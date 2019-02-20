@@ -21,8 +21,6 @@ export type WarningType =
     "suspicious behaviour" | 
     "harassment";
 
-export type WarningInformationType = IGeneralWarning;
-
 /**
  * The information required to submit a warning.
  */
@@ -33,7 +31,7 @@ export interface ISubmissionWarning {
         long: number;
     };
     dateTime: string;
-    information: WarningInformationType;
+    information: IWarningInformation;
 }
 
 /**
@@ -54,16 +52,16 @@ export interface IReturnWarning {
  * The information that is given when the client requests information for a specific warning.
  */
 export interface ISpecificReturnWarning {
-    information: WarningInformationType;
+    information: IWarningInformation;
     votes: IVote;
     userVoted: boolean;
     userSubmitted: boolean;
 }
 
 /**
- * The information required for a general warning.
+ * The specific information about the warning.
  */
-export interface IGeneralWarning {
+export interface IWarningInformation {
     peopleDescription: string;
     warningDescription: string;
 }
@@ -74,7 +72,7 @@ export interface IGeneralWarning {
  * @param warning the warning to be validated.
  */
 export function validateWarning(warning: ISubmissionWarning) {
-    // Check IWarning members are correct types.
+    // Check ISubmissionWarning members are correct types.
     if (typeof warning.type !== "string") {
         throwIsNotValidError("type");
     }
@@ -99,14 +97,14 @@ export function validateWarning(warning: ISubmissionWarning) {
         throwIsNotValidError("type");
     }
 
-    validateGeneralWarning(warning.information);
+    validateWarningInformation(warning.information);
 }
 
 /**
- * Checks a general warning is valid.
+ * Checks a warning information is valid.
  * @param warning
  */
-function validateGeneralWarning(warning: IGeneralWarning) {
+function validateWarningInformation(warning: IWarningInformation) {
     // Check they are the correct types.
     if (typeof warning.peopleDescription !== "string") {
         throwIsNotValidError("peopleDescription");

@@ -29,7 +29,7 @@ export async function sendNotificationToAll(notification: INotification) {
 
     // Create the message.
     const message = {
-        topic: "all",
+        topic: "testing",
         android: {
             priority: "high",
             notification: {

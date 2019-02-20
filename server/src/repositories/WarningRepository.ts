@@ -1,10 +1,9 @@
 import {
-    IGeneralWarning,
     IReturnWarning,
     ISpecificReturnWarning,
     ISubmissionWarning,
     IVote,
-    WarningInformationType,
+    IWarningInformation,
     WarningType,
 } from "../../../shared/Warnings";
 import * as log from "../helper/Logger";
@@ -13,11 +12,7 @@ import { db } from "./../Server";
 
 const submitWarningSql = `
     INSERT INTO Warning
-    VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)
-`;
-const submitGeneralWarningSql = `
-    INSERT INTO GeneralWarning
-    VALUES (?, ?, ?)
+    VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `;
 const getAllWarningsSql = `
     SELECT warningId, warningType, warningDateTime, latitude, longitude
@@ -37,13 +32,9 @@ const downvoteWarningSql = `
         upvote = false,
         downvote = true
 `;
-const getWarningTypeSql = `
-    SELECT warningType FROM Warning
-    WHERE warningId = ?
-`;
-const getGeneralWarningSql = `
+const getSpecificWarningInformationSql = `
     SELECT peopleDescription, warningDescription
-    FROM GeneralWarning
+    FROM Warning
     WHERE warningId = ?
 `;
 const getAllWarningsFromSql = `
@@ -76,7 +67,7 @@ const didUserSubmitWarningSql = `
  */
 export async function submitWarning(
     username: string, warning: ISubmissionWarning, dateTime: string, warningId: string) {
-    // First add to the Warning table.
+    // Add to the Warning table.
     try {
         await db.query(submitWarningSql, [
             warningId,
@@ -86,39 +77,9 @@ export async function submitWarning(
             warning.location.lat,
             warning.location.long,
             dateTime,
+            warning.information.peopleDescription,
+            warning.information.warningDescription,
         ]);
-    } catch (err) {
-        log.databaseError(err);
-        throw new HttpRequestError(500, "Internal Server Error.");
-    }
-
-    // Now add to a specific warning table, depending on the warning type.
-    try {
-        if (warning.type === "general") {
-            await db.query(submitGeneralWarningSql, [
-                warningId,
-                warning.information.peopleDescription,
-                warning.information.warningDescription,
-            ]);
-        }
-    } catch (err) {
-        // TODO: Revert previous query.
-        log.databaseError(err);
-        throw new HttpRequestError(500, "Internal Server Error.");
-    }
-}
-
-/**
- * Returns a warnings type.
- * @param warningId
- */
-export async function getWarningType(warningId: string): Promise<WarningType | ""> {
-    try {
-        const result = await db.query(getWarningTypeSql, [warningId]) as any[];
-        if (result.length > 0) {
-            return result[0].warningType as WarningType;
-        }
-        return "";
     } catch (err) {
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error.");
@@ -131,17 +92,14 @@ export async function getWarningType(warningId: string): Promise<WarningType | "
  * @param warningType
  */
 export async function getWarningInformation(
-    warningId: string, warningType: WarningType): Promise<WarningInformationType> {
+    warningId: string): Promise<IWarningInformation | string> {
     try {
         // Get warning information.
-        if (warningType === "general") {
-            const result = await db.query(getGeneralWarningSql, warningId) as any[];
-            return result[0] as IGeneralWarning;
-        } else {
-            throw new Error("warningType was not valid.");
+        const result = await db.query(getSpecificWarningInformationSql, warningId) as any[];
+        if (result.length > 0) {
+            return result[0] as IWarningInformation;
         }
-
-        // Other warning types here.
+        return "";
     } catch (err) {
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error.");

@@ -2,16 +2,14 @@ import { isPointInCircle } from "geolib";
 import { HttpRequestError } from "../helper/HttpRequestError";
 import {
     DISTANCE_FROM_SELLY_OAK,
-    IGeneralWarning,
     IReturnWarning,
     ISpecificReturnWarning,
     ISubmissionWarning,
     IVote,
+    IWarningInformation,
     SELLY_OAK_LAT,
     SELLY_OAK_LONG,
     validateWarning,
-    WarningInformationType,
-    WarningType,
 } from "./../../../shared/Warnings";
 import * as log from "./../helper/Logger";
 import * as UserRepository from "./../repositories/UserRepository";
@@ -59,30 +57,20 @@ export async function getAllWarningsFrom(hours: string): Promise<IReturnWarning[
 
 /**
  * Returns information for warning with {id}.
- * This includes specific warning information based on it's type.
+ * This includes specific warning information that is relevant to the user.
  */
 export async function getWarning(username: string, warningId: string): Promise<ISpecificReturnWarning> {
     if (warningId === undefined) {
         throw new HttpRequestError(400, "No warning_id given.");
     }
 
-    // First get the type of the warning.
-    let warningType: WarningType;
+    // Get specific warning information.
+    let information: IWarningInformation | string;
     try {
-        const result = await WarningRepository.getWarningType(warningId);
-        if (result === "") {
-            throw new HttpRequestError(400, "warning_id does not exist.");
+        information = await WarningRepository.getWarningInformation(warningId);
+        if (information === "") {
+            throw new HttpRequestError(400, "Warning does not exist.");
         }
-
-        warningType = result;
-    } catch (err) {
-        throw err;
-    }
-
-    // Get specific warning information based on type.
-    let information: WarningInformationType;
-    try {
-        information = await WarningRepository.getWarningInformation(warningId, warningType);
     } catch (err) {
         throw err;
     }
@@ -112,7 +100,7 @@ export async function getWarning(username: string, warningId: string): Promise<I
     }
 
     const returnWarning: ISpecificReturnWarning = {
-        information,
+        information: information as IWarningInformation,
         votes,
         userVoted,
         userSubmitted,
