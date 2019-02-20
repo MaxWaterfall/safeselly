@@ -9,8 +9,19 @@ export interface IVote {
     upvotes: number,
     downvotes: number,
 }
-export type WarningType = "general";
-export type WarningInformationType = IGeneralWarning
+
+export type WarningType = 
+    "general" | 
+    "vandalism" | 
+    "threatening behaviour" | 
+    "assault" | 
+    "burglary" | 
+    "theft" | 
+    "mugging" | 
+    "suspicious behaviour" | 
+    "harassment";
+
+export type WarningInformationType = IGeneralWarning;
 
 /**
  * The information required to submit a warning.
@@ -27,6 +38,7 @@ export interface ISubmissionWarning {
 
 /**
  * The information that is given when the client requests a set of warnings.
+ * This information is also given when the user is notified of a warning.
  */
 export interface IReturnWarning {
     warningId: string;
@@ -83,12 +95,11 @@ export function validateWarning(warning: ISubmissionWarning) {
         throwIsNotValidError("warningDateTime");
     }
 
-    // Check information member.
-    if (warning.type === "general") {
-        validateGeneralWarning(warning.information);
-    } else {
+    if (getPriorityForWarningType(warning.type) === -1) {
         throwIsNotValidError("type");
     }
+
+    validateGeneralWarning(warning.information);
 }
 
 /**
@@ -122,8 +133,30 @@ function validateGeneralWarning(warning: IGeneralWarning) {
 }
 
 /**
+ * Returns the priority of the given warning type.
+ * 1 = High, 2 = Normal, 3 = Low
+ * @param type
+ */
+export function getPriorityForWarningType(type: WarningType) {
+    switch (type) {
+        case "general": return 2;
+        case "vandalism": return 3;
+        case "threatening behaviour": return 1;
+        case "assault": return 1;
+        case "burglary": return 2;
+        case "theft": return 3;
+        case "mugging": return 1;
+        case "suspicious behaviour": return 3;
+        case "harassment": return 2;
+        default: return -1;
+    }
+}
+
+/**
  * Throws an error which shows the user what part of the warning is invalid.
  */
 function throwIsNotValidError(name: string) {
     throw new Error(`'${name}' is not valid.`); 
 }
+
+
