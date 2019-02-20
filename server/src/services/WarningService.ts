@@ -131,7 +131,7 @@ export async function submitWarning(username: string, warning: ISubmissionWarnin
     try {
         validateWarning(warning);
     } catch (err) {
-        throw new HttpRequestError(400, err);
+        throw new HttpRequestError(400, err.message);
     }
 
     // Check location is within bounds.

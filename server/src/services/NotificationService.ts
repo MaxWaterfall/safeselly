@@ -1,14 +1,12 @@
 import axios from "axios";
-// @ts-ignore No type definitions exist for this library.
-import datetimeDifference from "datetime-difference";
 import * as admin from "firebase-admin";
-import { IReturnWarning, ISubmissionWarning } from "../../../shared/Warnings";
+import { getPriorityForWarningType, IReturnWarning, ISubmissionWarning } from "../../../shared/Warnings";
+import { HttpRequestError } from "../helper/HttpRequestError";
+import { INotification, NotificationType, Priority } from "../helper/Notification";
+import * as NotificationQueue from "../helper/NotificationQueue";
 import * as log from "./../helper/Logger";
 import { config } from "./../Server";
 import * as serviceAccount from "./../serviceAccountKey.json";
-
-// How old a warning can be before it will no longer be pushed as a notification.
-const MAXIMUM_NOTIFICATION_TIME = 30;
 
 /**
  * Initialise the Firebase Admin SDK.
@@ -18,55 +16,69 @@ admin.initializeApp({
 });
 
 /**
- * Send a warning notification to all app users.
+ * Send a notification to all app users.
  * @param warning
- * @param title
- * @param body
  */
-function sendWarningToAll(warning: IReturnWarning, title: string, body: string) {
+export async function sendNotificationToAll(notification: INotification) {
+    let data;
+    if (notification.type === NotificationType.USER_SUBMITTED) {
+        data = {warning: JSON.stringify(notification.warning)};
+    } else {
+        // TODO: Add payload for SERVER_GENERATED notifications.
+    }
+
+    // Create the message.
     const message = {
         topic: "all",
         android: {
             priority: "high",
             notification: {
-                title,
-                body,
+                title: notification.title,
+                body: notification.body,
                 sound: "default",
             },
         },
-        data: {
-            warning: JSON.stringify(warning),
-        },
+        data,
     };
 
-    admin.messaging().send(message as any)
-        .catch((err) => {
-            log.error(err);
-        });
+    // Send the message.
+    try {
+        // await admin.messaging().send(message as any);
+        log.info("Sent notification.");
+    } catch (err) {
+        log.error(err);
+        throw err;
+    }
 }
 
 /**
- * Takes a warning and decides whether to notify users of it or not.
- * In the future this will take warning type into account.
+ * Takes a warning submitted by a user and converts it into a notification, then adds it to the NotificationQueue.
  * @param warningId
  * @param warning
  */
 export async function newWarningSubmission(warningId: string, warning: ISubmissionWarning) {
-    // Check if warning date time is within valid time.
-    // We only want to send a notification if the warning is new.
-    if (isDateTimeWithinMinutes(new Date(warning.dateTime), MAXIMUM_NOTIFICATION_TIME)) {
-        // Notify users of this warning.
-        const title = warning.type.substring(0, 1).toUpperCase() + warning.type.substring(1) + " Warning";
-        const streetName = await getStreetName(warning.location.lat, warning.location.long);
-        const body = `There has been an incident on or near ${streetName}.`;
-        const date = new Date(Date.parse(warning.dateTime)).toJSON();
-        sendWarningToAll({
+    // Build the notification for this warning.
+    const priority = getPriorityForWarningType(warning.type);
+    const title = warning.type.substring(0, 1).toUpperCase() + warning.type.substring(1) + " Warning";
+    const streetName = await getStreetName(warning.location.lat, warning.location.long);
+    const body = `There has been an incident on or near ${streetName}.`;
+    const date = new Date(Date.parse(warning.dateTime));
+
+    const notification: INotification = {
+        priority,
+        title,
+        body,
+        type: NotificationType.USER_SUBMITTED,
+        warning: {
             warningId,
             type: warning.type,
             location: warning.location,
-            dateTime: date,
-        }, title, body);
-    }
+            dateTime: date.toJSON(),
+        },
+        dateTimeAdded: new Date(),
+    };
+
+    NotificationQueue.addNotification(notification);
 }
 
 /**
@@ -109,36 +121,4 @@ async function getStreetName(lat: number, long: number) {
     }
 
     return "Selly Oak";
-}
-
-/**
- * Checks if a date is within {minutes} minutes from now.
- * @param date
- * @param minutes
- */
-function isDateTimeWithinMinutes(date: Date, minutes: number): boolean {
-    const now = new Date();
-    const diff = datetimeDifference(date, now);
-
-    if (diff.years > 0) {
-        return false;
-    }
-
-    if (diff.months > 0) {
-        return false;
-    }
-
-    if (diff.days > 0) {
-        return false;
-    }
-
-    if (diff.hours > 0) {
-        return false;
-    }
-
-    if (diff.minutes > minutes) {
-        return false;
-    }
-
-    return true;
 }

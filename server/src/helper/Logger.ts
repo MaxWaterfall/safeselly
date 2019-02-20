@@ -34,7 +34,7 @@ const logger = createLogger({
             ),
         }),
         new transports.Console({
-            level: env === "development" ? "info" : "error",
+            level: "info",
             format: format.combine(
                 format.colorize(),
                 format.timestamp({
