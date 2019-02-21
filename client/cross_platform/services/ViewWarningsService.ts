@@ -28,7 +28,9 @@ export const initialRegion = {
  */
 export async function getWarningsFrom(hours: number): Promise<IReturnWarning[]> {
     try {
-        return await makeAuthenticatedRequest("GET", `/warning/filter/${hours}`, {});
+        const warnings = await makeAuthenticatedRequest("GET", `/warning/filter/${hours}`, {});
+        console.log(JSON.stringify(warnings));
+        return warnings;
     } catch (err) {
         throw err;
     }
@@ -50,15 +52,11 @@ export async function getWarningsAfterId(warningId: string): Promise<IReturnWarn
  * @param warningId
  */
 export async function getWarningInformation(
-    warningId: string, warningType: WarningType): Promise<ISpecificReturnWarning> {
+    warningId: string): Promise<ISpecificReturnWarning> {
 
     try {
-        let result;
-        if (warningType === "general") {
-            result = await makeAuthenticatedRequest("GET", `/warning/${warningId}`, {});
-            viewWarning(warningId);
-        }
-
+        const result = await makeAuthenticatedRequest("GET", `/warning/${warningId}`, {});
+        viewWarning(warningId);
         return result;
     } catch (err) {
         throw err;

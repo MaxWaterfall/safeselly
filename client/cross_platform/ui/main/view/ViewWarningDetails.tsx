@@ -1,13 +1,13 @@
 import { Text, View } from "native-base";
 import React from "react";
-import { IGeneralWarning } from "../../../../../shared/Warnings";
+import { IWarningInformation } from "../../../../../shared/Warnings";
 import Styles from "../../general/Styles";
 
 interface IProps {
-    info: IGeneralWarning;
+    info: IWarningInformation;
 }
 
-export const ViewGeneralWarning = (props: IProps) => {
+export const ViewWarningDetails = (props: IProps) => {
     const renderPeopleDescription = () => {
         if (props.info.peopleDescription !== "") {
             return (

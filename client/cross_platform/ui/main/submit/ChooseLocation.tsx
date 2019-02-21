@@ -30,7 +30,7 @@ export default class ChooseLocation extends Component<any, IState> {
         return (
             <View style={[{flex: 1, flexDirection: "column"}, Styles.mt10]}>
                 <H3 style={{...Styles.centreText as any, ...Styles.mbt10}}>
-                    Where is the warning located?
+                    Where did the incident happen?
                 </H3>
                 <Text style={{...Styles.centreText as any, ...Styles.mb10}}>
                     Choose a location by tapping the map.
@@ -68,9 +68,8 @@ export default class ChooseLocation extends Component<any, IState> {
             return;
         }
 
-        this.props.navigation.push("EnterInformation", {
+        this.props.navigation.push("ChooseWarningType", {
             WarningLocation: this.state.warningLocation,
-            WarningType: "general", // Will be changed to be a specific type when more come out.
         });
     }
 

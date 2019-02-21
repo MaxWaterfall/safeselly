@@ -6,11 +6,11 @@ import MapView, { LatLng, Marker, PROVIDER_GOOGLE, Region } from "react-native-m
 import { getWarningInformation, voteWarning } from "../../../services/ViewWarningsService";
 import { FailedToConnectScreen } from "../../general/FailedToConnectScreen";
 import { LoadingScreen } from "../../general/LoadingScreen";
-import { IGeneralWarning, IReturnWarning, ISpecificReturnWarning } from "./../../../../../shared/Warnings";
+import { IReturnWarning, ISpecificReturnWarning, IWarningInformation } from "./../../../../../shared/Warnings";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
-import { ViewGeneralWarning } from "./ViewGeneralWarning";
 import { ViewSingleWarningHeader } from "./ViewSingleWarningHeader";
+import { ViewWarningDetails } from "./ViewWarningDetails";
 
 interface IState {
     loading: boolean;
@@ -85,7 +85,9 @@ export default class ViewSingleWarning extends Component<any, IState> {
                         <Text style={[Styles.centreText as any, Styles.mb10]}>
                             This incident happened {this.timeFromWarning()} ago on {this.prettyDate()}.
                         </Text>
-                        {this.renderWarningInformation()}
+                        <ViewWarningDetails
+                            info={this.state.specific!.information as IWarningInformation}
+                        />
                         {this.renderVoteButtons()}
                     </Content>
                 </Container>
@@ -151,12 +153,13 @@ export default class ViewSingleWarning extends Component<any, IState> {
      * Gets the information for this specific warning from the server.
      */
     private getWarningInformationInitial = () => {
-        getWarningInformation(this.state.warning.warningId, this.state.warning.type)
+        getWarningInformation(this.state.warning.warningId)
             .then((value) => {
                 this.setState({
                     loading: false,
                     specific: value,
                 });
+                console.log(value);
             })
             .catch((err) => {
                 // Request failed.
@@ -170,17 +173,6 @@ export default class ViewSingleWarning extends Component<any, IState> {
     private getWarningInformation = () => {
         this.setState({loading: true});
         this.getWarningInformationInitial();
-    }
-
-    /**
-     * Renders the specific information of the warning.
-     */
-    private renderWarningInformation = () => {
-        if (this.state.warning.type === "general") {
-            return <ViewGeneralWarning info={this.state.specific!.information as IGeneralWarning}/>;
-        }
-
-        return <Text>Error</Text>;
     }
 
     /**
