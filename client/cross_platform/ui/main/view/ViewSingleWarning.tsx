@@ -9,6 +9,7 @@ import { LoadingScreen } from "../../general/LoadingScreen";
 import { IReturnWarning, ISpecificReturnWarning, IWarningInformation } from "./../../../../../shared/Warnings";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
+import ViewAllWarnings from "./ViewAllWarnings";
 import { ViewSingleWarningHeader } from "./ViewSingleWarningHeader";
 import { ViewWarningDetails } from "./ViewWarningDetails";
 
@@ -72,7 +73,10 @@ export default class ViewSingleWarning extends Component<any, IState> {
                         region={this.state.region}
                         onRegionChangeComplete={this.onRegionChangeComplete}
                     >
-                        <Marker coordinate={this.state.markerLatLng as LatLng}/>
+                        <Marker
+                            coordinate={this.state.markerLatLng as LatLng}
+                            pinColor={ViewAllWarnings.chooseMarkerColour(this.state.warning)}
+                        />
                     </MapView>
                 </Container>
                 <Container>
@@ -159,7 +163,6 @@ export default class ViewSingleWarning extends Component<any, IState> {
                     loading: false,
                     specific: value,
                 });
-                console.log(value);
             })
             .catch((err) => {
                 // Request failed.

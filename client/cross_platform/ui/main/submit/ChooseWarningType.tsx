@@ -1,5 +1,5 @@
 import {
-    Accordion, Button, Container, Content, Text, View, H3, Item,
+    Accordion, Button, Container, Content, H3, Item, Text, View,
 } from "native-base";
 import React, { Component } from "react";
 import { WarningType } from "../../../../../shared/Warnings";
@@ -79,7 +79,6 @@ export default class ChooseWarningType extends Component<any> {
     }
 
     private renderContent = (item: any) => {
-        const title = item.title as string;
         return (
             <View>
                 <Content padder>

@@ -11,7 +11,7 @@ import {
 } from "../../../services/ViewWarningsService";
 import { FailedToConnectScreen } from "../../general/FailedToConnectScreen";
 import { LoadingScreen } from "../../general/LoadingScreen";
-import { IReturnWarning } from "./../../../../../shared/Warnings";
+import { IReturnWarning, Priority } from "./../../../../../shared/Warnings";
 import * as NotificationService from "./../../../services/NotificationService";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
@@ -45,6 +45,25 @@ export default class ViewAllWarnings extends Component<any, IState> {
             header: <HeaderBar/>,
         };
     }
+
+    /**
+     * Selects the markers colour based on whether the warning has been viewed or not.
+     */
+    public static chooseMarkerColour = (warning: IReturnWarning) => {
+       if (warning.priority === Priority.HIGH) {
+           return "red";
+       }
+
+       if (warning.priority === Priority.NORMAL) {
+           return "orange";
+       }
+
+       if (warning.priority === Priority.LOW) {
+           return "yellow";
+       }
+
+       return "white";
+   }
 
     public constructor(props: any) {
         super(props);
@@ -116,28 +135,32 @@ export default class ViewAllWarnings extends Component<any, IState> {
     private renderMarkers = () => {
         return (
             this.state.warnings!.map((warning: IReturnWarning) => {
+                let key = warning.warningId;
                 if (warning.warningId === this.state.lastViewedWarningId) {
-                    // Update the key so the colour updates.
-                    return (
-                        <Marker
-                            key={`${warning.warningId}-viewed`}
-                            coordinate={{latitude: warning.location.lat, longitude: warning.location.long}}
-                            onPress={() => this.pressMarker(warning)}
-                            pinColor={this.chooseMarkerColour(warning.warningId)}
-                        />
-                    );
+                    // Update the key so the opacity updates.
+                    key += "-viewed";
                 }
 
                 return (
                     <Marker
-                        key={warning.warningId}
+                        key={key}
                         coordinate={{latitude: warning.location.lat, longitude: warning.location.long}}
                         onPress={() => this.pressMarker(warning)}
-                        pinColor={this.chooseMarkerColour(warning.warningId)}
+                        pinColor={ViewAllWarnings.chooseMarkerColour(warning)}
+                        opacity={this.chooseMarkerOpacity(warning)}
                     />
                 );
             })
         );
+    }
+
+    private chooseMarkerOpacity = (warning: IReturnWarning) => {
+        if (getViewedWarnings().has(warning.warningId) || this.state.lastViewedWarningId === warning.warningId) {
+            // Warning has been viewed.
+            return 0.5;
+        }
+
+        return 1;
     }
 
     /**
@@ -313,18 +336,6 @@ export default class ViewAllWarnings extends Component<any, IState> {
                 }
             },
         );
-    }
-
-    /**
-     * Selects the markers colour based on whether the warning has been viewed or not.
-     */
-    private chooseMarkerColour = (warningId: string) => {
-        if (getViewedWarnings().has(warningId) || this.state.lastViewedWarningId === warningId) {
-            // Warning has been viewed.
-            return "orange";
-        }
-
-        return "red";
     }
 
     /**
