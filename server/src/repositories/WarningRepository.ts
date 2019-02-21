@@ -1,10 +1,9 @@
 import {
+    getPriorityForWarningType,
     IReturnWarning,
-    ISpecificReturnWarning,
     ISubmissionWarning,
     IVote,
     IWarningInformation,
-    WarningType,
 } from "../../../shared/Warnings";
 import * as log from "../helper/Logger";
 import { HttpRequestError } from "./../helper/HttpRequestError";
@@ -116,6 +115,7 @@ export async function getAllWarnings(): Promise<IReturnWarning[]> {
             const returnWarning: IReturnWarning = {
                 warningId: warning.warningId,
                 type: warning.warningType,
+                priority: getPriorityForWarningType(warning.type),
                 location: {
                     lat: warning.latitude,
                     long: warning.longitude,
@@ -141,6 +141,7 @@ export async function getAllWarningsFrom(hours: number): Promise<IReturnWarning[
             const returnWarning: IReturnWarning = {
                 warningId: warning.warningId,
                 type: warning.warningType,
+                priority: getPriorityForWarningType(warning.type),
                 location: {
                     lat: warning.latitude,
                     long: warning.longitude,

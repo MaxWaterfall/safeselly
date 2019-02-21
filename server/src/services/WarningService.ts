@@ -99,14 +99,14 @@ export async function getWarning(username: string, warningId: string): Promise<I
         throw err;
     }
 
-    const returnWarning: ISpecificReturnWarning = {
+    const warning: ISpecificReturnWarning = {
         information: information as IWarningInformation,
         votes,
         userVoted,
         userSubmitted,
     };
 
-    return returnWarning;
+    return warning;
 }
 
 /**

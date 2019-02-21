@@ -41,6 +41,7 @@ export interface ISubmissionWarning {
 export interface IReturnWarning {
     warningId: string;
     type: WarningType;
+    priority: number;
     location: {
         lat: number;
         long: number;

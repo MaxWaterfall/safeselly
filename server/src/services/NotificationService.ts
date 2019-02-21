@@ -43,7 +43,7 @@ export async function sendNotificationToAll(notification: INotification) {
 
     // Send the message.
     try {
-        // await admin.messaging().send(message as any);
+        await admin.messaging().send(message as any);
         log.info("Sent notification.");
     } catch (err) {
         log.error(err);
@@ -72,6 +72,7 @@ export async function newWarningSubmission(warningId: string, warning: ISubmissi
         warning: {
             warningId,
             type: warning.type,
+            priority: getPriorityForWarningType(warning.type),
             location: warning.location,
             dateTime: date.toJSON(),
         },
