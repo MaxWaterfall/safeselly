@@ -3,7 +3,7 @@ import React, { Component } from "react";
 import { LatLng } from "react-native-maps";
 import { IWarningInformation, WarningType } from "../../../../../shared/Warnings";
 import { LoadingScreen } from "../../general/LoadingScreen";
-import { formatDate, sendWarning } from "./../../../services/SubmitWarningService";
+import { formatDate, sendWarning, validateDate } from "./../../../services/SubmitWarningService";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
 import DateTime from "./DateTime";
@@ -124,19 +124,47 @@ export default class EnterInformation extends Component<any, IState> {
 
     private updateTime = (time: any) => {
         const currentDate = this.state.warningDate as Date;
-        this.setState({
-            warningDate: new Date(
-                currentDate.getFullYear(),
-                currentDate.getMonth(),
-                currentDate.getDate(),
-                time.hours,
-                time.minutes,
-            ),
-        });
+        const newDate = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            currentDate.getDate(),
+            time.hours,
+            time.minutes,
+        );
+
+        if (!validateDate(newDate)) {
+            // Time is not valid.
+            const now = new Date();
+            this.setState({
+                warningDate: new Date(
+                    currentDate.getFullYear(),
+                    currentDate.getMonth(),
+                    currentDate.getDate(),
+                    now.getHours(),
+                    now.getMinutes(),
+                ),
+            }, () => {
+                Toast.show({
+                    text: "Time is in the future.",
+                    type: "danger",
+                });
+            });
+        } else {
+            this.setState({
+                warningDate: new Date(
+                    currentDate.getFullYear(),
+                    currentDate.getMonth(),
+                    currentDate.getDate(),
+                    time.hours,
+                    time.minutes,
+                ),
+            });
+        }
     }
 
     private updateDate = (date: any) => {
         const currentDate = this.state.warningDate as Date;
+
         this.setState({
             warningDate: new Date(
                 date.year,
