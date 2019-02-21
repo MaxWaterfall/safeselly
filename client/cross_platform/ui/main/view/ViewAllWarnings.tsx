@@ -1,5 +1,6 @@
 import { ActionSheet, Button, Icon, Text, Toast, View } from "native-base";
 import React, { Component } from "react";
+import { PermissionsAndroid } from "react-native";
 import firebase from "react-native-firebase";
 import { NotificationOpen } from "react-native-firebase/notifications";
 import MapView, {Marker, PROVIDER_GOOGLE, Region} from "react-native-maps";
@@ -13,6 +14,7 @@ import { FailedToConnectScreen } from "../../general/FailedToConnectScreen";
 import { LoadingScreen } from "../../general/LoadingScreen";
 import { IReturnWarning, Priority } from "./../../../../../shared/Warnings";
 import * as NotificationService from "./../../../services/NotificationService";
+import * as PermissionService from "./../../../services/PermissionService";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
 
@@ -37,6 +39,8 @@ interface IState {
     failed: boolean;
     filter: IFilter;
     lastViewedWarningId: string;
+    mapMarginBottom: number;
+    forceRefresh: number;
 }
 
 export default class ViewAllWarnings extends Component<any, IState> {
@@ -77,11 +81,32 @@ export default class ViewAllWarnings extends Component<any, IState> {
             },
             warnings: [],
             lastViewedWarningId: "",
+            mapMarginBottom: 1,
+            forceRefresh: 1,
         };
 
         this.loadInitialStateFromConstructor();
+    }
+
+    public componentWillMount() {
         NotificationService.addNotificationReceivedListener("ViewAllWarnings", this.receivedNotification);
         NotificationService.addNotificationOpenedListener("ViewAllWarnings", this.openedNotification);
+
+        PermissionService.hasPermission(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
+            .then((hasPermission) => {
+                if (!hasPermission) {
+                    PermissionService.requestLocationPermission()
+                        .then((gotPermission) => {
+                            // Need to reload the map so it loads with user location.
+                            if (gotPermission) {
+                                this.setState({
+                                    forceRefresh: this.state.forceRefresh + 1,
+                                    mapMarginBottom: 1,
+                                });
+                            }
+                        });
+                }
+            });
     }
 
     public componentWillUnmount() {
@@ -101,10 +126,15 @@ export default class ViewAllWarnings extends Component<any, IState> {
         return (
             <View style={{flex: 1 , flexDirection: "column"}}>
                 <MapView
-                    style={{flexGrow: 1}}
+                    key={this.state.forceRefresh}
+                    style={{flexGrow: 1, marginBottom: this.state.mapMarginBottom}}
+                    // Workaround for bug where user location button does not show.
+                    onMapReady={() => this.setState({mapMarginBottom: 0})}
                     provider={PROVIDER_GOOGLE}
                     region={this.state.region}
                     onRegionChangeComplete={this.onRegionChangeComplete}
+                    showsUserLocation={true}
+                    showsMyLocationButton={true}
                 >
                     {this.renderMarkers()}
                 </MapView>

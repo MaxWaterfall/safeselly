@@ -8,6 +8,7 @@ import Styles from "./../../general/Styles";
 interface IState {
     region: Region;
     warningLocation?: LatLng;
+    mapMarginBottom: number;
 }
 
 export default class ChooseLocation extends Component<any, IState> {
@@ -23,6 +24,7 @@ export default class ChooseLocation extends Component<any, IState> {
 
         this.state = {
             region: initialRegion,
+            mapMarginBottom: 1,
         };
     }
 
@@ -38,10 +40,13 @@ export default class ChooseLocation extends Component<any, IState> {
                 </Text>
                 <MapView
                     onPress={this.onMapPress}
-                    style={{flexGrow: 1}}
+                    style={{flexGrow: 1, marginBottom: this.state.mapMarginBottom}}
+                    onMapReady={() => this.setState({mapMarginBottom: 0})}
                     provider={PROVIDER_GOOGLE}
                     region={this.state.region}
                     onRegionChangeComplete={this.onRegionChangeComplete}
+                    showsMyLocationButton={true}
+                    showsUserLocation={true}
                 >
                     {this.renderMarker()}
                 </MapView>

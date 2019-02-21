@@ -29,7 +29,6 @@ export const initialRegion = {
 export async function getWarningsFrom(hours: number): Promise<IReturnWarning[]> {
     try {
         const warnings = await makeAuthenticatedRequest("GET", `/warning/filter/${hours}`, {});
-        console.log(JSON.stringify(warnings));
         return warnings;
     } catch (err) {
         throw err;

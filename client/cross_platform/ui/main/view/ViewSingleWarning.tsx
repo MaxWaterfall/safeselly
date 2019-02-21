@@ -20,6 +20,7 @@ interface IState {
     markerLatLng: LatLng;
     warning: IReturnWarning;
     specific?: ISpecificReturnWarning;
+    mapMarginBottom: number;
 }
 
 export default class ViewSingleWarning extends Component<any, IState> {
@@ -50,6 +51,7 @@ export default class ViewSingleWarning extends Component<any, IState> {
                 latitude: warning.location.lat,
                 longitude: warning.location.long,
             },
+            mapMarginBottom: 1,
         };
 
         this.getWarningInformationInitial();
@@ -66,11 +68,15 @@ export default class ViewSingleWarning extends Component<any, IState> {
 
         return (
             <Container>
-                <Container style={{...{flex: 1}}}>
+                <Container style={{flex: 1}}>
                     <MapView
-                        style={Styles.fillObject}
+                        style={[Styles.fillObject, {marginBottom: this.state.mapMarginBottom}]}
                         provider={PROVIDER_GOOGLE}
+                        // Workaround for bug where user location button does not show.
+                        onMapReady={() => this.setState({mapMarginBottom: 0})}
                         region={this.state.region}
+                        showsMyLocationButton={true}
+                        showsUserLocation={true}
                         onRegionChangeComplete={this.onRegionChangeComplete}
                     >
                         <Marker
