@@ -5,6 +5,15 @@ export const SELLY_OAK_LAT = 52.436720;
 export const SELLY_OAK_LONG = -1.939000;
 export const DISTANCE_FROM_SELLY_OAK = 5000; // 5km.
 
+/**
+ * How important the warning is.
+ */
+export enum Priority {
+    HIGH = 1,
+    NORMAL = 2,
+    LOW = 3,
+}
+
 export interface IVote {
     upvotes: number,
     downvotes: number,
@@ -138,16 +147,15 @@ function validateWarningInformation(warning: IWarningInformation) {
  */
 export function getPriorityForWarningType(type: WarningType) {
     switch (type) {
-        case "general": return 2;
-        case "vandalism": return 3;
-        case "threatening behaviour": return 1;
-        case "assault": return 1;
-        case "burglary": return 2;
-        case "theft": return 3;
-        case "mugging": return 1;
-        case "suspicious behaviour": return 3;
-        case "harassment": return 2;
-        default: return -1;
+        case "general": return Priority.NORMAL;
+        case "vandalism": return Priority.LOW;
+        case "threatening behaviour": return Priority.HIGH;
+        case "assault": return Priority.HIGH;
+        case "burglary": return Priority.NORMAL;
+        case "theft": return Priority.LOW;
+        case "mugging": return Priority.HIGH;
+        case "suspicious behaviour": return Priority.LOW;
+        case "harassment": return Priority.NORMAL;
     }
 }
 

@@ -1,8 +1,7 @@
 import axios from "axios";
 import * as admin from "firebase-admin";
-import { getPriorityForWarningType, IReturnWarning, ISubmissionWarning } from "../../../shared/Warnings";
-import { HttpRequestError } from "../helper/HttpRequestError";
-import { INotification, NotificationType, Priority } from "../helper/Notification";
+import { getPriorityForWarningType, ISubmissionWarning } from "../../../shared/Warnings";
+import { INotification, NotificationType } from "../helper/Notification";
 import * as NotificationQueue from "../helper/NotificationQueue";
 import * as log from "./../helper/Logger";
 import { config } from "./../Server";
@@ -72,7 +71,7 @@ export async function newWarningSubmission(warningId: string, warning: ISubmissi
         warning: {
             warningId,
             type: warning.type,
-            priority: getPriorityForWarningType(warning.type),
+            priority,
             location: warning.location,
             dateTime: date.toJSON(),
         },

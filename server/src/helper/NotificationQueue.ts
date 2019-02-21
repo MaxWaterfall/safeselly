@@ -2,10 +2,10 @@
 import datetimeDifference from "datetime-difference";
 import FastPriorityQueue from "fastpriorityqueue";
 import schedule from "node-schedule";
-import { getPriorityForWarningType } from "../../../shared/Warnings";
+import { getPriorityForWarningType, Priority } from "../../../shared/Warnings";
 import { sendNotificationToAll } from "../services/NotificationService";
 import * as log from "./Logger";
-import { INotification, NotificationType, Priority } from "./Notification";
+import { INotification, NotificationType } from "./Notification";
 
 /**
  * How old a warning can be before it will no longer be pushed as a notification instantly.

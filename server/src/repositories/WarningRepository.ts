@@ -112,10 +112,11 @@ export async function getAllWarnings(): Promise<IReturnWarning[]> {
     try {
         const result = await db.query(getAllWarningsSql, []) as any[];
         return result.map((warning) => {
+            const priority = getPriorityForWarningType(warning.warningType);
             const returnWarning: IReturnWarning = {
                 warningId: warning.warningId,
                 type: warning.warningType,
-                priority: getPriorityForWarningType(warning.type),
+                priority,
                 location: {
                     lat: warning.latitude,
                     long: warning.longitude,
@@ -138,10 +139,11 @@ export async function getAllWarningsFrom(hours: number): Promise<IReturnWarning[
     try {
         const result = await db.query(getAllWarningsFromSql, [hours]) as any[];
         return result.map((warning) => {
+            const priority = getPriorityForWarningType(warning.warningType) as number;
             const returnWarning: IReturnWarning = {
                 warningId: warning.warningId,
                 type: warning.warningType,
-                priority: getPriorityForWarningType(warning.type),
+                priority,
                 location: {
                     lat: warning.latitude,
                     long: warning.longitude,
