@@ -44,7 +44,7 @@ export async function sendNotificationToAll(notification: INotification) {
     try {
         await admin.messaging().send(message as any);
         if (notification.type === NotificationType.USER_SUBMITTED) {
-            log.info("Sent notification for user submitted warning. Type: " + notification.warning!.newType);
+            log.info("Sent notification for user-submitted-warning. Type: " + notification.warning!.newType);
         } else {
             log.info("Sent notification.");
         }

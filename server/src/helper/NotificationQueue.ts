@@ -117,12 +117,6 @@ async function sendWaitingNotification() {
 function notificationSent() {
     notificationsSentToday += 1;
     log.info("Notifications sent today: " + notificationsSentToday);
-
-    queue.forEach((value) => {
-        log.info(value.warning!.type);
-    });
-
-    log.info("Next notification: " + JSON.stringify(queue.peek()));
 }
 
 /**
