@@ -63,7 +63,7 @@ export async function setUp() {
  * This means it can receive notifications for these topics.
  */
 function setUpTopics() {
-    firebase.messaging().subscribeToTopic("all-prod");
+    firebase.messaging().subscribeToTopic("testing");
 }
 
 /**

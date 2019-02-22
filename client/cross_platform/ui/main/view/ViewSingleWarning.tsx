@@ -236,8 +236,22 @@ export default class ViewSingleWarning extends Component<any, IState> {
      * Formats the type so that the first letter is upper case.
      */
     private prettyType = () => {
-        const type = this.state.warning.type;
-        return (type.substr(0, 1).toUpperCase()) + type.substr(1);
+        // Using newType as type is for the old version.
+        let type = this.state.warning.newType as string;
+
+        // Uppercase first letter of first word.
+        type = type.substr(0, 1).toUpperCase() + type.substr(1);
+
+        const indexOfSecondWord = type.indexOf(" ") + 1;
+        if (indexOfSecondWord >= 0) {
+            // Uppercase first letter of second word.
+            type =
+                type.substring(0, indexOfSecondWord) +
+                type.substr(indexOfSecondWord, 1).toUpperCase() +
+                type.substr(indexOfSecondWord + 1);
+        }
+
+        return type;
     }
 
     /**
