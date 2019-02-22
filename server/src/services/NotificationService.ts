@@ -28,7 +28,7 @@ export async function sendNotificationToAll(notification: INotification) {
 
     // Create the message.
     const message = {
-        topic: "testing",
+        topic: process.env.NODE_ENV === "production" ? "all-prod" : "testing",
         android: {
             priority: "high",
             notification: {
