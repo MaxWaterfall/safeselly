@@ -6,7 +6,12 @@ import MapView, { LatLng, Marker, PROVIDER_GOOGLE, Region } from "react-native-m
 import { getWarningInformation, voteWarning } from "../../../services/ViewWarningsService";
 import { FailedToConnectScreen } from "../../general/FailedToConnectScreen";
 import { LoadingScreen } from "../../general/LoadingScreen";
-import { IReturnWarning, ISpecificReturnWarning, IWarningInformation } from "./../../../../../shared/Warnings";
+import {
+    IReturnWarning,
+    ISpecificReturnWarning,
+    IWarningInformation,
+    prettyType,
+} from "./../../../../../shared/Warnings";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
 import ViewAllWarnings from "./ViewAllWarnings";
@@ -90,7 +95,7 @@ export default class ViewSingleWarning extends Component<any, IState> {
                         <ViewSingleWarningHeader
                             upvotes={this.state.specific!.votes.upvotes}
                             downvotes={this.state.specific!.votes.downvotes}
-                            title={this.prettyType() + " Warning"}
+                            title={prettyType(this.state.warning.newType) + " Warning"}
                         />
                         <Text style={[Styles.centreText as any, Styles.mb10]}>
                             This incident happened {this.timeFromWarning()} ago on {this.prettyDate()}.
@@ -230,28 +235,6 @@ export default class ViewSingleWarning extends Component<any, IState> {
         }
 
         return `${diff.seconds} second(s)`;
-    }
-
-    /**
-     * Formats the type so that the first letter is upper case.
-     */
-    private prettyType = () => {
-        // Using newType as type is for the old version.
-        let type = this.state.warning.newType as string;
-
-        // Uppercase first letter of first word.
-        type = type.substr(0, 1).toUpperCase() + type.substr(1);
-
-        const indexOfSecondWord = type.indexOf(" ") + 1;
-        if (indexOfSecondWord >= 0) {
-            // Uppercase first letter of second word.
-            type =
-                type.substring(0, indexOfSecondWord) +
-                type.substr(indexOfSecondWord, 1).toUpperCase() +
-                type.substr(indexOfSecondWord + 1);
-        }
-
-        return type;
     }
 
     /**

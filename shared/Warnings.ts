@@ -168,4 +168,23 @@ function throwIsNotValidError(name: string) {
     throw new Error(`'${name}' is not valid.`); 
 }
 
+/**
+ * Formats the type so that the first letter is upper case.
+ */
+export function prettyType(type: string)  {
+    // Uppercase first letter of first word.
+    type = type.substr(0, 1).toUpperCase() + type.substr(1);
+
+    const indexOfSecondWord = type.indexOf(" ") + 1;
+    if (indexOfSecondWord >= 0) {
+        // Uppercase first letter of second word.
+        type =
+            type.substring(0, indexOfSecondWord) +
+            type.substr(indexOfSecondWord, 1).toUpperCase() +
+            type.substr(indexOfSecondWord + 1);
+    }
+
+    return type;
+}
+
 
