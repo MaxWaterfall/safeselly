@@ -218,7 +218,7 @@ async function shouldBanUser(warningId: string): Promise<boolean> {
 /**
  *  Returns the current date and time, correctly formatted for the database type DATETIME.
  */
-function getDate(): string {
+export function getDate(): string {
     // Get current time and date. Need to match format 'YYYY-MM-DD HH:MM:SS' for database.
     const now = new Date();
     let month = (now.getMonth() + 1).toString();

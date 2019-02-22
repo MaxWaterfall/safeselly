@@ -47,6 +47,11 @@ const banUserSql = `
         WHERE warningId = ?
     )
 `;
+const updateLastRequestSql = `
+    UPDATE User
+    SET lastRequest = ?
+    WHERE username = ?
+`;
 
 /**
  * Adds a user into the database.
@@ -181,6 +186,20 @@ export async function isUserBanned(username: string) {
 export async function banUser(warningId: string) {
     try {
         await db.query(banUserSql, [warningId]);
+    } catch (err) {
+        log.databaseError(err);
+        throw new HttpRequestError(500, "Internal Server Error");
+    }
+}
+
+/**
+ * Updates the users last request with the given date.
+ * @param username
+ * @param date
+ */
+export async function updateLastRequest(username: string, date: string) {
+    try {
+        await db.query(updateLastRequestSql, [date, username]);
     } catch (err) {
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error");
