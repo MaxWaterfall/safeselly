@@ -1,6 +1,6 @@
 import axios from "axios";
 import * as admin from "firebase-admin";
-import { getPriorityForWarningType, ISubmissionWarning } from "../../../shared/Warnings";
+import { getPriorityForWarningType, ISubmissionWarning, prettyType } from "../../../shared/Warnings";
 import { INotification, NotificationType } from "../helper/Notification";
 import * as NotificationQueue from "../helper/NotificationQueue";
 import * as log from "./../helper/Logger";
@@ -43,7 +43,12 @@ export async function sendNotificationToAll(notification: INotification) {
     // Send the message.
     try {
         await admin.messaging().send(message as any);
-        log.info("Sent notification.");
+        if (notification.type === NotificationType.USER_SUBMITTED) {
+            log.info("Sent notification for user submitted warning. Type: " + notification.warning!.newType);
+        } else {
+            log.info("Sent notification.");
+        }
+
     } catch (err) {
         log.error(err);
         throw err;
@@ -58,7 +63,7 @@ export async function sendNotificationToAll(notification: INotification) {
 export async function newWarningSubmission(warningId: string, warning: ISubmissionWarning) {
     // Build the notification for this warning.
     const priority = getPriorityForWarningType(warning.type);
-    const title = warning.type.substring(0, 1).toUpperCase() + warning.type.substring(1) + " Warning";
+    const title = prettyType(warning.type) + " Warning";
     const streetName = await getStreetName(warning.location.lat, warning.location.long);
     const body = `There has been an incident on or near ${streetName}.`;
     const date = new Date(Date.parse(warning.dateTime));

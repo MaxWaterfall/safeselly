@@ -65,7 +65,7 @@ function setUpSchedules() {
     // We want to run the queue jobs every 2 hours between 8AM and 8PM.
     schedule.scheduleJob("queueJob", "0 8-20/2 * * *", queueJobs);
     // We want to reset notifications sent per day at 12pm every day.
-    schedule.scheduleJob("resetNotificationsSent", "* 12 * * *", () => {
+    schedule.scheduleJob("resetNotificationsSent", "0 12 * * *", () => {
         notificationsSentToday = 0;
         log.info("Reset notifications sent today.");
     });
