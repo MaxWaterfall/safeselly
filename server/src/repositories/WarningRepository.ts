@@ -115,7 +115,9 @@ export async function getAllWarnings(): Promise<IReturnWarning[]> {
             const priority = getPriorityForWarningType(warning.warningType);
             const returnWarning: IReturnWarning = {
                 warningId: warning.warningId,
-                type: warning.warningType,
+                // For backwards compatibility.
+                type: "general",
+                newType: warning.warningType,
                 priority,
                 location: {
                     lat: warning.latitude,
@@ -142,7 +144,9 @@ export async function getAllWarningsFrom(hours: number): Promise<IReturnWarning[
             const priority = getPriorityForWarningType(warning.warningType) as number;
             const returnWarning: IReturnWarning = {
                 warningId: warning.warningId,
-                type: warning.warningType,
+                // For backwards compatibility.
+                type: "general",
+                newType: warning.warningType,
                 priority,
                 location: {
                     lat: warning.latitude,

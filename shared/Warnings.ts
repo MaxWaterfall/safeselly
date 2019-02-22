@@ -49,7 +49,9 @@ export interface ISubmissionWarning {
  */
 export interface IReturnWarning {
     warningId: string;
-    type: WarningType;
+    // Type is needed for backwards compatibility.
+    type: "general";
+    newType: WarningType;
     priority: number;
     location: {
         lat: number;

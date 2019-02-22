@@ -9,6 +9,7 @@ CREATE TABLE User (
 	fcmToken VARCHAR(256),
 	verified boolean,
 	banned boolean,
+	lastRequest DATETIME,
 
     PRIMARY KEY (username)
 );

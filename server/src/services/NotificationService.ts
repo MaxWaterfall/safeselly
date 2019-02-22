@@ -70,7 +70,9 @@ export async function newWarningSubmission(warningId: string, warning: ISubmissi
         type: NotificationType.USER_SUBMITTED,
         warning: {
             warningId,
-            type: warning.type,
+            // For backwards compatibility.
+            type: "general",
+            newType: warning.type,
             priority,
             location: warning.location,
             dateTime: date.toJSON(),
