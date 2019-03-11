@@ -1,7 +1,8 @@
 // @ts-ignore No type definitions exist for this library.
 import datetimeDifference from "datetime-difference";
 import { isPointInCircle } from "geolib";
-import { ISubmissionWarning, Location } from "../../../shared/Warnings";
+import { IReturnWarning, Location } from "../../../shared/Warnings";
+import * as log from "./../helper/Logger";
 import IUserInformation from "./UserInformation";
 
 export default class Warning {
@@ -25,13 +26,13 @@ export default class Warning {
     /**
      * The submitted warning.
      */
-    protected warning: ISubmissionWarning;
+    protected warning: IReturnWarning;
     /**
      * The information of the user for who we are working out the warning relevance.
      */
     protected userInfo: IUserInformation;
 
-    public constructor(warning: ISubmissionWarning, userInfo: IUserInformation) {
+    public constructor(warning: IReturnWarning, userInfo: IUserInformation) {
         this.warning = warning;
         this.userInfo = userInfo;
     }
@@ -51,17 +52,19 @@ export default class Warning {
      */
     protected locationCheck() {
         // Check if this warning was near the users' last known location.
-        if (this.isLocationWithinLowerDistance(this.userInfo.lastKnownLocation)) {
+        if (this.userInfo.lastKnownLocation !== undefined &&
+            this.isLocationWithinLowerDistance(this.userInfo.lastKnownLocation as Location)) {
             return;
         }
 
         // Check if this warning was near the users' home location.
-        if (this.isLocationWithinLowerDistance(this.userInfo.homeLocation)) {
+        if (this.userInfo.homeLocation !== undefined &&
+            this.isLocationWithinLowerDistance(this.userInfo.homeLocation as Location)) {
             return;
         }
 
         // Check if this warning was near the users' frequently visited locations.
-        for (const location of this.userInfo.frequentLocations) {
+        for (const location of this.userInfo.frequentLocations!) {
             if (this.isLocationWithinLowerDistance(location)) {
                 // TODO: may apply wrong relevance.
                 return;
@@ -69,15 +72,17 @@ export default class Warning {
         }
 
         // Now do the same again for the upper locations.
-        if (this.isLocationWithinUpperDistance(this.userInfo.lastKnownLocation)) {
+        if (this.userInfo.lastKnownLocation !== undefined &&
+            this.isLocationWithinUpperDistance(this.userInfo.lastKnownLocation as Location)) {
             return;
         }
 
-        if (this.isLocationWithinUpperDistance(this.userInfo.homeLocation)) {
+        if (this.userInfo.homeLocation !== undefined &&
+            this.isLocationWithinUpperDistance(this.userInfo.homeLocation as Location)) {
             return;
         }
 
-        for (const location of this.userInfo.frequentLocations) {
+        for (const location of this.userInfo.frequentLocations!) {
             if (this.isLocationWithinUpperDistance(location)) {
                 return;
             }

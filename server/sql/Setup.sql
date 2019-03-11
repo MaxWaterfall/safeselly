@@ -19,6 +19,8 @@ CREATE TABLE UserInformation (
 	gender VARCHAR(10),
 	homeLatitude DOUBLE,
 	homeLongitude DOUBLE,
+	currentLatitude DOUBLE,
+	currentLongitude DOUBLE,
 	ownsBicycle boolean,
 	ownsCar boolean,
 	onwsLaptop boolean,

@@ -2,6 +2,7 @@ import {Request, Response, Router} from "express";
 import { ISubmissionWarning } from "../../../shared/Warnings";
 import {HttpRequestError} from "./../helper/HttpRequestError";
 import * as WarningService from "./../services/WarningService";
+import * as log from "./../helper/Logger";
 
 // Assign our router to the express router instance.
 const router: Router = Router();
@@ -40,7 +41,7 @@ router.get("/", (req: Request, res: Response) => {
  * Returns all warnings that have a WarningDateTime within the last x hours.
  */
 router.get("/filter/:hours", (req: Request, res: Response) => {
-    WarningService.getAllWarningsFrom(req.params.hours)
+    WarningService.getWarningsFrom(req.params.hours)
         .then((value) => {
             res.status(200);
             res.send(value);
@@ -52,8 +53,25 @@ router.get("/filter/:hours", (req: Request, res: Response) => {
 });
 
 /**
+ * Returns all warnings that are relevant to the user making the request.
+ * Can still be filtered using hours, but recommend to use 62 (3 days).
+ */
+router.get("/filter/:hours/relevant", (req: Request, res: Response) => {
+    WarningService.getRelevantWarningsFrom(req.get("username") as string, req.params.hours)
+        .then((value) => {
+            res.status(200);
+            res.send(value);
+        })
+        .catch((err: HttpRequestError) => {
+            log.error(err.message);
+            res.status(err.status);
+            res.send(err.message);
+        });
+});
+
+/**
  * Returns information for warning with {id}.
- * This includes specific warning information based on it's type.
+ * This includes specific information only relevant to the user who made the request.
  */
 router.get("/:id", (req: Request, res: Response) => {
     WarningService.getWarning(req.get("username") as string, req.params.id)

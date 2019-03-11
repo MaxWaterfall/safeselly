@@ -1,5 +1,7 @@
 import { isPointInCircle } from "geolib";
 import { HttpRequestError } from "../helper/HttpRequestError";
+import IUserInformation from "../warnings/UserInformation";
+import Warning from "../warnings/Warning";
 import {
     DISTANCE_FROM_SELLY_OAK,
     IReturnWarning,
@@ -20,6 +22,7 @@ const NUMBER_OF_IDS = 1000000000000; // 100 billion.
 const MAX_HOUR_FILTER = 24 * 7; // 1 week.
 const MIN_TOTAL_VOTES_FOR_BAN = 10; // At least 10 votes required before user can be banned.
 const BAN_PERCENTAGE = 51; // If 51% of votes are downvotes, the user is banned.
+const MINIMUM_RELEVANCE = 3; // The minimum relevance score required for a warning to be considered relevant.
 
 /**
  * Returns all warnings in the database.
@@ -36,7 +39,7 @@ export async function getAllWarnings(): Promise<IReturnWarning[]> {
  * Throws error if validation fails.
  * @param hours
  */
-export async function getAllWarningsFrom(hours: string): Promise<IReturnWarning[]> {
+export async function getWarningsFrom(hours: string): Promise<IReturnWarning[]> {
     // Check it's a number.
     const hoursNumber = Number(hours);
     if (isNaN(hoursNumber)) {
@@ -57,7 +60,7 @@ export async function getAllWarningsFrom(hours: string): Promise<IReturnWarning[
 
 /**
  * Returns information for warning with {id}.
- * This includes specific warning information that is relevant to the user.
+ * This includes specific warning information that is relevant to the user who made the request.
  */
 export async function getWarning(username: string, warningId: string): Promise<ISpecificReturnWarning> {
     if (warningId === undefined) {
@@ -107,6 +110,41 @@ export async function getWarning(username: string, warningId: string): Promise<I
     };
 
     return warning;
+}
+
+export async function getRelevantWarningsFrom(username: string, hours: string) {
+    // Check hours is a number.
+    const hoursNumber = Number(hours);
+    if (isNaN(hoursNumber)) {
+        throw new HttpRequestError(400, "Hours must be a number.");
+    }
+
+    // Check hours is not more than the max.
+    if (hoursNumber < 0 || hoursNumber > MAX_HOUR_FILTER) {
+        throw new HttpRequestError(400, `Hours must be more than 0 and no more than ${MAX_HOUR_FILTER} hour(s).`);
+    }
+
+    let warnings: IReturnWarning[];
+    let userInfo: IUserInformation;
+    try {
+        // First retrieve the warnings from the database.
+        warnings = await WarningRepository.getAllWarningsFrom(hoursNumber);
+        // Now retrieve user information.
+        userInfo = await UserRepository.getUserInformation(username);
+    } catch (err) {
+        throw err;
+    }
+
+    // Now work out which warnings are relevant.
+    const relevantWarnings: IReturnWarning[] = [];
+    for (const warning of warnings) {
+        const relevantWarning = new Warning(warning, userInfo);
+        if (relevantWarning.calculateRelevance() >= MINIMUM_RELEVANCE) {
+            relevantWarnings.push(warning);
+        }
+    }
+
+    return relevantWarnings;
 }
 
 /**
