@@ -74,7 +74,6 @@ export async function sendVerificationEmail(username: string, deviceToken: strin
         throw new HttpRequestError(500, "Internal Server Error");
     }
 
-    // TODO: Check last email has not been sent within x minutes.
     // Add user to DB and device to DB.
     try {
         await UserRepository.addUser(username, deviceToken, verificationToken);

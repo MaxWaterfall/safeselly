@@ -1,8 +1,8 @@
 import {Request, Response, Router} from "express";
 import { ISubmissionWarning } from "../../../shared/Warnings";
 import {HttpRequestError} from "./../helper/HttpRequestError";
-import * as WarningService from "./../services/WarningService";
 import * as log from "./../helper/Logger";
+import * as WarningService from "./../services/WarningService";
 
 // Assign our router to the express router instance.
 const router: Router = Router();

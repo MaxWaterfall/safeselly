@@ -1,7 +1,7 @@
 // @ts-ignore No type definitions exist for this library.
 import datetimeDifference from "datetime-difference";
 import { isPointInCircle } from "geolib";
-import { IReturnWarning, Location } from "../../../shared/Warnings";
+import { IReturnWarning, ISubmissionWarning, Location } from "../../../shared/Warnings";
 import * as log from "./../helper/Logger";
 import IUserInformation from "./UserInformation";
 
@@ -26,13 +26,13 @@ export default class Warning {
     /**
      * The submitted warning.
      */
-    protected warning: IReturnWarning;
+    protected warning: IReturnWarning | ISubmissionWarning;
     /**
      * The information of the user for who we are working out the warning relevance.
      */
     protected userInfo: IUserInformation;
 
-    public constructor(warning: IReturnWarning, userInfo: IUserInformation) {
+    public constructor(warning: IReturnWarning | ISubmissionWarning, userInfo: IUserInformation) {
         this.warning = warning;
         this.userInfo = userInfo;
     }

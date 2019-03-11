@@ -112,6 +112,12 @@ export async function getWarning(username: string, warningId: string): Promise<I
     return warning;
 }
 
+/**
+ * Gets all the relevant warnings (for the user who made the request) that occurred
+ * within the last {hours} hours.
+ * @param username
+ * @param hours
+ */
 export async function getRelevantWarningsFrom(username: string, hours: string) {
     // Check hours is a number.
     const hoursNumber = Number(hours);

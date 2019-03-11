@@ -2,11 +2,16 @@ import axios from "axios";
 import * as admin from "firebase-admin";
 import { getPriorityForWarningType, ISubmissionWarning, prettyType } from "../../../shared/Warnings";
 import { INotification, NotificationType } from "../helper/Notification";
-import * as NotificationQueue from "../helper/NotificationQueue";
+import Warning from "../warnings/Warning";
 import * as log from "./../helper/Logger";
+import * as UserRepository from "./../repositories/UserRepository";
 import { config } from "./../Server";
 import * as serviceAccount from "./../serviceAccountKey.json";
 
+/**
+ * The minimum relevance score required to send a notification to a user.
+ */
+const MINIMUM_NOTIFICATION_RELEVANCE = 4;
 /**
  * Initialise the Firebase Admin SDK.
  */
@@ -15,10 +20,11 @@ admin.initializeApp({
 });
 
 /**
- * Send a notification to all app users.
- * @param warning
+ * Send a notification to app user with given fcmToken.
+ * @param notification
+ * @param fcmToken
  */
-export async function sendNotificationToAll(notification: INotification) {
+export async function sendNotification(notification: INotification, fcmToken: string) {
     let data;
     if (notification.type === NotificationType.USER_SUBMITTED) {
         data = {warning: JSON.stringify(notification.warning)};
@@ -28,7 +34,8 @@ export async function sendNotificationToAll(notification: INotification) {
 
     // Create the message.
     const message = {
-        topic: process.env.NODE_ENV === "production" ? "all-prod" : "testing",
+        // topic: process.env.NODE_ENV === "production" ? "all-prod" : "testing",
+        token: fcmToken,
         android: {
             priority: "high",
             notification: {
@@ -56,7 +63,8 @@ export async function sendNotificationToAll(notification: INotification) {
 }
 
 /**
- * Takes a warning submitted by a user and converts it into a notification, then adds it to the NotificationQueue.
+ * Takes a warning submitted by a user and converts it into a notification.
+ * It then works out which users need to be notified of this warning.
  * @param warningId
  * @param warning
  */
@@ -85,7 +93,44 @@ export async function newWarningSubmission(warningId: string, warning: ISubmissi
         dateTimeAdded: new Date(),
     };
 
-    NotificationQueue.addNotification(notification);
+    // Check if this warning is relevant for every single user.
+    // Notify user if warning is relevant.
+    let usersInformation;
+    try {
+        usersInformation = await UserRepository.getAllUsersInformation();
+    } catch (err) {
+        // Just return, error has already been logged.
+        return;
+    }
+
+    // Work out which users need to be notified.
+    const usersToNotify: string[] = [];
+    for (const userInfo of usersInformation) {
+        const relevantWarning = new Warning(warning, userInfo);
+        if (relevantWarning.calculateRelevance() >= MINIMUM_NOTIFICATION_RELEVANCE) {
+            // Add user to list.
+            usersToNotify.push(userInfo.username);
+        }
+    }
+
+    // Notify the users.
+    usersToNotify.forEach(async (username) => {
+        // Get fcm token from database.
+        let token;
+        try {
+            token = await UserRepository.getFCMToken(username);
+        } catch (err) {
+            // Just return, error has already been logged.
+            return;
+        }
+
+        // Send notification to user.
+        try {
+            await sendNotification(notification, token);
+        } catch (err) {
+            log.error(err);
+        }
+    });
 }
 
 /**
