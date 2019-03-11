@@ -14,6 +14,29 @@ CREATE TABLE User (
     PRIMARY KEY (username)
 );
 
+CREATE TABLE UserInformation (
+	username VARCHAR(32) NOT NULL,
+	gender VARCHAR(10),
+	homeLatitude DOUBLE,
+	homeLongitude DOUBLE,
+	ownsBicycle boolean,
+	ownsCar boolean,
+	onwsLaptop boolean,
+
+	PRIMARY KEY (username),
+	FOREIGN KEY (username) REFERENCES User(username)
+);
+
+CREATE Table UserLocation (
+	locationId int AUTO_INCREMENT NOT NULL UNIQUE,
+	username VARCHAR(32) NOT NULL,
+	longitude double NOT NULL,
+	latitude double NOT NULL,
+
+	PRIMARY KEY (locationId),
+	FOREIGN KEY (username) REFERENCES User(username)
+);
+
 CREATE TABLE Warning (
 	rowNumber int NOT NULL AUTO_INCREMENT,
 	warningId VARCHAR(16) NOT NULL UNIQUE,

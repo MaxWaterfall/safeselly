@@ -149,7 +149,6 @@ export async function submitWarning(username: string, warning: ISubmissionWarnin
 
     // Pass onto the NotificationService.
     NotificationService.newWarningSubmission(warningId, warning);
-
 }
 
 /**
@@ -247,7 +246,7 @@ export function getDate(): string {
 }
 
  /**
-  * Takes a string an appends a 0 if needed. Eg. format("5") will return "05".
+  * Takes a string an prepends a 0 if needed. Eg. format("5") will return "05".
   * @param value the string to format.
   */
 function format(value: string): string {

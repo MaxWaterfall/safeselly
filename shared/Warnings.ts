@@ -14,6 +14,11 @@ export enum Priority {
     LOW = 3,
 }
 
+export interface Location {
+    lat: number;
+    long: number;
+}
+
 export interface IVote {
     upvotes: number,
     downvotes: number,
@@ -35,10 +40,7 @@ export type WarningType =
  */
 export interface ISubmissionWarning {
     type: WarningType;
-    location: {
-        lat: number;
-        long: number;
-    };
+    location: Location;
     dateTime: string;
     information: IWarningInformation;
 }
@@ -53,15 +55,13 @@ export interface IReturnWarning {
     type: "general";
     newType: WarningType;
     priority: number;
-    location: {
-        lat: number;
-        long: number;
-    }
+    location: Location;
     dateTime: string;
 }
 
 /**
  * The information that is given when the client requests information for a specific warning.
+ * For example, if the user clicks a marker on the map within the app.
  */
 export interface ISpecificReturnWarning {
     information: IWarningInformation;
