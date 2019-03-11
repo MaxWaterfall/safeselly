@@ -18,18 +18,20 @@ import * as PermissionService from "./../../../services/PermissionService";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
 
-const FILTER_BUTTONS = ["Past Hour", "Past Day", "Past Week", "Cancel"];
-const CANCEL_INDEX = 3;
+const FILTER_BUTTONS = ["All From Past Hour", "All From Past Day", "All From Past Week", "Relevant To Me", "Cancel"];
+const CANCEL_INDEX = 4;
 
 enum FilterTypes {
     HOUR = 1,
     DAY = 24,
     WEEK = DAY * 7,
+    RELEVANT = DAY * 3,
 }
 
 interface IFilter {
-    text: "Past Hour" | "Past Day" | "Past Week";
+    text: "All From Past Hour" | "All From Past Day" | "All From Past Week" | "Relevant To Me";
     hours: FilterTypes;
+    relevant: boolean;
 }
 
 interface IState {
@@ -76,8 +78,9 @@ export default class ViewAllWarnings extends Component<any, IState> {
             loading: true,
             failed: false,
             filter: {
-                text: "Past Day",
+                text: "All From Past Day",
                 hours: FilterTypes.DAY,
+                relevant: false,
             },
             warnings: [],
             lastViewedWarningId: "",
@@ -207,7 +210,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
     }
 
     /**
-     * Checks if we can add a warning to the state.
+     * Checks if we can add a warning to the state. Prevents us adding the same warning twice.
      */
     private canAddWarning = (warning: IReturnWarning) => {
         for (const stateWarning of this.state.warnings) {
@@ -266,7 +269,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
      * Also tells ViewWarningsService to load viewed warnings.
      */
     private loadInitialStateFromConstructor = () => {
-        Promise.all([getWarningsFrom(this.state.filter.hours), loadViewedWarnings()])
+        Promise.all([getWarningsFrom(this.state.filter.hours, this.state.filter.relevant), loadViewedWarnings()])
             .then(([warnings]) => {
                 this.setState({
                     region: initialRegion,
@@ -297,7 +300,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
      * Gets more warnings from the warning service.
      */
     private refreshWarnings = () => {
-        getWarningsFrom(this.state.filter.hours)
+        getWarningsFrom(this.state.filter.hours, this.state.filter.relevant)
             .then((warnings) => {
                 if (JSON.stringify(warnings) === JSON.stringify(this.state.warnings)) {
                     // No update has occurred.
@@ -326,7 +329,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
 
     /**
      * Changes the state based on the chosen filter.
-     * Then reloads the initial state to get the new warnings.
+     * Then refreshes the warnings shown on the map.
      */
     private filterWarnings = () => {
         ActionSheet.show(
@@ -337,31 +340,48 @@ export default class ViewAllWarnings extends Component<any, IState> {
             },
             (buttonIndex) => {
                 if (buttonIndex !== CANCEL_INDEX) {
-                    if (FILTER_BUTTONS[buttonIndex] === "Past Hour") {
+                    if (FILTER_BUTTONS[buttonIndex] === "All From Past Hour") {
                         this.setState({
                             filter: {
-                                text: "Past Hour",
+                                text: "All From Past Hour",
                                 hours: FilterTypes.HOUR,
+                                relevant: false,
                             },
                         }, this.refreshWarnings);
+                        return;
                     }
 
-                    if (FILTER_BUTTONS[buttonIndex] === "Past Day") {
+                    if (FILTER_BUTTONS[buttonIndex] === "All From Past Day") {
                         this.setState({
                             filter: {
-                                text: "Past Day",
+                                text: "All From Past Day",
                                 hours: FilterTypes.DAY,
+                                relevant: false,
                             },
                         }, this.refreshWarnings);
+                        return;
                     }
 
-                    if (FILTER_BUTTONS[buttonIndex] === "Past Week") {
+                    if (FILTER_BUTTONS[buttonIndex] === "All From Past Week") {
                         this.setState({
                             filter: {
-                                text: "Past Week",
+                                text: "All From Past Week",
                                 hours: FilterTypes.WEEK,
+                                relevant: false,
                             },
                         }, this.refreshWarnings);
+                        return;
+                    }
+
+                    if (FILTER_BUTTONS[buttonIndex] === "Relevant To Me") {
+                        this.setState({
+                            filter: {
+                                text: "Relevant To Me",
+                                hours: FilterTypes.RELEVANT,
+                                relevant: true,
+                            },
+                        }, this.refreshWarnings);
+                        return;
                     }
                 }
             },

@@ -123,6 +123,9 @@ async function setRegistered() {
     }
 }
 
+/**
+ * Returns the header required when making unauthenticated requests.
+ */
 function getHeader() {
     return {
         "username": usernameGlobal,
