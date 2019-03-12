@@ -2,8 +2,8 @@
 import datetimeDifference from "datetime-difference";
 import { AppState } from "react-native";
 import {
-    IReturnWarning,
     ISpecificReturnWarning,
+    IWarning,
     WarningType,
 } from "../../../shared/Warnings";
 import { getItem, setItem } from "./../data/DataStorage";
@@ -26,7 +26,7 @@ export const initialRegion = {
 /**
  * Retrieves all warnings from the server with a WarningDateTime within the past {hours} hours.
  */
-export async function getWarningsFrom(hours: number, relevant: boolean): Promise<IReturnWarning[]> {
+export async function getWarningsFrom(hours: number, relevant: boolean): Promise<IWarning[]> {
     try {
         let warnings;
         if (relevant) {
@@ -35,17 +35,6 @@ export async function getWarningsFrom(hours: number, relevant: boolean): Promise
             warnings = await makeAuthenticatedRequest("GET", `/warning/filter/${hours}`, {});
         }
         return warnings;
-    } catch (err) {
-        throw err;
-    }
-}
-
-/**
- * Retrieves all warnings from the server after a given warning id.
- */
-export async function getWarningsAfterId(warningId: string): Promise<IReturnWarning[]> {
-    try {
-        return await makeAuthenticatedRequest("GET", `/warning/${warningId}/after`, {});
     } catch (err) {
         throw err;
     }

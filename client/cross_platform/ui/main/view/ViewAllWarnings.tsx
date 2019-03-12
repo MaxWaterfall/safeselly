@@ -12,7 +12,7 @@ import {
 } from "../../../services/ViewWarningsService";
 import { FailedToConnectScreen } from "../../general/FailedToConnectScreen";
 import { LoadingScreen } from "../../general/LoadingScreen";
-import { IReturnWarning, Priority } from "./../../../../../shared/Warnings";
+import { DangerLevel, IWarning } from "./../../../../../shared/Warnings";
 import * as NotificationService from "./../../../services/NotificationService";
 import * as PermissionService from "./../../../services/PermissionService";
 import { HeaderBar } from "./../../general/HeaderBar";
@@ -36,7 +36,7 @@ interface IFilter {
 
 interface IState {
     region?: Region;
-    warnings: IReturnWarning[];
+    warnings: IWarning[];
     loading: boolean;
     failed: boolean;
     filter: IFilter;
@@ -55,16 +55,16 @@ export default class ViewAllWarnings extends Component<any, IState> {
     /**
      * Selects the markers colour based on whether the warning has been viewed or not.
      */
-    public static chooseMarkerColour = (warning: IReturnWarning) => {
-       if (warning.priority === Priority.HIGH) {
+    public static chooseMarkerColour = (warning: IWarning) => {
+       if (warning.priority === DangerLevel.HIGH) {
            return "red";
        }
 
-       if (warning.priority === Priority.NORMAL) {
+       if (warning.priority === DangerLevel.NORMAL) {
            return "orange";
        }
 
-       if (warning.priority === Priority.LOW) {
+       if (warning.priority === DangerLevel.LOW) {
            return "yellow";
        }
 
@@ -167,7 +167,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
      */
     private renderMarkers = () => {
         return (
-            this.state.warnings!.map((warning: IReturnWarning) => {
+            this.state.warnings!.map((warning: IWarning) => {
                 let key = warning.warningId;
                 if (warning.warningId === this.state.lastViewedWarningId) {
                     // Update the key so the opacity updates.
@@ -187,7 +187,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
         );
     }
 
-    private chooseMarkerOpacity = (warning: IReturnWarning) => {
+    private chooseMarkerOpacity = (warning: IWarning) => {
         if (getViewedWarnings().has(warning.warningId) || this.state.lastViewedWarningId === warning.warningId) {
             // Warning has been viewed.
             return 0.5;
@@ -203,7 +203,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
         const notificationOpen: NotificationOpen = await firebase.notifications().getInitialNotification();
         if (notificationOpen) {
             // App was opened by notification.
-            const warning = JSON.parse(notificationOpen.notification.data.warning) as IReturnWarning;
+            const warning = JSON.parse(notificationOpen.notification.data.warning) as IWarning;
             // Already received notification from the refresh. Now just need to open it.
             this.openedNotification(warning);
         }
@@ -212,7 +212,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
     /**
      * Checks if we can add a warning to the state. Prevents us adding the same warning twice.
      */
-    private canAddWarning = (warning: IReturnWarning) => {
+    private canAddWarning = (warning: IWarning) => {
         for (const stateWarning of this.state.warnings) {
             if (stateWarning.warningId === warning.warningId) {
                 return false;
@@ -224,7 +224,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
     /**
      * Adds the newly received warning to our list of warnings.
      */
-    private receivedNotification = (warning: IReturnWarning) => {
+    private receivedNotification = (warning: IWarning) => {
         if (this.canAddWarning(warning)) {
             this.setState({
                 warnings: this.state.warnings.concat(warning),
@@ -240,7 +240,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
     /**
      * Same as received notification but opens the warning instead of showing a Toast.
      */
-    private openedNotification = (warning: IReturnWarning) => {
+    private openedNotification = (warning: IWarning) => {
          // Add this warning to our list then open it.
          if (this.canAddWarning(warning)) {
             this.setState({
@@ -256,7 +256,7 @@ export default class ViewAllWarnings extends Component<any, IState> {
     /**
      * Moves to the ViewSingleWarning screen.
      */
-    private pressMarker = (warning: IReturnWarning) => {
+    private pressMarker = (warning: IWarning) => {
         this.setState({lastViewedWarningId: warning.warningId}, () => {
             this.props.navigation.push("ViewSingleWarning", {
                 warning,

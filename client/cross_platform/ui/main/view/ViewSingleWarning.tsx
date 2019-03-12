@@ -7,8 +7,8 @@ import { getWarningInformation, voteWarning } from "../../../services/ViewWarnin
 import { FailedToConnectScreen } from "../../general/FailedToConnectScreen";
 import { LoadingScreen } from "../../general/LoadingScreen";
 import {
-    IReturnWarning,
     ISpecificReturnWarning,
+    IWarning,
     IWarningInformation,
     prettyType,
 } from "./../../../../../shared/Warnings";
@@ -23,7 +23,7 @@ interface IState {
     failed: boolean;
     region: Region;
     markerLatLng: LatLng;
-    warning: IReturnWarning;
+    warning: IWarning;
     specific?: ISpecificReturnWarning;
     mapMarginBottom: number;
 }
@@ -40,7 +40,7 @@ export default class ViewSingleWarning extends Component<any, IState> {
     public constructor(props: any) {
         super(props);
 
-        const warning: IReturnWarning = this.props.navigation.getParam("warning");
+        const warning: IWarning = this.props.navigation.getParam("warning");
 
         this.state = {
             loading: true,
@@ -95,7 +95,7 @@ export default class ViewSingleWarning extends Component<any, IState> {
                         <ViewSingleWarningHeader
                             upvotes={this.state.specific!.votes.upvotes}
                             downvotes={this.state.specific!.votes.downvotes}
-                            title={prettyType(this.state.warning.newType) + " Warning"}
+                            title={prettyType(this.state.warning.type) + " Warning"}
                         />
                         <Text style={[Styles.centreText as any, Styles.mb10]}>
                             This incident happened {this.timeFromWarning()} ago on {this.prettyDate()}.
