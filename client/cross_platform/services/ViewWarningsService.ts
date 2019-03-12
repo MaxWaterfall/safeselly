@@ -26,9 +26,14 @@ export const initialRegion = {
 /**
  * Retrieves all warnings from the server with a WarningDateTime within the past {hours} hours.
  */
-export async function getWarningsFrom(hours: number): Promise<IReturnWarning[]> {
+export async function getWarningsFrom(hours: number, relevant: boolean): Promise<IReturnWarning[]> {
     try {
-        const warnings = await makeAuthenticatedRequest("GET", `/warning/filter/${hours}`, {});
+        let warnings;
+        if (relevant) {
+            warnings = makeAuthenticatedRequest("GET", `/warning/filter/${hours}/relevant`, {});
+        } else {
+            warnings = await makeAuthenticatedRequest("GET", `/warning/filter/${hours}`, {});
+        }
         return warnings;
     } catch (err) {
         throw err;
