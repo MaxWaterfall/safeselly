@@ -1,12 +1,12 @@
 import axios from "axios";
 import * as admin from "firebase-admin";
-import { getPriorityForWarningType, ISubmissionWarning, prettyType } from "../../../shared/Warnings";
+import { IWarning, prettyType } from "../../../shared/Warnings";
 import { INotification, NotificationType } from "../helper/Notification";
-import Warning from "../warnings/Warning";
 import * as log from "./../helper/Logger";
 import * as UserRepository from "./../repositories/UserRepository";
 import { config } from "./../Server";
 import * as serviceAccount from "./../serviceAccountKey.json";
+import { createWarning } from "./../warnings/WarningHelper";
 
 /**
  * The minimum relevance score required to send a notification to a user.
@@ -51,7 +51,7 @@ export async function sendNotification(notification: INotification, fcmToken: st
     try {
         await admin.messaging().send(message as any);
         if (notification.type === NotificationType.USER_SUBMITTED) {
-            log.info("Sent notification for user-submitted-warning. Type: " + notification.warning!.newType);
+            log.info("Sent notification for user-submitted-warning. Type: " + notification.warning!.type);
         } else {
             log.info("Sent notification.");
         }
@@ -66,29 +66,26 @@ export async function sendNotification(notification: INotification, fcmToken: st
  * Takes a warning submitted by a user and converts it into a notification.
  * It then works out which users need to be notified of this warning.
  * @param warningId
- * @param warning
+ * @param warningSubmission
  */
-export async function newWarningSubmission(warningId: string, warning: ISubmissionWarning) {
+export async function newWarningSubmission(warningId: string, warningSubmission: IWarning) {
     // Build the notification for this warning.
-    const priority = getPriorityForWarningType(warning.type);
-    const title = prettyType(warning.type) + " Warning";
-    const streetName = await getStreetName(warning.location.lat, warning.location.long);
+    const title = prettyType(warningSubmission.type) + " Warning";
+    const streetName = await getStreetName(warningSubmission.location.lat, warningSubmission.location.long);
     const body = `There has been an incident on or near ${streetName}.`;
-    const date = new Date(Date.parse(warning.dateTime));
+    const date = new Date(Date.parse(warningSubmission.dateTime));
 
     const notification: INotification = {
-        priority,
         title,
         body,
         type: NotificationType.USER_SUBMITTED,
         warning: {
             warningId,
-            // For backwards compatibility.
-            type: "general",
-            newType: warning.type,
-            priority,
-            location: warning.location,
+            type: warningSubmission.type,
+            priority: warningSubmission.priority,
+            location: warningSubmission.location,
             dateTime: date.toJSON(),
+            information: warningSubmission.information,
         },
         dateTimeAdded: new Date(),
     };
@@ -106,8 +103,8 @@ export async function newWarningSubmission(warningId: string, warning: ISubmissi
     // Work out which users need to be notified.
     const usersToNotify: string[] = [];
     for (const userInfo of usersInformation) {
-        const relevantWarning = new Warning(warning, userInfo);
-        if (relevantWarning.calculateRelevance() >= MINIMUM_NOTIFICATION_RELEVANCE) {
+        const warning = createWarning(warningSubmission);
+        if (warning.calculateRelevance(userInfo) >= MINIMUM_NOTIFICATION_RELEVANCE) {
             // Add user to list.
             usersToNotify.push(userInfo.username);
         }

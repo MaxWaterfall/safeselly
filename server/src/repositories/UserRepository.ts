@@ -1,6 +1,6 @@
 import { Location } from "../../../shared/Warnings";
 import * as log from "../helper/Logger";
-import IUserInformation from "../warnings/UserInformation";
+import { IUserInformation } from "../warnings/WarningHelper";
 import {HttpRequestError} from "./../helper/HttpRequestError";
 import {db} from "./../Server";
 

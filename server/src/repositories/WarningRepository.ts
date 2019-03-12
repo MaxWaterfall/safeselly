@@ -1,8 +1,8 @@
 import {
-    getPriorityForWarningType,
-    IReturnWarning,
+    getDangerLevelForWarningType,
     ISubmissionWarning,
     IVote,
+    IWarning,
     IWarningInformation,
 } from "../../../shared/Warnings";
 import * as log from "../helper/Logger";
@@ -14,7 +14,7 @@ const submitWarningSql = `
     VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `;
 const getAllWarningsSql = `
-    SELECT warningId, warningType, warningDateTime, latitude, longitude
+    SELECT warningId, warningType, warningDateTime, latitude, longitude, warningDescription, peopleDescription
     FROM Warning
 `;
 const upvoteWarningSql = `
@@ -37,7 +37,7 @@ const getSpecificWarningInformationSql = `
     WHERE warningId = ?
 `;
 const getAllWarningsFromSql = `
-    SELECT warningId, warningType, warningDateTime, latitude, longitude
+    SELECT warningId, warningType, warningDateTime, latitude, longitude, warningDescription, peopleDescription
     FROM Warning
     WHERE warningDateTime > DATE_SUB(NOW(),INTERVAL ? HOUR)
 `;
@@ -86,7 +86,7 @@ export async function submitWarning(
 }
 
 /**
- * Returns specific information about a warning based on it's type.
+ * Returns specific information about a warning.
  * @param warningId
  * @param warningType
  */
@@ -108,22 +108,24 @@ export async function getWarningInformation(
 /**
  * Returns generic information for all warnings.
  */
-export async function getAllWarnings(): Promise<IReturnWarning[]> {
+export async function getAllWarnings(): Promise<IWarning[]> {
     try {
         const result = await db.query(getAllWarningsSql, []) as any[];
         return result.map((warning) => {
-            const priority = getPriorityForWarningType(warning.warningType);
-            const returnWarning: IReturnWarning = {
+            const priority = getDangerLevelForWarningType(warning.warningType);
+            const returnWarning: IWarning = {
                 warningId: warning.warningId,
-                // For backwards compatibility.
-                type: "general",
-                newType: warning.warningType,
+                type: warning.warningType,
                 priority,
                 location: {
                     lat: warning.latitude,
                     long: warning.longitude,
                 },
                 dateTime: warning.warningDateTime,
+                information: {
+                    peopleDescription: warning.peopleDescription,
+                    warningDescription: warning.warningDescription,
+                },
             };
             return returnWarning;
         });
@@ -137,22 +139,24 @@ export async function getAllWarnings(): Promise<IReturnWarning[]> {
  * Returns all warnings with a WarningDateTime within the past {hours} hours.
  * @param hours
  */
-export async function getAllWarningsFrom(hours: number): Promise<IReturnWarning[]> {
+export async function getAllWarningsFrom(hours: number): Promise<IWarning[]> {
     try {
         const result = await db.query(getAllWarningsFromSql, [hours]) as any[];
         return result.map((warning) => {
-            const priority = getPriorityForWarningType(warning.warningType) as number;
-            const returnWarning: IReturnWarning = {
+            const priority = getDangerLevelForWarningType(warning.warningType) as number;
+            const returnWarning: IWarning = {
                 warningId: warning.warningId,
-                // For backwards compatibility.
-                type: "general",
-                newType: warning.warningType,
+                type: warning.warningType,
                 priority,
                 location: {
                     lat: warning.latitude,
                     long: warning.longitude,
                 },
                 dateTime: warning.warningDateTime,
+                information: {
+                    peopleDescription: warning.peopleDescription,
+                    warningDescription: warning.warningDescription,
+                },
             };
             return returnWarning;
         });

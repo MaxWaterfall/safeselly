@@ -1,13 +1,13 @@
 import { isPointInCircle } from "geolib";
 import { HttpRequestError } from "../helper/HttpRequestError";
-import IUserInformation from "../warnings/UserInformation";
-import Warning from "../warnings/Warning";
+import { createWarning, IUserInformation } from "../warnings/WarningHelper";
 import {
     DISTANCE_FROM_SELLY_OAK,
-    IReturnWarning,
+    getDangerLevelForWarningType,
     ISpecificReturnWarning,
     ISubmissionWarning,
     IVote,
+    IWarning,
     IWarningInformation,
     SELLY_OAK_LAT,
     SELLY_OAK_LONG,
@@ -27,7 +27,7 @@ const MINIMUM_RELEVANCE = 3; // The minimum relevance score required for a warni
 /**
  * Returns all warnings in the database.
  */
-export async function getAllWarnings(): Promise<IReturnWarning[]> {
+export async function getAllWarnings(): Promise<IWarning[]> {
     try {
         return await WarningRepository.getAllWarnings();
     } catch (err) {
@@ -39,7 +39,7 @@ export async function getAllWarnings(): Promise<IReturnWarning[]> {
  * Throws error if validation fails.
  * @param hours
  */
-export async function getWarningsFrom(hours: string): Promise<IReturnWarning[]> {
+export async function getWarningsFrom(hours: string): Promise<IWarning[]> {
     // Check it's a number.
     const hoursNumber = Number(hours);
     if (isNaN(hoursNumber)) {
@@ -130,7 +130,7 @@ export async function getRelevantWarningsFrom(username: string, hours: string) {
         throw new HttpRequestError(400, `Hours must be more than 0 and no more than ${MAX_HOUR_FILTER} hour(s).`);
     }
 
-    let warnings: IReturnWarning[];
+    let warnings: IWarning[];
     let userInfo: IUserInformation;
     try {
         // First retrieve the warnings from the database.
@@ -142,10 +142,10 @@ export async function getRelevantWarningsFrom(username: string, hours: string) {
     }
 
     // Now work out which warnings are relevant.
-    const relevantWarnings: IReturnWarning[] = [];
+    const relevantWarnings: IWarning[] = [];
     for (const warning of warnings) {
-        const relevantWarning = new Warning(warning, userInfo);
-        if (relevantWarning.calculateRelevance() >= MINIMUM_RELEVANCE) {
+        const relevantWarning = createWarning(warning);
+        if (relevantWarning.calculateRelevance(userInfo) >= MINIMUM_RELEVANCE) {
             relevantWarnings.push(warning);
         }
     }
@@ -191,8 +191,18 @@ export async function submitWarning(username: string, warning: ISubmissionWarnin
         throw (err);
     }
 
-    // Pass onto the NotificationService.
-    NotificationService.newWarningSubmission(warningId, warning);
+    // Build the IWarning.
+    const warningSubmission: IWarning = {
+        warningId,
+        dateTime: warning.dateTime,
+        information: warning.information,
+        location: warning.location,
+        priority: getDangerLevelForWarningType(warning.type),
+        type: warning.type,
+    };
+
+    // Pass onto notification service.
+    NotificationService.newWarningSubmission(warningId, warningSubmission);
 }
 
 /**

@@ -1,48 +1,59 @@
 // @ts-ignore No type definitions exist for this library.
 import datetimeDifference from "datetime-difference";
 import { isPointInCircle } from "geolib";
-import { IReturnWarning, ISubmissionWarning, Location } from "../../../shared/Warnings";
+import { IWarning, Location } from "../../../shared/Warnings";
 import * as log from "./../helper/Logger";
-import IUserInformation from "./UserInformation";
+import { IUserInformation } from "./WarningHelper";
 
-export default class Warning {
+export abstract class Warning {
     protected static readonly HOUR = 60;
     protected static readonly HALF_DAY = Warning.HOUR * 12;
     /**
      * The distance this warning is from a location for it to receive +1 relevance.
      * This distance is in metres.
      */
-    protected static readonly UPPER_DISTANCE = 100;
+    protected readonly UPPER_DISTANCE: number = 100;
     /**
      * The distance this warning is from a location for it to receive +2 relevance.
      * This distance is in metres.
      */
-    protected static readonly LOWER_DISTANCE = 50;
+    protected readonly LOWER_DISTANCE: number = 50;
+    /**
+     * The initial relevance score for this user.
+     * By default is 0. May be overridden by child classes.
+     */
+    protected readonly initialRelevance: number = 0;
 
     /**
-     * By default warnings have a relevance of 0.
+     * The relevance score for this warning with this user.
      */
-    protected relevance = 0;
+    protected relevance: number = 0;
     /**
      * The submitted warning.
      */
-    protected warning: IReturnWarning | ISubmissionWarning;
+    protected warning: IWarning;
     /**
-     * The information of the user for who we are working out the warning relevance.
+     * The information of the current user for which we are working out the warning relevance.
      */
-    protected userInfo: IUserInformation;
+    protected userInfo: IUserInformation | undefined;
 
-    public constructor(warning: IReturnWarning | ISubmissionWarning, userInfo: IUserInformation) {
+    public constructor(warning: IWarning) {
         this.warning = warning;
-        this.userInfo = userInfo;
     }
 
     /**
      * Calculates then returns the relevance of this warning.
      */
-    public calculateRelevance(): number {
+    public calculateRelevance(userInfo: IUserInformation): number {
+        this.userInfo = userInfo;
+        this.relevance = this.initialRelevance;
+
+        // Start modification checks.
         this.locationCheck();
         this.timeCheck();
+        this.ownsCheck();
+        this.genderCheck();
+
         return this.relevance;
     }
 
@@ -52,37 +63,36 @@ export default class Warning {
      */
     protected locationCheck() {
         // Check if this warning was near the users' last known location.
-        if (this.userInfo.lastKnownLocation !== undefined &&
-            this.isLocationWithinLowerDistance(this.userInfo.lastKnownLocation as Location)) {
+        if (this.userInfo!.lastKnownLocation !== undefined &&
+            this.isLocationWithinLowerDistance(this.userInfo!.lastKnownLocation as Location)) {
             return;
         }
 
         // Check if this warning was near the users' home location.
-        if (this.userInfo.homeLocation !== undefined &&
-            this.isLocationWithinLowerDistance(this.userInfo.homeLocation as Location)) {
+        if (this.userInfo!.homeLocation !== undefined &&
+            this.isLocationWithinLowerDistance(this.userInfo!.homeLocation as Location)) {
             return;
         }
 
         // Check if this warning was near the users' frequently visited locations.
-        for (const location of this.userInfo.frequentLocations!) {
+        for (const location of this.userInfo!.frequentLocations!) {
             if (this.isLocationWithinLowerDistance(location)) {
-                // TODO: may apply wrong relevance.
                 return;
             }
         }
 
         // Now do the same again for the upper locations.
-        if (this.userInfo.lastKnownLocation !== undefined &&
-            this.isLocationWithinUpperDistance(this.userInfo.lastKnownLocation as Location)) {
+        if (this.userInfo!.lastKnownLocation !== undefined &&
+            this.isLocationWithinUpperDistance(this.userInfo!.lastKnownLocation as Location)) {
             return;
         }
 
-        if (this.userInfo.homeLocation !== undefined &&
-            this.isLocationWithinUpperDistance(this.userInfo.homeLocation as Location)) {
+        if (this.userInfo!.homeLocation !== undefined &&
+            this.isLocationWithinUpperDistance(this.userInfo!.homeLocation as Location)) {
             return;
         }
 
-        for (const location of this.userInfo.frequentLocations!) {
+        for (const location of this.userInfo!.frequentLocations!) {
             if (this.isLocationWithinUpperDistance(location)) {
                 return;
             }
@@ -98,7 +108,7 @@ export default class Warning {
         if (isPointInCircle(
             {latitude: this.warning.location.lat, longitude: this.warning.location.long},
             {latitude: location.lat, longitude: location.long},
-            Warning.LOWER_DISTANCE,
+            this.LOWER_DISTANCE,
         )) {
             this.relevance += 2;
             return true;
@@ -116,7 +126,7 @@ export default class Warning {
         if (isPointInCircle(
             {latitude: this.warning.location.lat, longitude: this.warning.location.long},
             {latitude: location.lat, longitude: location.long},
-            Warning.UPPER_DISTANCE,
+            this.UPPER_DISTANCE,
         )) {
             this.relevance += 1;
             return true;
@@ -165,5 +175,21 @@ export default class Warning {
         minutesPassed += diff.days * MINUTES_IN_DAY;
 
         return minutesPassed;
+    }
+
+    /**
+     * Runs the OWNS modification. Increases relevance if an item mentioned in the warning is owned by the user.
+     * Left blank, should be overridden by child classes if needed.
+     */
+    protected ownsCheck(): void {
+        return;
+    }
+
+    /**
+     * Runs the GENDER modification. Tests whether an item mentioned in the warning is owned by the user.
+     * Left blank, should be overridden by child classes if needed.
+     */
+    protected genderCheck(): void {
+        return;
     }
 }

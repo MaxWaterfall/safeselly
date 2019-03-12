@@ -1,4 +1,4 @@
-import { IReturnWarning, Priority } from "../../../shared/Warnings";
+import { IWarning } from "../../../shared/Warnings";
 
 /**
  * The type of notification it is.
@@ -9,9 +9,8 @@ export enum NotificationType {
 }
 
 export interface INotification {
-    priority: Priority;
     type: NotificationType;
-    warning?: IReturnWarning;
+    warning?: IWarning;
     title: string;
     body: string;
     dateTimeAdded: Date;
