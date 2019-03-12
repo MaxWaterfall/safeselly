@@ -6,9 +6,9 @@ export const SELLY_OAK_LONG = -1.939000;
 export const DISTANCE_FROM_SELLY_OAK = 5000; // 5km.
 
 /**
- * How important the warning is.
+ * How dangerous the warning is.
  */
-export enum Priority {
+export enum DangerLevel {
     HIGH = 1,
     NORMAL = 2,
     LOW = 3,
@@ -49,14 +49,13 @@ export interface ISubmissionWarning {
  * The information that is given when the client requests a set of warnings.
  * This information is also given when the user is notified of a warning.
  */
-export interface IReturnWarning {
+export interface IWarning {
     warningId: string;
-    // Type is needed for backwards compatibility.
-    type: "general";
-    newType: WarningType;
+    type: WarningType;
     priority: number;
     location: Location;
     dateTime: string;
+    information: IWarningInformation;
 }
 
 /**
@@ -105,7 +104,7 @@ export function validateWarning(warning: ISubmissionWarning) {
         throwIsNotValidError("warningDateTime");
     }
 
-    if (getPriorityForWarningType(warning.type) === -1) {
+    if (getDangerLevelForWarningType(warning.type) === -1) {
         throwIsNotValidError("type");
     }
 
@@ -143,21 +142,21 @@ function validateWarningInformation(warning: IWarningInformation) {
 }
 
 /**
- * Returns the priority of the given warning type.
+ * Returns the danger level of the given warning type.
  * 1 = High, 2 = Normal, 3 = Low
  * @param type
  */
-export function getPriorityForWarningType(type: WarningType) {
+export function getDangerLevelForWarningType(type: WarningType) {
     switch (type) {
-        case "general": return Priority.NORMAL;
-        case "vandalism": return Priority.LOW;
-        case "threatening behaviour": return Priority.HIGH;
-        case "assault": return Priority.HIGH;
-        case "burglary": return Priority.NORMAL;
-        case "theft": return Priority.LOW;
-        case "mugging": return Priority.HIGH;
-        case "suspicious behaviour": return Priority.LOW;
-        case "harassment": return Priority.NORMAL;
+        case "general": return DangerLevel.NORMAL;
+        case "vandalism": return DangerLevel.LOW;
+        case "threatening behaviour": return DangerLevel.HIGH;
+        case "assault": return DangerLevel.HIGH;
+        case "burglary": return DangerLevel.NORMAL;
+        case "theft": return DangerLevel.LOW;
+        case "mugging": return DangerLevel.HIGH;
+        case "suspicious behaviour": return DangerLevel.LOW;
+        case "harassment": return DangerLevel.NORMAL;
     }
 }
 
