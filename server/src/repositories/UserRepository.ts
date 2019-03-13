@@ -238,13 +238,13 @@ export async function updateLastRequest(username: string, date: string) {
 }
 
 /**
- * Gets all the information about a user.
+ * Retrieves the user information for a single user.
  * @param username
  */
 export async function getUserInformation(username: string): Promise<IUserInformation> {
     try {
         const databaseUserInfo = await db.query(getUserInformationSql, [username]) as any;
-        const userInfo = createUserInformation(username, databaseUserInfo);
+        const userInfo = createUserInformation(username, databaseUserInfo[0]);
         return userInfo;
     } catch (err) {
         log.databaseError(err);

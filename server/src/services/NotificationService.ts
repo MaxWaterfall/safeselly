@@ -11,7 +11,7 @@ import { createWarning } from "./../warnings/WarningHelper";
 /**
  * The minimum relevance score required to send a notification to a user.
  */
-const MINIMUM_NOTIFICATION_RELEVANCE = 4;
+const MINIMUM_NOTIFICATION_RELEVANCE = 3;
 /**
  * Initialise the Firebase Admin SDK.
  */
@@ -29,7 +29,7 @@ export async function sendNotification(notification: INotification, fcmToken: st
     if (notification.type === NotificationType.USER_SUBMITTED) {
         data = {warning: JSON.stringify(notification.warning)};
     } else {
-        // TODO: Add payload for SERVER_GENERATED notifications.
+        // In the future server generated notifications could be sent, would need support on client.
     }
 
     // Create the message.
@@ -55,7 +55,6 @@ export async function sendNotification(notification: INotification, fcmToken: st
         } else {
             log.info("Sent notification.");
         }
-
     } catch (err) {
         log.error(err);
         throw err;

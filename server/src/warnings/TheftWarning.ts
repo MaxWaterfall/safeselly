@@ -1,4 +1,5 @@
 import { IWarning } from "../../../shared/Warnings";
+import * as log from "./../helper/Logger";
 import { Warning } from "./Warning";
 
 export class TheftWarning extends Warning {
@@ -30,9 +31,8 @@ export class TheftWarning extends Warning {
 
     // Override.
     public constructor(warning: IWarning) {
-        // We only accept ISubmissionWarning, as this has the specific warning information required.
         super(warning);
-        // Extract the warning and convert it to lower case.
+        // Convert warning description to lower case.
         this.description = warning.information.warningDescription.toLowerCase();
         this.checkForKeywords();
     }
@@ -49,7 +49,7 @@ export class TheftWarning extends Warning {
     // Override.
     protected ownsCheck() {
         // Check whether the user owns the item stolen.
-        if (this.containsCar && this.userInfo!.ownsCar) {
+        if (this.containsCar && !this.userInfo!.ownsCar) {
             this.relevance += 1;
             return;
         }
