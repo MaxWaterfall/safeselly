@@ -1,7 +1,13 @@
+import { isPointInCircle } from "geolib";
 import { Button, H3, Text, Toast, View} from "native-base";
 import React, { Component } from "react";
 import MapView, { LatLng, MapEvent, Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
 import { initialRegion } from "../../../services/ViewWarningsService";
+import {
+    DISTANCE_FROM_SELLY_OAK,
+    SELLY_OAK_LAT,
+    SELLY_OAK_LONG,
+} from "./../../../../../shared/Warnings";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
 
@@ -73,6 +79,20 @@ export default class ChooseLocation extends Component<any, IState> {
             return;
         }
 
+        // Check the warning is close to Selly Oak.
+        if (!isPointInCircle(
+            {latitude: this.state.warningLocation!.latitude, longitude: this.state.warningLocation!.longitude},
+            {latitude: SELLY_OAK_LAT, longitude: SELLY_OAK_LONG},
+            DISTANCE_FROM_SELLY_OAK,
+        )) {
+            Toast.show({
+                text: "Location must be near Selly Oak.",
+                type: "warning",
+            });
+            return;
+        }
+
+        // Move to next page.
         this.props.navigation.push("ChooseWarningType", {
             WarningLocation: this.state.warningLocation,
         });

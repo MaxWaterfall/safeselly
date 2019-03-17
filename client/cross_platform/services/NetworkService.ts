@@ -1,8 +1,8 @@
 import { getUserCredentials, IUserCredentials } from "../data/CredentialStorage";
 
-const requestURL = "http://10.0.2.2:3000/safeselly/v1";
+// const requestURL = "http://10.0.2.2:3000/safeselly/v1";
 // const requestURL = "https://max.abmackenzie.com/safeselly/v1";
-// const requestURL = "https://maxwaterfall.com/safeselly/v1";
+const requestURL = "https://maxwaterfall.com/safeselly/demo";
 
 /**
  * This function is a wrapper around fetch that handles errors and differently formatted responses.
