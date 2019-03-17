@@ -49,7 +49,7 @@ export class TheftWarning extends Warning {
     // Override.
     protected ownsCheck() {
         // Check whether the user owns the item stolen.
-        if (this.containsCar && !this.userInfo!.ownsCar) {
+        if (this.containsCar && this.userInfo!.ownsCar) {
             this.relevance += 1;
             return;
         }

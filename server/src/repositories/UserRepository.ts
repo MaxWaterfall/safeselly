@@ -1,8 +1,8 @@
 import { Location } from "../../../shared/Warnings";
 import * as log from "../helper/Logger";
 import { IUserInformation } from "../warnings/WarningHelper";
-import {HttpRequestError} from "./../helper/HttpRequestError";
-import {db} from "./../Server";
+import { HttpRequestError } from "./../helper/HttpRequestError";
+import { db } from "./../Server";
 
 const setFCMTokenSql = `
     UPDATE User
@@ -68,8 +68,15 @@ const getUserLocationsSql = `
     WHERE username = ?
 `;
 const getAllUsersInformationSql = `
-    SELECT * FROM UserInformation
+    SELECT * FROM UserInformation ORDER BY username ASC;
 `;
+const getAllUsersLocationsSql = `
+    SELECT * FROM UserLocation ORDER BY username ASC;
+`;
+const getAllFCMTokensSql = `
+    SELECT username, fcmToken FROM User ORDER BY username ASC;
+`;
+
 /**
  * Adds a user into the database.
  * @param username
@@ -177,6 +184,25 @@ export async function getFCMToken(username: string) {
 }
 
 /**
+ * Gets all users FCM Tokens.
+ * Returns a map containing usernames as the keys and fcmTokens as the values.
+ * @param username
+ */
+export async function getAllFCMTokens(): Promise<Map<string, string>> {
+    try {
+        const results = await db.query(getAllFCMTokensSql, []) as any[];
+        const map = new Map<string, string>();
+        for (const result of results) {
+            map.set(result["username"], result["fcmToken"]);
+        }
+        return map;
+    } catch (err) {
+        log.databaseError(err);
+        throw new HttpRequestError(500, "Internal Server Error");
+    }
+}
+
+/**
  * Adds feedback for this user.
  * @param username
  * @param feedback
@@ -244,7 +270,8 @@ export async function updateLastRequest(username: string, date: string) {
 export async function getUserInformation(username: string): Promise<IUserInformation> {
     try {
         const databaseUserInfo = await db.query(getUserInformationSql, [username]) as any;
-        const userInfo = createUserInformation(username, databaseUserInfo[0]);
+        const databaseUserLocations = await db.query(getUserLocationsSql, [username]) as any;
+        const userInfo = createUserInformation(databaseUserInfo[0], 0, databaseUserLocations)[0];
         return userInfo;
     } catch (err) {
         log.databaseError(err);
@@ -258,12 +285,18 @@ export async function getUserInformation(username: string): Promise<IUserInforma
 export async function getAllUsersInformation(): Promise<IUserInformation[]> {
     try {
         const databaseUsersInfo = await db.query(getAllUsersInformationSql, []) as any[];
+        const databaseUserLocations = await db.query(getAllUsersLocationsSql, []) as any[];
         // Create the user information objects for all users.
-        const usersInfo = await Promise.all(databaseUsersInfo.map(async (info, index) => {
-            const username = databaseUsersInfo[index]["username"];
-            return await createUserInformation(username, info);
-        }));
-        return usersInfo;
+        const allUsersInfo = [];
+        let index = 0;
+        for (const userInfo of databaseUsersInfo) {
+            const result = createUserInformation(userInfo, index, databaseUserLocations);
+            // Update the index.
+            index = result[1];
+            // Push the result to the list.
+            allUsersInfo.push(result[0]);
+        }
+        return allUsersInfo;
     } catch (err) {
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error");
@@ -277,8 +310,10 @@ export async function getAllUsersInformation(): Promise<IUserInformation[]> {
  * a try catch block.
  * @param databaseUserInfo
  */
-async function createUserInformation(username: string, databaseUserInfo: any): Promise<IUserInformation> {
-    const databaseUserLocations = await db.query(getUserLocationsSql, [username]) as any[];
+function createUserInformation(
+    databaseUserInfo: any, index: number, databaseUserLocations: any[]): [IUserInformation, number] {
+
+    const username = databaseUserInfo["username"];
 
     let gender = databaseUserInfo["gender"];
     if (gender === null) {
@@ -303,12 +338,20 @@ async function createUserInformation(username: string, databaseUserInfo: any): P
         lastKnownLocation = undefined;
     }
 
-    const frequentLocations =  databaseUserLocations.map((location) => {
-        return {
-            lat: location.latitude,
-            long: location.longitude,
-        };
-    });
+    const frequentLocations: Location[] = [];
+
+    // Get all the locations from the array that belong to this user.
+    // This assumes that databaseUserLocations is sorted.
+    for (index < databaseUserLocations.length; index++;) {
+        if (databaseUserLocations[index]["username"] === username) {
+            frequentLocations.push({
+                lat: databaseUserLocations[index]["latitude"],
+                long: databaseUserLocations[index]["longitude"],
+            });
+        } else {
+            break;
+        }
+    }
 
     const ownsBicycle = databaseUserInfo["ownsBicycle"];
     const ownsCar = databaseUserInfo["ownsCar"];
@@ -324,5 +367,5 @@ async function createUserInformation(username: string, databaseUserInfo: any): P
         ownsLaptop,
     };
 
-    return userInfo;
+    return [userInfo, index];
 }
