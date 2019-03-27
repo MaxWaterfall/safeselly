@@ -1,15 +1,15 @@
 import { Form, Text, Textarea} from "native-base";
 import React, { Component } from "react";
-import { IGeneralWarning, WarningInformationType } from "../../../../../shared/Warnings";
-import { HeaderBar } from "./../../general/HeaderBar";
-import Styles from "./../../general/Styles";
+import { IWarningInformation } from "../../../../../shared/Warnings";
+import { HeaderBar } from "../../general/HeaderBar";
+import Styles from "../../general/Styles";
 
 interface IProps {
-    info: IGeneralWarning;
-    updateWarningInformation(info: WarningInformationType): void;
+    info: IWarningInformation;
+    updateWarningInformation(info: IWarningInformation): void;
 }
 
-export default class SubmitGeneralWarning extends Component<IProps> {
+export default class WarningDetails extends Component<IProps> {
     // @ts-ignore
     public static navigationOptions = ({navigation}) => {
         return {

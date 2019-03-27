@@ -64,6 +64,10 @@ export default class DateTime extends Component<IProps> {
             minDate,
         })
             .then((value: DatePickerAndroidOpenReturn) => {
+                if (value.action === "dismissedAction") {
+                    return;
+                }
+
                 this.props.chooseDate({
                     year: value.year,
                     month: value.month,
@@ -81,6 +85,9 @@ export default class DateTime extends Component<IProps> {
             mode: "spinner",
         })
             .then((value) => {
+                if (value.action === "dismissedAction") {
+                    return;
+                }
                 // Call props with new date.
                 this.props.chooseTime({
                     hours: value.hour,

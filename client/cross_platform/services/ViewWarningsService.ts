@@ -2,17 +2,17 @@
 import datetimeDifference from "datetime-difference";
 import { AppState } from "react-native";
 import {
-    IReturnWarning,
     ISpecificReturnWarning,
+    IWarning,
     WarningType,
 } from "../../../shared/Warnings";
 import { getItem, setItem } from "./../data/DataStorage";
 import { makeAuthenticatedRequest } from "./NetworkService";
 
-const SELLY_OAK_LAT = 52.436720;
-const SELLY_OAK_LONG = -1.939000;
-const LATITUDE_DELTA = 0.026;
-const LONGITUDE_DELTA = 0.0159;
+const SELLY_OAK_LAT = 52.44190975688334;
+const SELLY_OAK_LONG = -1.9310344196856024;
+const LATITUDE_DELTA = 0.012998311140464125;
+const LONGITUDE_DELTA = 0.020888708531856537;
 
 let viewedWarnings: Map<string, Date>;
 
@@ -26,20 +26,15 @@ export const initialRegion = {
 /**
  * Retrieves all warnings from the server with a WarningDateTime within the past {hours} hours.
  */
-export async function getWarningsFrom(hours: number): Promise<IReturnWarning[]> {
+export async function getWarningsFrom(hours: number, relevant: boolean): Promise<IWarning[]> {
     try {
-        return await makeAuthenticatedRequest("GET", `/warning/filter/${hours}`, {});
-    } catch (err) {
-        throw err;
-    }
-}
-
-/**
- * Retrieves all warnings from the server after a given warning id.
- */
-export async function getWarningsAfterId(warningId: string): Promise<IReturnWarning[]> {
-    try {
-        return await makeAuthenticatedRequest("GET", `/warning/${warningId}/after`, {});
+        let warnings;
+        if (relevant) {
+            warnings = makeAuthenticatedRequest("GET", `/warning/filter/${hours}/relevant`, {});
+        } else {
+            warnings = await makeAuthenticatedRequest("GET", `/warning/filter/${hours}`, {});
+        }
+        return warnings;
     } catch (err) {
         throw err;
     }
@@ -50,15 +45,11 @@ export async function getWarningsAfterId(warningId: string): Promise<IReturnWarn
  * @param warningId
  */
 export async function getWarningInformation(
-    warningId: string, warningType: WarningType): Promise<ISpecificReturnWarning> {
+    warningId: string): Promise<ISpecificReturnWarning> {
 
     try {
-        let result;
-        if (warningType === "general") {
-            result = await makeAuthenticatedRequest("GET", `/warning/${warningId}`, {});
-            viewWarning(warningId);
-        }
-
+        const result = await makeAuthenticatedRequest("GET", `/warning/${warningId}`, {});
+        viewWarning(warningId);
         return result;
     } catch (err) {
         throw err;

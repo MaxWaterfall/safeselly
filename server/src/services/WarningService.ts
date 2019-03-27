@@ -1,17 +1,17 @@
 import { isPointInCircle } from "geolib";
 import { HttpRequestError } from "../helper/HttpRequestError";
+import { createWarning, IUserInformation } from "../warnings/WarningHelper";
 import {
     DISTANCE_FROM_SELLY_OAK,
-    IGeneralWarning,
-    IReturnWarning,
+    getDangerLevelForWarningType,
     ISpecificReturnWarning,
     ISubmissionWarning,
     IVote,
+    IWarning,
+    IWarningInformation,
     SELLY_OAK_LAT,
     SELLY_OAK_LONG,
     validateWarning,
-    WarningInformationType,
-    WarningType,
 } from "./../../../shared/Warnings";
 import * as log from "./../helper/Logger";
 import * as UserRepository from "./../repositories/UserRepository";
@@ -22,11 +22,12 @@ const NUMBER_OF_IDS = 1000000000000; // 100 billion.
 const MAX_HOUR_FILTER = 24 * 7; // 1 week.
 const MIN_TOTAL_VOTES_FOR_BAN = 10; // At least 10 votes required before user can be banned.
 const BAN_PERCENTAGE = 51; // If 51% of votes are downvotes, the user is banned.
+const MINIMUM_RELEVANCE = 3; // The minimum relevance score required for a warning to be considered relevant.
 
 /**
  * Returns all warnings in the database.
  */
-export async function getAllWarnings(): Promise<IReturnWarning[]> {
+export async function getAllWarnings(): Promise<IWarning[]> {
     try {
         return await WarningRepository.getAllWarnings();
     } catch (err) {
@@ -38,7 +39,7 @@ export async function getAllWarnings(): Promise<IReturnWarning[]> {
  * Throws error if validation fails.
  * @param hours
  */
-export async function getAllWarningsFrom(hours: string): Promise<IReturnWarning[]> {
+export async function getWarningsFrom(hours: string): Promise<IWarning[]> {
     // Check it's a number.
     const hoursNumber = Number(hours);
     if (isNaN(hoursNumber)) {
@@ -59,30 +60,20 @@ export async function getAllWarningsFrom(hours: string): Promise<IReturnWarning[
 
 /**
  * Returns information for warning with {id}.
- * This includes specific warning information based on it's type.
+ * This includes specific warning information that is relevant to the user who made the request.
  */
 export async function getWarning(username: string, warningId: string): Promise<ISpecificReturnWarning> {
     if (warningId === undefined) {
         throw new HttpRequestError(400, "No warning_id given.");
     }
 
-    // First get the type of the warning.
-    let warningType: WarningType;
+    // Get specific warning information.
+    let information: IWarningInformation | string;
     try {
-        const result = await WarningRepository.getWarningType(warningId);
-        if (result === "") {
-            throw new HttpRequestError(400, "warning_id does not exist.");
+        information = await WarningRepository.getWarningInformation(warningId);
+        if (information === "") {
+            throw new HttpRequestError(400, "Warning does not exist.");
         }
-
-        warningType = result;
-    } catch (err) {
-        throw err;
-    }
-
-    // Get specific warning information based on type.
-    let information: WarningInformationType;
-    try {
-        information = await WarningRepository.getWarningInformation(warningId, warningType);
     } catch (err) {
         throw err;
     }
@@ -111,14 +102,55 @@ export async function getWarning(username: string, warningId: string): Promise<I
         throw err;
     }
 
-    const returnWarning: ISpecificReturnWarning = {
-        information,
+    const warning: ISpecificReturnWarning = {
+        information: information as IWarningInformation,
         votes,
         userVoted,
         userSubmitted,
     };
 
-    return returnWarning;
+    return warning;
+}
+
+/**
+ * Gets all the relevant warnings (for the user who made the request) that occurred
+ * within the last {hours} hours.
+ * @param username
+ * @param hours
+ */
+export async function getRelevantWarningsFrom(username: string, hours: string) {
+    // Check hours is a number.
+    const hoursNumber = Number(hours);
+    if (isNaN(hoursNumber)) {
+        throw new HttpRequestError(400, "Hours must be a number.");
+    }
+
+    // Check hours is not more than the max.
+    if (hoursNumber < 0 || hoursNumber > MAX_HOUR_FILTER) {
+        throw new HttpRequestError(400, `Hours must be more than 0 and no more than ${MAX_HOUR_FILTER} hour(s).`);
+    }
+
+    let warnings: IWarning[];
+    let userInfo: IUserInformation;
+    try {
+        // First retrieve the warnings from the database.
+        warnings = await WarningRepository.getAllWarningsFrom(hoursNumber);
+        // Now retrieve user information.
+        userInfo = await UserRepository.getUserInformation(username);
+    } catch (err) {
+        throw err;
+    }
+
+    // Now work out which warnings are relevant.
+    const relevantWarnings: IWarning[] = [];
+    for (const warning of warnings) {
+        const relevantWarning = createWarning(warning);
+        if (relevantWarning.calculateRelevance(userInfo) >= MINIMUM_RELEVANCE) {
+            relevantWarnings.push(warning);
+        }
+    }
+
+    return relevantWarnings;
 }
 
 /**
@@ -131,7 +163,7 @@ export async function submitWarning(username: string, warning: ISubmissionWarnin
     try {
         validateWarning(warning);
     } catch (err) {
-        throw new HttpRequestError(400, err);
+        throw new HttpRequestError(400, err.message);
     }
 
     // Check location is within bounds.
@@ -159,9 +191,18 @@ export async function submitWarning(username: string, warning: ISubmissionWarnin
         throw (err);
     }
 
-    // Pass onto the NotificationService.
-    NotificationService.newWarningSubmission(warningId, warning);
+    // Build the IWarning.
+    const warningSubmission: IWarning = {
+        warningId,
+        dateTime: warning.dateTime,
+        information: warning.information,
+        location: warning.location,
+        priority: getDangerLevelForWarningType(warning.type),
+        type: warning.type,
+    };
 
+    // Pass onto notification service.
+    NotificationService.newWarningSubmission(warningId, warningSubmission);
 }
 
 /**
@@ -230,7 +271,7 @@ async function shouldBanUser(warningId: string): Promise<boolean> {
 /**
  *  Returns the current date and time, correctly formatted for the database type DATETIME.
  */
-function getDate(): string {
+export function getDate(): string {
     // Get current time and date. Need to match format 'YYYY-MM-DD HH:MM:SS' for database.
     const now = new Date();
     let month = (now.getMonth() + 1).toString();
@@ -259,7 +300,7 @@ function getDate(): string {
 }
 
  /**
-  * Takes a string an appends a 0 if needed. Eg. format("5") will return "05".
+  * Takes a string an prepends a 0 if needed. Eg. format("5") will return "05".
   * @param value the string to format.
   */
 function format(value: string): string {

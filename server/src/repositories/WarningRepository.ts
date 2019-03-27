@@ -1,11 +1,9 @@
 import {
-    IGeneralWarning,
-    IReturnWarning,
-    ISpecificReturnWarning,
+    getDangerLevelForWarningType,
     ISubmissionWarning,
     IVote,
-    WarningInformationType,
-    WarningType,
+    IWarning,
+    IWarningInformation,
 } from "../../../shared/Warnings";
 import * as log from "../helper/Logger";
 import { HttpRequestError } from "./../helper/HttpRequestError";
@@ -13,14 +11,10 @@ import { db } from "./../Server";
 
 const submitWarningSql = `
     INSERT INTO Warning
-    VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)
-`;
-const submitGeneralWarningSql = `
-    INSERT INTO GeneralWarning
-    VALUES (?, ?, ?)
+    VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `;
 const getAllWarningsSql = `
-    SELECT warningId, warningType, warningDateTime, latitude, longitude
+    SELECT warningId, warningType, warningDateTime, latitude, longitude, warningDescription, peopleDescription
     FROM Warning
 `;
 const upvoteWarningSql = `
@@ -37,17 +31,13 @@ const downvoteWarningSql = `
         upvote = false,
         downvote = true
 `;
-const getWarningTypeSql = `
-    SELECT warningType FROM Warning
-    WHERE warningId = ?
-`;
-const getGeneralWarningSql = `
+const getSpecificWarningInformationSql = `
     SELECT peopleDescription, warningDescription
-    FROM GeneralWarning
+    FROM Warning
     WHERE warningId = ?
 `;
 const getAllWarningsFromSql = `
-    SELECT warningId, warningType, warningDateTime, latitude, longitude
+    SELECT warningId, warningType, warningDateTime, latitude, longitude, warningDescription, peopleDescription
     FROM Warning
     WHERE warningDateTime > DATE_SUB(NOW(),INTERVAL ? HOUR)
 `;
@@ -76,7 +66,7 @@ const didUserSubmitWarningSql = `
  */
 export async function submitWarning(
     username: string, warning: ISubmissionWarning, dateTime: string, warningId: string) {
-    // First add to the Warning table.
+    // Add to the Warning table.
     try {
         await db.query(submitWarningSql, [
             warningId,
@@ -86,37 +76,27 @@ export async function submitWarning(
             warning.location.lat,
             warning.location.long,
             dateTime,
+            warning.information.peopleDescription,
+            warning.information.warningDescription,
         ]);
     } catch (err) {
-        log.databaseError(err);
-        throw new HttpRequestError(500, "Internal Server Error.");
-    }
-
-    // Now add to a specific warning table, depending on the warning type.
-    try {
-        if (warning.type === "general") {
-            await db.query(submitGeneralWarningSql, [
-                warningId,
-                warning.information.peopleDescription,
-                warning.information.warningDescription,
-            ]);
-        }
-    } catch (err) {
-        // TODO: Revert previous query.
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error.");
     }
 }
 
 /**
- * Returns a warnings type.
+ * Returns specific information about a warning.
  * @param warningId
+ * @param warningType
  */
-export async function getWarningType(warningId: string): Promise<WarningType | ""> {
+export async function getWarningInformation(
+    warningId: string): Promise<IWarningInformation | string> {
     try {
-        const result = await db.query(getWarningTypeSql, [warningId]) as any[];
+        // Get warning information.
+        const result = await db.query(getSpecificWarningInformationSql, warningId) as any[];
         if (result.length > 0) {
-            return result[0].warningType as WarningType;
+            return result[0] as IWarningInformation;
         }
         return "";
     } catch (err) {
@@ -126,43 +106,26 @@ export async function getWarningType(warningId: string): Promise<WarningType | "
 }
 
 /**
- * Returns specific information about a warning based on it's type.
- * @param warningId
- * @param warningType
- */
-export async function getWarningInformation(
-    warningId: string, warningType: WarningType): Promise<WarningInformationType> {
-    try {
-        // Get warning information.
-        if (warningType === "general") {
-            const result = await db.query(getGeneralWarningSql, warningId) as any[];
-            return result[0] as IGeneralWarning;
-        } else {
-            throw new Error("warningType was not valid.");
-        }
-
-        // Other warning types here.
-    } catch (err) {
-        log.databaseError(err);
-        throw new HttpRequestError(500, "Internal Server Error.");
-    }
-}
-
-/**
  * Returns generic information for all warnings.
  */
-export async function getAllWarnings(): Promise<IReturnWarning[]> {
+export async function getAllWarnings(): Promise<IWarning[]> {
     try {
         const result = await db.query(getAllWarningsSql, []) as any[];
         return result.map((warning) => {
-            const returnWarning: IReturnWarning = {
+            const priority = getDangerLevelForWarningType(warning.warningType);
+            const returnWarning: IWarning = {
                 warningId: warning.warningId,
                 type: warning.warningType,
+                priority,
                 location: {
                     lat: warning.latitude,
                     long: warning.longitude,
                 },
                 dateTime: warning.warningDateTime,
+                information: {
+                    peopleDescription: warning.peopleDescription,
+                    warningDescription: warning.warningDescription,
+                },
             };
             return returnWarning;
         });
@@ -176,18 +139,24 @@ export async function getAllWarnings(): Promise<IReturnWarning[]> {
  * Returns all warnings with a WarningDateTime within the past {hours} hours.
  * @param hours
  */
-export async function getAllWarningsFrom(hours: number): Promise<IReturnWarning[]> {
+export async function getAllWarningsFrom(hours: number): Promise<IWarning[]> {
     try {
         const result = await db.query(getAllWarningsFromSql, [hours]) as any[];
         return result.map((warning) => {
-            const returnWarning: IReturnWarning = {
+            const priority = getDangerLevelForWarningType(warning.warningType) as number;
+            const returnWarning: IWarning = {
                 warningId: warning.warningId,
                 type: warning.warningType,
+                priority,
                 location: {
                     lat: warning.latitude,
                     long: warning.longitude,
                 },
                 dateTime: warning.warningDateTime,
+                information: {
+                    peopleDescription: warning.peopleDescription,
+                    warningDescription: warning.warningDescription,
+                },
             };
             return returnWarning;
         });

@@ -5,53 +5,74 @@ export const SELLY_OAK_LAT = 52.436720;
 export const SELLY_OAK_LONG = -1.939000;
 export const DISTANCE_FROM_SELLY_OAK = 5000; // 5km.
 
+/**
+ * How dangerous the warning is.
+ */
+export enum DangerLevel {
+    HIGH = 1,
+    NORMAL = 2,
+    LOW = 3,
+}
+
+export interface Location {
+    lat: number;
+    long: number;
+}
+
 export interface IVote {
     upvotes: number,
     downvotes: number,
 }
-export type WarningType = "general";
-export type WarningInformationType = IGeneralWarning
+
+export type WarningType = 
+    "general" | 
+    "vandalism" | 
+    "threatening behaviour" | 
+    "assault" | 
+    "burglary" | 
+    "theft" | 
+    "mugging" | 
+    "suspicious behaviour" | 
+    "harassment";
 
 /**
  * The information required to submit a warning.
  */
 export interface ISubmissionWarning {
     type: WarningType;
-    location: {
-        lat: number;
-        long: number;
-    };
+    location: Location;
     dateTime: string;
-    information: WarningInformationType;
+    information: IWarningInformation;
 }
 
 /**
  * The information that is given when the client requests a set of warnings.
+ * This information is also given when the user is notified of a warning.
  */
-export interface IReturnWarning {
+export interface IWarning {
     warningId: string;
     type: WarningType;
-    location: {
-        lat: number;
-        long: number;
-    }
+    priority: number;
+    location: Location;
     dateTime: string;
+    information: IWarningInformation;
 }
 
 /**
  * The information that is given when the client requests information for a specific warning.
+ * For example, if the user clicks a marker on the map within the app.
  */
 export interface ISpecificReturnWarning {
-    information: WarningInformationType;
+    information: IWarningInformation;
     votes: IVote;
     userVoted: boolean;
     userSubmitted: boolean;
 }
 
 /**
- * The information required for a general warning.
+ * The specific information about the warning.
  */
-export interface IGeneralWarning {
+export interface IWarningInformation {
     peopleDescription: string;
     warningDescription: string;
 }
@@ -62,7 +83,7 @@ export interface IGeneralWarning {
  * @param warning the warning to be validated.
  */
 export function validateWarning(warning: ISubmissionWarning) {
-    // Check IWarning members are correct types.
+    // Check ISubmissionWarning members are correct types.
     if (typeof warning.type !== "string") {
         throwIsNotValidError("type");
     }
@@ -83,19 +104,18 @@ export function validateWarning(warning: ISubmissionWarning) {
         throwIsNotValidError("warningDateTime");
     }
 
-    // Check information member.
-    if (warning.type === "general") {
-        validateGeneralWarning(warning.information);
-    } else {
+    if (getDangerLevelForWarningType(warning.type) === -1) {
         throwIsNotValidError("type");
     }
+
+    validateWarningInformation(warning.information);
 }
 
 /**
- * Checks a general warning is valid.
+ * Checks a warning information is valid.
  * @param warning
  */
-function validateGeneralWarning(warning: IGeneralWarning) {
+function validateWarningInformation(warning: IWarningInformation) {
     // Check they are the correct types.
     if (typeof warning.peopleDescription !== "string") {
         throwIsNotValidError("peopleDescription");
@@ -122,8 +142,48 @@ function validateGeneralWarning(warning: IGeneralWarning) {
 }
 
 /**
+ * Returns the danger level of the given warning type.
+ * 1 = High, 2 = Normal, 3 = Low
+ * @param type
+ */
+export function getDangerLevelForWarningType(type: WarningType) {
+    switch (type) {
+        case "general": return DangerLevel.NORMAL;
+        case "vandalism": return DangerLevel.LOW;
+        case "threatening behaviour": return DangerLevel.HIGH;
+        case "assault": return DangerLevel.HIGH;
+        case "burglary": return DangerLevel.NORMAL;
+        case "theft": return DangerLevel.LOW;
+        case "mugging": return DangerLevel.HIGH;
+        case "suspicious behaviour": return DangerLevel.LOW;
+        case "harassment": return DangerLevel.NORMAL;
+    }
+}
+
+/**
  * Throws an error which shows the user what part of the warning is invalid.
  */
 function throwIsNotValidError(name: string) {
     throw new Error(`'${name}' is not valid.`); 
 }
+
+/**
+ * Formats the type so that the first letter is upper case.
+ */
+export function prettyType(type: string)  {
+    // Uppercase first letter of first word.
+    type = type.substr(0, 1).toUpperCase() + type.substr(1);
+
+    const indexOfSecondWord = type.indexOf(" ") + 1;
+    if (indexOfSecondWord >= 0) {
+        // Uppercase first letter of second word.
+        type =
+            type.substring(0, indexOfSecondWord) +
+            type.substr(indexOfSecondWord, 1).toUpperCase() +
+            type.substr(indexOfSecondWord + 1);
+    }
+
+    return type;
+}
+
+

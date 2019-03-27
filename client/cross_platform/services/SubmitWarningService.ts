@@ -15,6 +15,15 @@ export async function sendWarning(warning: ISubmissionWarning) {
 }
 
 /**
+ * Validates the date to check it isn't in the future.
+ * @param date
+ */
+export function validateDate(date: Date) {
+    const now = new Date();
+    return now >= date;
+}
+
+/**
  * Converts the date into the format the server understands.
  */
 export function formatDate(date: Date): string {

@@ -1,13 +1,20 @@
+import { isPointInCircle } from "geolib";
 import { Button, H3, Text, Toast, View} from "native-base";
 import React, { Component } from "react";
 import MapView, { LatLng, MapEvent, Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
 import { initialRegion } from "../../../services/ViewWarningsService";
+import {
+    DISTANCE_FROM_SELLY_OAK,
+    SELLY_OAK_LAT,
+    SELLY_OAK_LONG,
+} from "./../../../../../shared/Warnings";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
 
 interface IState {
     region: Region;
     warningLocation?: LatLng;
+    mapMarginBottom: number;
 }
 
 export default class ChooseLocation extends Component<any, IState> {
@@ -23,6 +30,7 @@ export default class ChooseLocation extends Component<any, IState> {
 
         this.state = {
             region: initialRegion,
+            mapMarginBottom: 1,
         };
     }
 
@@ -30,7 +38,7 @@ export default class ChooseLocation extends Component<any, IState> {
         return (
             <View style={[{flex: 1, flexDirection: "column"}, Styles.mt10]}>
                 <H3 style={{...Styles.centreText as any, ...Styles.mbt10}}>
-                    Where is the warning located?
+                    Where did the incident happen?
                 </H3>
                 <Text style={{...Styles.centreText as any, ...Styles.mb10}}>
                     Choose a location by tapping the map.
@@ -38,10 +46,13 @@ export default class ChooseLocation extends Component<any, IState> {
                 </Text>
                 <MapView
                     onPress={this.onMapPress}
-                    style={{flexGrow: 1}}
+                    style={{flexGrow: 1, marginBottom: this.state.mapMarginBottom}}
+                    onMapReady={() => this.setState({mapMarginBottom: 0})}
                     provider={PROVIDER_GOOGLE}
                     region={this.state.region}
                     onRegionChangeComplete={this.onRegionChangeComplete}
+                    showsMyLocationButton={true}
+                    showsUserLocation={true}
                 >
                     {this.renderMarker()}
                 </MapView>
@@ -68,9 +79,22 @@ export default class ChooseLocation extends Component<any, IState> {
             return;
         }
 
-        this.props.navigation.push("EnterInformation", {
+        // Check the warning is close to Selly Oak.
+        if (!isPointInCircle(
+            {latitude: this.state.warningLocation!.latitude, longitude: this.state.warningLocation!.longitude},
+            {latitude: SELLY_OAK_LAT, longitude: SELLY_OAK_LONG},
+            DISTANCE_FROM_SELLY_OAK,
+        )) {
+            Toast.show({
+                text: "Location must be near Selly Oak.",
+                type: "warning",
+            });
+            return;
+        }
+
+        // Move to next page.
+        this.props.navigation.push("ChooseWarningType", {
             WarningLocation: this.state.warningLocation,
-            WarningType: "general", // Will be changed to be a specific type when more come out.
         });
     }
 

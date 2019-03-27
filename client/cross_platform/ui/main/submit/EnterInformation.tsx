@@ -1,18 +1,18 @@
 import { Button, Container, Content, H3, Item, Text, Toast } from "native-base";
 import React, { Component } from "react";
 import { LatLng } from "react-native-maps";
-import { IGeneralWarning, WarningInformationType, WarningType } from "../../../../../shared/Warnings";
+import { IWarningInformation, WarningType } from "../../../../../shared/Warnings";
 import { LoadingScreen } from "../../general/LoadingScreen";
-import { formatDate, sendWarning } from "./../../../services/SubmitWarningService";
+import { formatDate, sendWarning, validateDate } from "./../../../services/SubmitWarningService";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
 import DateTime from "./DateTime";
-import SubmitGeneralWarning from "./SubmitGeneralWarning";
+import WarningDetails from "./WarningDetails";
 
 interface IState {
     warningLocation: LatLng;
     warningDate: Date;
-    warningInformation: WarningInformationType;
+    warningInformation: IWarningInformation;
     warningType: WarningType;
     loading: boolean;
 }
@@ -31,7 +31,10 @@ export default class EnterInformation extends Component<any, IState> {
         this.state = {
             warningLocation: this.props.navigation.getParam("WarningLocation") as LatLng,
             warningDate: new Date(),
-            warningInformation: this.getInitialWarningInformation(),
+            warningInformation: {
+                peopleDescription: "",
+                warningDescription: "",
+            },
             warningType: this.props.navigation.getParam("WarningType") as WarningType,
             loading: false,
         };
@@ -61,7 +64,10 @@ export default class EnterInformation extends Component<any, IState> {
                         dateTime={this.state.warningDate as Date}
                     />
                     <Item last/>
-                    {this.renderTypeFields()}
+                    <WarningDetails
+                        info={this.state.warningInformation as IWarningInformation}
+                        updateWarningInformation={this.updateWarningInformation}
+                    />
                     <Item last/>
                     <Button
                         full
@@ -80,7 +86,7 @@ export default class EnterInformation extends Component<any, IState> {
     /**
      * Callback function used by the components that render specific fields based on warning type.
      */
-    public updateWarningInformation = (info: WarningInformationType) => {
+    public updateWarningInformation = (info: IWarningInformation) => {
         this.setState({warningInformation: info});
     }
 
@@ -116,57 +122,49 @@ export default class EnterInformation extends Component<any, IState> {
         });
     }
 
-    /**
-     * Initialises the warning information object depending on the WarningType.
-     */
-    private getInitialWarningInformation = (): WarningInformationType => {
-        const type = this.props.navigation.getParam("WarningType") as WarningType;
-
-        if (type === "general") {
-            return {
-                peopleDescription: "",
-                warningDescription: "",
-            };
-        }
-
-        // Default.
-        return {
-            peopleDescription: "",
-            warningDescription: "",
-        };
-    }
-
-    /**
-     * Renders a specific set of fields depending on the warning type.
-     */
-    private renderTypeFields = () => {
-        const type = this.state.warningType;
-
-        if (type === "general") {
-            return (
-                <SubmitGeneralWarning
-                    info={this.state.warningInformation as IGeneralWarning}
-                    updateWarningInformation={this.updateWarningInformation}
-                />
-            );
-        }
-    }
-
     private updateTime = (time: any) => {
         const currentDate = this.state.warningDate as Date;
-        this.setState({
-            warningDate: new Date(
-                currentDate.getFullYear(),
-                currentDate.getMonth(),
-                currentDate.getDay(),
-                time.hours,
-                time.minutes,
-            ),
-        });
+        const newDate = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            currentDate.getDate(),
+            time.hours,
+            time.minutes,
+        );
+
+        if (!validateDate(newDate)) {
+            // Time is not valid.
+            const now = new Date();
+            this.setState({
+                warningDate: new Date(
+                    currentDate.getFullYear(),
+                    currentDate.getMonth(),
+                    currentDate.getDate(),
+                    now.getHours(),
+                    now.getMinutes(),
+                ),
+            }, () => {
+                Toast.show({
+                    text: "Time is in the future.",
+                    type: "danger",
+                });
+            });
+        } else {
+            this.setState({
+                warningDate: new Date(
+                    currentDate.getFullYear(),
+                    currentDate.getMonth(),
+                    currentDate.getDate(),
+                    time.hours,
+                    time.minutes,
+                ),
+            });
+        }
     }
 
     private updateDate = (date: any) => {
         const currentDate = this.state.warningDate as Date;
+
         this.setState({
             warningDate: new Date(
                 date.year,

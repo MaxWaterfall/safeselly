@@ -1,7 +1,8 @@
 import * as bcrypt from "bcrypt";
-import * as UserRepository from "../repositories/USerRepository";
+import * as UserRepository from "../repositories/UserRepository";
 import {HttpRequestError} from "./../helper/HttpRequestError";
 import * as log from "./../helper/Logger";
+import * as WarningService from "./WarningService";
 
 export async function isRequestAuthorised(username: string, accessToken: string) {
     if (username === undefined) {
@@ -44,5 +45,12 @@ export async function isRequestAuthorised(username: string, accessToken: string)
         // Check username is valid.
         // TODO: See above, add logging to track unauthorised access attempts.
         throw new HttpRequestError(400, "Credentials are not valid.");
+    }
+
+    // User is authorised, update the time they last made a request.
+    try {
+        await UserRepository.updateLastRequest(username, WarningService.getDate());
+    } catch (err) {
+        throw err;
     }
 }

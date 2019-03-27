@@ -1,10 +1,17 @@
+import { Location } from "../../../shared/Warnings";
 import * as log from "../helper/Logger";
+import { IUserInformation } from "../warnings/WarningHelper";
 import {HttpRequestError} from "./../helper/HttpRequestError";
 import {db} from "./../Server";
 
 const setFCMTokenSql = `
     UPDATE User
     SET fcmToken = ?
+    WHERE username = ?
+`;
+const getFCMTokenSql = `
+    SELECT fcmToken
+    FROM User
     WHERE username = ?
 `;
 const submitFeedbackSql = `
@@ -47,7 +54,22 @@ const banUserSql = `
         WHERE warningId = ?
     )
 `;
-
+const updateLastRequestSql = `
+    UPDATE User
+    SET lastRequest = ?
+    WHERE username = ?
+`;
+const getUserInformationSql = `
+    SELECT * FROM UserInformation
+    WHERE username = ?
+`;
+const getUserLocationsSql = `
+    SELECT * FROM UserLocation
+    WHERE username = ?
+`;
+const getAllUsersInformationSql = `
+    SELECT * FROM UserInformation
+`;
 /**
  * Adds a user into the database.
  * @param username
@@ -141,6 +163,20 @@ export async function setFCMToken(username: string, fcmToken: string) {
 }
 
 /**
+ * Gets a users' FCM Token.
+ * @param username
+ */
+export async function getFCMToken(username: string) {
+    try {
+        const result = await db.query(getFCMTokenSql, [username]) as any[];
+        return result[0]["fcmToken"];
+    } catch (err) {
+        log.databaseError(err);
+        throw new HttpRequestError(500, "Internal Server Error");
+    }
+}
+
+/**
  * Adds feedback for this user.
  * @param username
  * @param feedback
@@ -185,4 +221,108 @@ export async function banUser(warningId: string) {
         log.databaseError(err);
         throw new HttpRequestError(500, "Internal Server Error");
     }
+}
+
+/**
+ * Updates the users last request with the given date.
+ * @param username
+ * @param date
+ */
+export async function updateLastRequest(username: string, date: string) {
+    try {
+        await db.query(updateLastRequestSql, [date, username]);
+    } catch (err) {
+        log.databaseError(err);
+        throw new HttpRequestError(500, "Internal Server Error");
+    }
+}
+
+/**
+ * Gets all the information about a user.
+ * @param username
+ */
+export async function getUserInformation(username: string): Promise<IUserInformation> {
+    try {
+        const databaseUserInfo = await db.query(getUserInformationSql, [username]) as any;
+        const userInfo = createUserInformation(username, databaseUserInfo);
+        return userInfo;
+    } catch (err) {
+        log.databaseError(err);
+        throw new HttpRequestError(500, "Internal Server Error");
+    }
+}
+
+/**
+ * Retrieves the user information for all users.
+ */
+export async function getAllUsersInformation(): Promise<IUserInformation[]> {
+    try {
+        const databaseUsersInfo = await db.query(getAllUsersInformationSql, []) as any[];
+        // Create the user information objects for all users.
+        const usersInfo = await Promise.all(databaseUsersInfo.map(async (info, index) => {
+            const username = databaseUsersInfo[index]["username"];
+            return await createUserInformation(username, info);
+        }));
+        return usersInfo;
+    } catch (err) {
+        log.databaseError(err);
+        throw new HttpRequestError(500, "Internal Server Error");
+    }
+}
+
+/**
+ * Takes user information that was pulled from the database and returns a valid
+ * IUserInformation object. Also gets the frequent user locations from the database.
+ * This function must only be called from functions in this file as it does not contain
+ * a try catch block.
+ * @param databaseUserInfo
+ */
+async function createUserInformation(username: string, databaseUserInfo: any): Promise<IUserInformation> {
+    const databaseUserLocations = await db.query(getUserLocationsSql, [username]) as any[];
+
+    let gender = databaseUserInfo["gender"];
+    if (gender === null) {
+        gender = "UNKNOWN";
+    }
+
+    // Ensure home location is either a Location or undefined.
+    let homeLocation: Location | undefined = {
+        lat: databaseUserInfo["homeLatitude"] as number,
+        long: databaseUserInfo["homeLongitude"] as number,
+    };
+    if (homeLocation.lat === null || homeLocation.long === null) {
+        homeLocation = undefined;
+    }
+
+    // Ensure last known location is either a Location or undefined.
+    let lastKnownLocation: Location | undefined = {
+        lat: databaseUserInfo["currentLatitude"],
+        long: databaseUserInfo["currentLongitude"],
+    };
+    if (lastKnownLocation.lat === null || lastKnownLocation.long === null) {
+        lastKnownLocation = undefined;
+    }
+
+    const frequentLocations =  databaseUserLocations.map((location) => {
+        return {
+            lat: location.latitude,
+            long: location.longitude,
+        };
+    });
+
+    const ownsBicycle = databaseUserInfo["ownsBicycle"];
+    const ownsCar = databaseUserInfo["ownsCar"];
+    const ownsLaptop = databaseUserInfo["ownsLaptop"];
+    const userInfo: IUserInformation = {
+        username,
+        gender,
+        homeLocation,
+        lastKnownLocation,
+        frequentLocations,
+        ownsBicycle,
+        ownsCar,
+        ownsLaptop,
+    };
+
+    return userInfo;
 }

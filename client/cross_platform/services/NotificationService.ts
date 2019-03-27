@@ -1,7 +1,7 @@
 import { Alert, AppState, AppStateStatus } from "react-native";
 import firebase from "react-native-firebase";
 import { Notification, NotificationOpen } from "react-native-firebase/notifications";
-import { IReturnWarning } from "../../../shared/Warnings";
+import { IWarning } from "../../../shared/Warnings";
 import { makeAuthenticatedRequest } from "./NetworkService";
 import {isRegistered} from "./RegistrationService";
 
@@ -9,7 +9,7 @@ let currentAppState: AppStateStatus = "active";
 
 interface IListenerList {
     name: string;
-    callback: (data: IReturnWarning) => void;
+    callback: (data: IWarning) => void;
 }
 
 /**
@@ -38,7 +38,7 @@ export async function setUp() {
     try {
         enabled = await firebase.messaging().hasPermission();
     } catch (err) {
-        // Handle error.
+        // Nothing we can do here.
     }
 
     if (!enabled) {
@@ -63,7 +63,7 @@ export async function setUp() {
  * This means it can receive notifications for these topics.
  */
 function setUpTopics() {
-    firebase.messaging().subscribeToTopic("all");
+    firebase.messaging().subscribeToTopic("testing");
 }
 
 /**
@@ -93,7 +93,7 @@ async function setUpFCMToken() {
             fcm_token: fcmToken,
         })
             .catch((err) => {
-                // Do nothing for now.
+                // Do nothing.
             });
     }
 }
@@ -107,7 +107,7 @@ firebase.messaging().onTokenRefresh((fcmToken) => {
         fcm_token: fcmToken,
     })
         .catch((err) => {
-            // Do nothing for now.
+            // Do nothing.
         });
 });
 
@@ -116,7 +116,7 @@ firebase.messaging().onTokenRefresh((fcmToken) => {
  * @param name
  * @param callback
  */
-export function addNotificationReceivedListener(name: string, callback: (warning: IReturnWarning) => void) {
+export function addNotificationReceivedListener(name: string, callback: (warning: IWarning) => void) {
     notificationReceivedListeners.push({name, callback});
 }
 
@@ -134,7 +134,7 @@ export function removeNotificationReceivedListener(name: string) {
  * Adds a function the the notificationOpenedListener list.
  * @param callback
  */
-export function addNotificationOpenedListener(name: string, callback: (warning: IReturnWarning) => void) {
+export function addNotificationOpenedListener(name: string, callback: (warning: IWarning) => void) {
     notificationOpenedListeners.push({name, callback});
 }
 
@@ -172,14 +172,14 @@ function setUpListeners() {
             // Set icons.
             notif.android.setSmallIcon("@drawable/ic_stat_ss");
 
-            // Set to cancel will user opens it.
+            // Set to cancel when user opens it.
             notif.android.setAutoCancel(true);
 
             // Show notification.
             firebase.notifications().displayNotification(notif);
         }
 
-        const warning: IReturnWarning = JSON.parse(notification.data.warning) as IReturnWarning;
+        const warning: IWarning = JSON.parse(notification.data.warning) as IWarning;
 
         // Call all listeners.
         for (const listener of notificationReceivedListeners) {
@@ -188,16 +188,16 @@ function setUpListeners() {
     });
 
     /**
-     * Called when any notification is opened by the user.
+     * Called when any notification is opened by the user (when app is in background/foreground).
      */
     firebase.notifications().onNotificationOpened((notificationOpen: NotificationOpen) => {
         if (!registered) {
             return;
         }
 
-        const warning = JSON.parse(notificationOpen.notification.data.warning) as IReturnWarning;
+        const warning = JSON.parse(notificationOpen.notification.data.warning) as IWarning;
 
-        // Call all listeners.
+        // Call all opened listeners.
         for (const listener of notificationOpenedListeners) {
             listener.callback(warning);
         }

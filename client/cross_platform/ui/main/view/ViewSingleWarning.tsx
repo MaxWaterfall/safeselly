@@ -6,19 +6,26 @@ import MapView, { LatLng, Marker, PROVIDER_GOOGLE, Region } from "react-native-m
 import { getWarningInformation, voteWarning } from "../../../services/ViewWarningsService";
 import { FailedToConnectScreen } from "../../general/FailedToConnectScreen";
 import { LoadingScreen } from "../../general/LoadingScreen";
-import { IGeneralWarning, IReturnWarning, ISpecificReturnWarning } from "./../../../../../shared/Warnings";
+import {
+    ISpecificReturnWarning,
+    IWarning,
+    IWarningInformation,
+    prettyType,
+} from "./../../../../../shared/Warnings";
 import { HeaderBar } from "./../../general/HeaderBar";
 import Styles from "./../../general/Styles";
-import { ViewGeneralWarning } from "./ViewGeneralWarning";
+import ViewAllWarnings from "./ViewAllWarnings";
 import { ViewSingleWarningHeader } from "./ViewSingleWarningHeader";
+import { ViewWarningDetails } from "./ViewWarningDetails";
 
 interface IState {
     loading: boolean;
     failed: boolean;
     region: Region;
     markerLatLng: LatLng;
-    warning: IReturnWarning;
+    warning: IWarning;
     specific?: ISpecificReturnWarning;
+    mapMarginBottom: number;
 }
 
 export default class ViewSingleWarning extends Component<any, IState> {
@@ -33,7 +40,7 @@ export default class ViewSingleWarning extends Component<any, IState> {
     public constructor(props: any) {
         super(props);
 
-        const warning: IReturnWarning = this.props.navigation.getParam("warning");
+        const warning: IWarning = this.props.navigation.getParam("warning");
 
         this.state = {
             loading: true,
@@ -49,6 +56,7 @@ export default class ViewSingleWarning extends Component<any, IState> {
                 latitude: warning.location.lat,
                 longitude: warning.location.long,
             },
+            mapMarginBottom: 1,
         };
 
         this.getWarningInformationInitial();
@@ -65,14 +73,21 @@ export default class ViewSingleWarning extends Component<any, IState> {
 
         return (
             <Container>
-                <Container style={{...{flex: 1}}}>
+                <Container style={{flex: 1}}>
                     <MapView
-                        style={Styles.fillObject}
+                        style={[Styles.fillObject, {marginBottom: this.state.mapMarginBottom}]}
                         provider={PROVIDER_GOOGLE}
+                        // Workaround for bug where user location button does not show.
+                        onMapReady={() => this.setState({mapMarginBottom: 0})}
                         region={this.state.region}
+                        showsMyLocationButton={true}
+                        showsUserLocation={true}
                         onRegionChangeComplete={this.onRegionChangeComplete}
                     >
-                        <Marker coordinate={this.state.markerLatLng as LatLng}/>
+                        <Marker
+                            coordinate={this.state.markerLatLng as LatLng}
+                            pinColor={ViewAllWarnings.chooseMarkerColour(this.state.warning)}
+                        />
                     </MapView>
                 </Container>
                 <Container>
@@ -80,12 +95,14 @@ export default class ViewSingleWarning extends Component<any, IState> {
                         <ViewSingleWarningHeader
                             upvotes={this.state.specific!.votes.upvotes}
                             downvotes={this.state.specific!.votes.downvotes}
-                            title={this.prettyType() + " Warning"}
+                            title={prettyType(this.state.warning.type) + " Warning"}
                         />
                         <Text style={[Styles.centreText as any, Styles.mb10]}>
                             This incident happened {this.timeFromWarning()} ago on {this.prettyDate()}.
                         </Text>
-                        {this.renderWarningInformation()}
+                        <ViewWarningDetails
+                            info={this.state.specific!.information as IWarningInformation}
+                        />
                         {this.renderVoteButtons()}
                     </Content>
                 </Container>
@@ -151,7 +168,7 @@ export default class ViewSingleWarning extends Component<any, IState> {
      * Gets the information for this specific warning from the server.
      */
     private getWarningInformationInitial = () => {
-        getWarningInformation(this.state.warning.warningId, this.state.warning.type)
+        getWarningInformation(this.state.warning.warningId)
             .then((value) => {
                 this.setState({
                     loading: false,
@@ -170,17 +187,6 @@ export default class ViewSingleWarning extends Component<any, IState> {
     private getWarningInformation = () => {
         this.setState({loading: true});
         this.getWarningInformationInitial();
-    }
-
-    /**
-     * Renders the specific information of the warning.
-     */
-    private renderWarningInformation = () => {
-        if (this.state.warning.type === "general") {
-            return <ViewGeneralWarning info={this.state.specific!.information as IGeneralWarning}/>;
-        }
-
-        return <Text>Error</Text>;
     }
 
     /**
@@ -229,14 +235,6 @@ export default class ViewSingleWarning extends Component<any, IState> {
         }
 
         return `${diff.seconds} second(s)`;
-    }
-
-    /**
-     * Formats the type so that the first letter is upper case.
-     */
-    private prettyType = () => {
-        const type = this.state.warning.type;
-        return (type.substr(0, 1).toUpperCase()) + type.substr(1);
     }
 
     /**

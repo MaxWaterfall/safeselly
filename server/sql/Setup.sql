@@ -9,8 +9,34 @@ CREATE TABLE User (
 	fcmToken VARCHAR(256),
 	verified boolean,
 	banned boolean,
+	lastRequest DATETIME,
 
     PRIMARY KEY (username)
+);
+
+CREATE TABLE UserInformation (
+	username VARCHAR(32) NOT NULL,
+	gender VARCHAR(10),
+	homeLatitude DOUBLE,
+	homeLongitude DOUBLE,
+	currentLatitude DOUBLE,
+	currentLongitude DOUBLE,
+	ownsBicycle boolean,
+	ownsCar boolean,
+	onwsLaptop boolean,
+
+	PRIMARY KEY (username),
+	FOREIGN KEY (username) REFERENCES User(username)
+);
+
+CREATE Table UserLocation (
+	locationId int AUTO_INCREMENT NOT NULL UNIQUE,
+	username VARCHAR(32) NOT NULL,
+	longitude double NOT NULL,
+	latitude double NOT NULL,
+
+	PRIMARY KEY (locationId),
+	FOREIGN KEY (username) REFERENCES User(username)
 );
 
 CREATE TABLE Warning (
@@ -22,18 +48,11 @@ CREATE TABLE Warning (
 	latitude DOUBLE NOT NULL,
 	longitude DOUBLE NOT NULL,
 	addedDateTime DATETIME NOT NULL,
+	peopleDescription TEXT,
+	warningDescription TEXT NOT NULL,
 	
 	PRIMARY KEY(rowNumber, warningId),
 	FOREIGN KEY(username) REFERENCES User(username)
-);
-
-CREATE Table GeneralWarning (
-	warningId VARCHAR(16) NOT NULL UNIQUE,
-	peopleDescription TEXT,
-	warningDescription TEXT NOT NULL,
-
-	PRIMARY KEY(warningId),
-	FOREIGN KEY(warningId) REFERENCES Warning(warningId)
 );
 
 CREATE Table Vote (
@@ -48,7 +67,7 @@ CREATE Table Vote (
 );
 
 CREATE Table Feedback (
-	int feedbackId AUTO_INCREMENT NOT NULL UNIQUE,
+	feedbackId int AUTO_INCREMENT NOT NULL UNIQUE,
 	username VARCHAR(32) NOT NULL,
 	feedback TEXT NOT NULL,
 
