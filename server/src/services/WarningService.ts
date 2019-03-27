@@ -22,7 +22,7 @@ const NUMBER_OF_IDS = 1000000000000; // 100 billion.
 const MAX_HOUR_FILTER = 24 * 7; // 1 week.
 const MIN_TOTAL_VOTES_FOR_BAN = 10; // At least 10 votes required before user can be banned.
 const BAN_PERCENTAGE = 51; // If 51% of votes are downvotes, the user is banned.
-const MINIMUM_RELEVANCE = 3; // The minimum relevance score required for a warning to be considered relevant.
+const MINIMUM_RELEVANCE = 2; // The minimum relevance score required for a warning to be considered relevant.
 
 /**
  * Returns all warnings in the database.

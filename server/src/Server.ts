@@ -1,4 +1,5 @@
 import express from "express";
+import { buildDatabase, createFakeWarnings } from "../test/BuildDatabase";
 import * as conf from "./config.json";
 import {
     AccessController,
@@ -17,7 +18,14 @@ export let db = new Database({
     host: config.databaseHost,
     password: config.databasePassword,
     user: config.databaseUsername,
+    multipleStatements: true,
 });
+
+if (config.buildDatabase && config.createFakeWarnings) {
+    buildDatabase(config.createFakeWarnings);
+} else if (config.createFakeWarnings) {
+    createFakeWarnings();
+}
 
 // Create new express application instance.
 const app: express.Application = express();

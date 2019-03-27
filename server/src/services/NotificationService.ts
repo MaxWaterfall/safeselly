@@ -11,7 +11,7 @@ import { createWarning } from "./../warnings/WarningHelper";
 /**
  * The minimum relevance score required to send a notification to a user.
  */
-const MINIMUM_NOTIFICATION_RELEVANCE = 4;
+const MINIMUM_NOTIFICATION_RELEVANCE = 3;
 /**
  * Initialise the Firebase Admin SDK.
  */
@@ -29,7 +29,7 @@ export async function sendNotification(notification: INotification, fcmToken: st
     if (notification.type === NotificationType.USER_SUBMITTED) {
         data = {warning: JSON.stringify(notification.warning)};
     } else {
-        // TODO: Add payload for SERVER_GENERATED notifications.
+        // In the future server generated notifications could be sent, would need support on client.
     }
 
     // Create the message.
@@ -55,7 +55,6 @@ export async function sendNotification(notification: INotification, fcmToken: st
         } else {
             log.info("Sent notification.");
         }
-
     } catch (err) {
         log.error(err);
         throw err;
@@ -110,20 +109,23 @@ export async function newWarningSubmission(warningId: string, warningSubmission:
         }
     }
 
+    // Get all fcm tokens from the database.
+    let allUserTokens: Map<string, string>;
+    try {
+        allUserTokens = await UserRepository.getAllFCMTokens();
+    } catch (err) {
+        // Just return, error has already been logged.
+        return;
+    }
+
     // Notify the users.
     usersToNotify.forEach(async (username) => {
-        // Get fcm token from database.
-        let token;
-        try {
-            token = await UserRepository.getFCMToken(username);
-        } catch (err) {
-            // Just return, error has already been logged.
-            return;
-        }
-
         // Send notification to user.
+        const token = allUserTokens.get(username);
         try {
-            await sendNotification(notification, token);
+            if (token !== null && token !== undefined) {
+                await sendNotification(notification, token);
+            }
         } catch (err) {
             log.error(err);
         }

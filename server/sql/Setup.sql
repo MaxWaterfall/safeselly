@@ -23,7 +23,7 @@ CREATE TABLE UserInformation (
 	currentLongitude DOUBLE,
 	ownsBicycle boolean,
 	ownsCar boolean,
-	onwsLaptop boolean,
+	ownsLaptop boolean,
 
 	PRIMARY KEY (username),
 	FOREIGN KEY (username) REFERENCES User(username)

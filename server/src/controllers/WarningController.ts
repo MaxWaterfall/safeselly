@@ -54,7 +54,7 @@ router.get("/filter/:hours", (req: Request, res: Response) => {
 
 /**
  * Returns all warnings that are relevant to the user making the request.
- * Can still be filtered using hours, but recommend to use 62 (3 days).
+ * Can still be filtered using hours, but recommend to use 72 (3 days).
  */
 router.get("/filter/:hours/relevant", (req: Request, res: Response) => {
     WarningService.getRelevantWarningsFrom(req.get("username") as string, req.params.hours)

@@ -3,13 +3,13 @@ import { Warning } from "./Warning";
 
 export class BurglaryWarning extends Warning {
     /**
-     * Override LOWER_DISTANCE to 100m.
+     * Override LOWER_DISTANCE to 250m.
      */
-    protected readonly LOWER_DISTANCE = 100;
+    protected readonly LOWER_DISTANCE = 250;
     /**
-     * Override UPPER_DISTANCE to 200m.
+     * Override UPPER_DISTANCE to 500m.
      */
-    protected readonly UPPER_DISTANCE = 200;
+    protected readonly UPPER_DISTANCE = 500;
 
     // Override.
     protected locationCheck() {

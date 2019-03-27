@@ -12,12 +12,12 @@ export abstract class Warning {
      * The distance this warning is from a location for it to receive +1 relevance.
      * This distance is in metres.
      */
-    protected readonly UPPER_DISTANCE: number = 100;
+    protected readonly UPPER_DISTANCE: number = 300;
     /**
      * The distance this warning is from a location for it to receive +2 relevance.
      * This distance is in metres.
      */
-    protected readonly LOWER_DISTANCE: number = 50;
+    protected readonly LOWER_DISTANCE: number = 150;
     /**
      * The initial relevance score for this user.
      * By default is 0. May be overridden by child classes.
@@ -71,7 +71,7 @@ export abstract class Warning {
         // Check if this warning was near the users' home location.
         if (this.userInfo!.homeLocation !== undefined &&
             this.isLocationWithinLowerDistance(this.userInfo!.homeLocation as Location)) {
-            return;
+                return;
         }
 
         // Check if this warning was near the users' frequently visited locations.
